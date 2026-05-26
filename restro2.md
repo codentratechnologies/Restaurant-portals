@@ -263,12 +263,13 @@ Redesigned detailed layout showing customer credentials, itemized list, pricing 
 │  Items (3)                     |  Order Lifecycle           │
 │  2x Chicken Burger    ₹300     |  [✔] Placed    12:00 PM    │
 │  1x Coke              ₹150     |  [✔] Accepted  12:05 PM    │
-│  Total: ₹450                   |  [●] Preparing             │
-│                                |  [ ] Ready for Pickup      │
-│  Customer Details              |  [ ] Out for Delivery      │
-│  John Doe (9876543210)         |  [ ] Delivered             │
-│  123, Main Rd, Bangalore       |                            │
-│                                |      [ Mark as Ready ]     │
+│  Subtotal: ₹450 | Tax: ₹22     |  [●] Preparing             │
+│  Grand Total: ₹472             |  [ ] Ready for Pickup      │
+│                                |  [ ] Out for Delivery      │
+│  Customer Details              |  [ ] Delivered             │
+│  John Doe (9876543210)         |                            │
+│  123, Main Rd, Bangalore       |      [ Mark as Ready ]     │
+│                                |                            │
 │  Delivery Partner              |                            │
 │  Name: Mike (9998887776)       |                            │
 │  Status: Out for Delivery      |                            │
@@ -287,7 +288,9 @@ Redesigned detailed layout showing customer credentials, itemized list, pricing 
 | Item Table Column: Qty | Number | Read-only | Integer >= 1 | `2x` | Quantity of items |
 | Item Table Column: Name| Text | Read-only | Min 3 chars | `Chicken Burger` | Name of dish |
 | Item Table Column: Total| Currency | Read-only | Positive decimal | `₹300` | Subtotal for line item |
-| Bill Total | Currency | Read-only | Positive decimal | `₹450` | Total billing amount |
+| Bill Subtotal | Currency | Read-only | Positive decimal | `₹450` | Sum of all item subtotals |
+| Tax Amount | Currency | Read-only | Positive decimal | `₹22` | Computed tax amount |
+| Grand Total | Currency | Read-only | Positive decimal | `₹472` | Total billing amount |
 | Timeline Stepper | Step Tracker | Read-only | Step checkmarks | `[✔] Accepted` | Mapped history with timestamps |
 | Button: Ready | Button | Yes* | Active when status is Preparing | `[Mark as Ready]` | Advances state to Ready (Blue) |
 
