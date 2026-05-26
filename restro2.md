@@ -1,93 +1,74 @@
 # Restaurant Order Management System — Restaurant Portal
 
-## UI/UX Screen Specification & Wireframes
+## Product Requirement Document (PRD) + UI/UX Specification
 
-This document details the visual layouts, interactive components, screen fields, and user flows for the **Restaurant Portal (Web)** of the Restaurant Order Management System (ROMS).
+| Document Property | Value |
+|---|---|
+| **Product Name** | Restaurant Order Management System (ROMS) |
+| **Portal** | Restaurant Portal (Web) |
+| **Version** | 2.0.0 |
+| **Status** | Approved |
+| **Last Updated** | 2026-05-26 |
+| **Audience** | Branch Managers, Kitchen Staff, UI/UX Designers, QA, Frontend Developers |
 
 ---
 
 ## Table of Contents
 
-1. [Global UI/UX Standards](#1-global-uiux-standards)
-2. [Module 1 — Home & Analytics](#2-module-1--home--analytics)
-3. [Module 2 — Food Item List](#3-module-2--food-item-list)
-4. [Module 3 — Order Management](#4-module-3--order-management)
-5. [Order Flow Logic & Real-Time States](#5-order-flow-logic--real-time-states)
+1. [Executive Summary](#1-executive-summary)
+2. [Global UI/UX Standards](#2-global-uiux-standards)
+3. [Module 1 — Home & Analytics](#3-module-1--home--analytics)
+   - [Screen 1.1: Branch Dashboard (Home)](#screen-11-branch-dashboard-home)
+4. [Module 2 — Food Item List](#4-module-2--food-item-list)
+   - [Screen 2.1: Menu Availability (List View)](#screen-21-menu-availability-list-view)
+5. [Module 3 — Order Management](#5-module-3--order-management)
+   - [Screen 3.1: Active Orders Queue Screen](#screen-31-active-orders-queue-screen)
+   - [Screen 3.2: Rejection Reason Modal](#screen-32-rejection-reason-modal)
+   - [Screen 3.3: Order Detail View](#screen-33-order-detail-view)
+   - [Screen 3.4: Delivery Partner Search Radar Modal](#screen-34-delivery-partner-search-radar-modal)
 6. [Status Management System](#6-status-management-system)
+7. [Role & Permission Logic](#7-role--permission-logic)
 
 ---
 
-# 1. Global UI/UX Standards
+# 1. Executive Summary
 
-### 1.1 Layout Structure
+The **Restaurant Portal** is a web-based operational dashboard designed specifically for branch-level management. While the Admin Portal controls global operations, this portal is strictly localized to a single branch.
 
-The Restaurant Portal is designed for tablet and desktop web interfaces, optimized for fast-paced kitchen environment readability.
+### Business Goals
+- **Operational Speed**: Enable managers and kitchen staff to process incoming orders with zero latency.
+- **Inventory Control**: Allow branches to toggle live menu availability instantly to prevent customer dissatisfaction from stock-outs.
+- **Delivery Coordination**: Fully track the assignment of orders to third-party delivery partners and manage the handover.
 
-```text
-┌──────────────────────────────────────────────────────────────┐
-│  TOPBAR: Branch Name & Status | Clock | Notifications | User │
-├────────────┬─────────────────────────────────────────────────┤
-│            │  BREADCRUMB: Dashboard > Current View           │
-│  SIDEBAR   ├─────────────────────────────────────────────────┤
-│            │                                                 │
-│  • Home    │  MAIN CONTENT AREA                              │
-│  • Menu    │                                                 │
-│  • Orders  │  ┌─────────────────────────────────────────┐   │
-│            │  │  Live Counts / Status Funnel Banner     │   │
-│            │  ├─────────────────────────────────────────┤   │
-│            │  │  Primary Workspace (Grid/Queue Cards)   │   │
-│            │  │                                          │   │
-│            │  └─────────────────────────────────────────┘   │
-│            │                                                 │
-└────────────┴─────────────────────────────────────────────────┘
-```
-
-### 1.2 Design Tokens
-
-| Token | Hex Value | Usage |
-|---|---|---|
-| Primary | `#2563EB` | Active states, default CTA buttons |
-| Success | `#16A34A` | Accept actions, Delivered status, active menu items |
-| Warning | `#F59E0B` | Pending/Preparing states, warning alerts |
-| Danger | `#DC2626` | Reject/Cancel actions, inactive menu items |
-| Surface | `#FFFFFF` | Form cards, order detail modals, dropdown menus |
-| Background| `#F8FAFC` | Main viewport layout background |
-
-### 1.3 Modern Restaurant SaaS UX
-
-- **Audio Alerts**: Critical incoming events (such as a new customer order) must trigger a repetitive chime to alert staff until acknowledged.
-- **Zero-Refresh UI**: The order queue updates instantly via live WebSocket connections without requiring manual page reload.
-- **High Contrast Typography**: Large, bold typefaces (Inter/Roboto) designed to be readable from 5–10 feet away in active kitchen environments.
+### Target Roles
+- **Branch Manager**: Full access. Manages orders, analytics, refunds, and menu availability.
+- **Kitchen Staff**: Restricted access. Interacts with the active order queue to update preparation statuses.
 
 ---
 
-# 2. Module 1 — Home & Analytics
+# 2. Global UI/UX Standards
 
-## 2.1 Overview & Flow
+### 2.1 Design Tokens
+- **Primary Color**: `#2563EB` (Blue 600) — Active states, default CTA buttons
+- **Success Color**: `#16A34A` (Green 600) — Accept actions, Delivered, Active/In-Stock items
+- **Warning Color**: `#F59E0B` (Amber 500) — Pending/Preparing states, Warnings
+- **Danger Color**: `#DC2626` (Red 600) — Reject/Cancel actions, Out-of-Stock items
+- **Neutral BG**: `#F8FAFC` (Slate 50) — General app background
+- **Card BG**: `#FFFFFF` — Cards, modals, dropdowns
 
-The Branch Dashboard is the landing page. It provides the branch manager with an overview of today’s financial performance, live orders processing funnel, and sales distributions.
-
-### User Flow
-1. Staff logs in and lands on the **Dashboard**.
-2. Staff reviews today's total sales, active order queue count, and cancelled orders counts.
-3. Staff monitors the live state funnel to identify delays in preparation.
-4. Chart displays showing peak ordering hours helps managers plan staffing shifts.
-
----
-
-## 2.2 UI/UX Layout Description
-
-- **Header Section**: Branch name identifier, live digital clock, notifications tray, and user profile avatar.
-- **KPI Metrics Grid**: Three large visual metrics displaying Sales, Total Orders count, and Cancelled/Rejected counts.
-- **Live Order Status Funnel**: A visual pipeline banner displaying quantity counts for `Pending`, `Preparing`, and `Ready` states.
-- **Visual Charts Row**:
-  - **Left Chart (60% width)**: Horizontal or vertical bar graph illustrating peak order hours.
-  - **Right List (40% width)**: Ranked list of the branch's top selling food items with order counts.
+### 2.2 Modern Restaurant SaaS UX Rules
+- **Audio Prompts**: Critical incoming events (New Orders) must trigger an audible ping.
+- **Zero-Refresh UI**: The interface must utilize real-time sockets. Active queues must update immediately without manual page refreshes.
+- **Kitchen-Legible Typography**: Use clean typography (`Inter`, `system-ui`) with large font sizing to ensure legibility from a distance in a busy kitchen environment.
+- **Click to Start Shift**: Modern browsers block audio autoplay. On log in, staff must click a primary "Start Shift" button to initialize audio playback permissions.
 
 ---
 
-## 2.3 Screen Preview
+# 3. Module 1 — Home & Analytics
 
+## Screen 1.1: Branch Dashboard (Home)
+
+### Screen Preview
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  🍽 MG Road Branch       12:45 PM | 26 May     🔔(2)  👤 ▼  │
@@ -112,46 +93,31 @@ The Branch Dashboard is the landing page. It provides the branch manager with an
 └────────────┴────────────────────────────────────────────────┘
 ```
 
----
+### Screen Description & Layout
+- **Purpose**: Displays the branch landing dashboard, containing current daily statistics and a live view of active kitchen statuses.
+- **Header Section**: Displays the Branch Name, Live Digital Clock, Notification Bell, and profile avatar.
+- **Row 1 (Metrics)**: Summary cards for Today's Sales, Orders Count, and Cancelled Orders with comparative indicators against the previous period.
+- **Row 2 (Kitchen Load Status)**: Funnel visualizer that maps orders currently in `Pending`, `Preparing`, and `Ready` states.
+- **Row 3 (Analytics Charts)**: Peak Hours bar chart (shows orders per hour) and a ranked list of Top Selling Items (with total order quantities).
 
-## 2.4 Screen Fields & Actions
+### Screen Fields & Controls
+- **Today's Sales**: Currency text showing total income. Disabled for Kitchen Staff roles.
+- **Live Summary Counters**: Live-updated numeric totals for active statuses. Updates via WebSocket.
 
-### Metric Cards
-- **Today's Sales**: Large read-only currency text.
-- **Today's Orders**: Large read-only counter.
-- **Cancelled Orders**: Large read-only counter.
+### Validation Rules
+- All daily calculations are relative to the branch's local timezone.
+- No data belonging to other branches can be queried.
 
-### Live Order Summary Banner
-- **Pending Counter**: Displays order quantity awaiting acceptance. Clicking routes to the Incoming Orders queue.
-- **Preparing Counter**: Displays order quantity in the kitchen. Clicking routes to the Preparing queue.
-- **Ready Counter**: Displays order quantity packed and awaiting dispatch. Clicking routes to the Ready queue.
-
----
-
-# 3. Module 2 — Food Item List
-
-## 3.1 Overview & Flow
-
-This module allows managers and kitchen staff to manage menu item availability at the branch level in real time.
-
-### User Flow
-1. User navigates to the **Menu Availability** page.
-2. User browses list or filters by category (e.g., Pizza, Sides).
-3. If an ingredient runs out, the user toggles the switch next to the food item.
-4. The item is instantly marked out of stock, preventing new orders on customer-facing apps.
+### Edge Cases
+- **No Orders Placed Yet**: Metric cards show ₹0 / 0. Funnel displays zero numbers and chart area displays *"Waiting for the first order..."*
 
 ---
 
-## 3.2 UI/UX Layout Description
+# 4. Module 2 — Food Item List
 
-- **Filter Bar**: Search input box for item name, plus dropdowns for category types and stock status.
-- **Data Table**: Columns showing item image, name, category, pricing, and the interactive stock toggle.
-- **Status Indicator**: Green badge for "In Stock" and red badge for "Out of Stock".
+## Screen 2.1: Menu Availability (List View)
 
----
-
-## 3.3 Screen Preview
-
+### Screen Preview
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  Menu Availability                                          │
@@ -163,48 +129,30 @@ This module allows managers and kitchen staff to manage menu item availability a
 │ [Img] │ Chicken Pizza   │ Pizza    │ ₹350  │ [● Enabled]    │
 │ [Img] │ Garlic Bread    │ Sides    │ ₹120  │ [○ Disabled]   │
 │ [Img] │ Choco Lava Cake │ Desserts │ ₹99   │ [● Enabled]    │
-├─────────────────────────────────────────────────────────────┤
+│ ├───────────────────────────────────────────────────────────┤
 │  Showing 1-15 of 80                        [<] [1] [2] [>]  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+### Screen Description & Layout
+- **Purpose**: Allows kitchen staff or managers to toggle the availability of menu items at the branch level in real time.
+- **Filters/Search**: Text search by item name. Dropdowns to filter by Category and stock availability.
+- **Data Table**: Columns showing Item Image, Name, Category, Price, and a prominent Toggle Switch (Enabled = In Stock, Disabled = Out of Stock).
 
-## 3.4 Screen Fields & Actions
+### Screen Fields & Controls
+- **Availability Toggle Switch**: Updates the item availability. Displays an optimistic UI toggle effect (switches instantly, rolls back if the save request fails).
 
-### Menu Items Table
-- **Item Search**: Text search field.
-- **Category Filter**: Dropdown menu.
-- **Status Filter**: Dropdown menu (All | In Stock | Out of Stock).
-- **Availability Toggle**: Red/Green toggle switch per food item to immediately edit availability.
-
----
-
-# 4. Module 3 — Order Management
-
-## 4.1 Overview & Flow
-
-The operational command center. Staff monitors incoming requests, moves orders through preparation stages, and coordinates delivery hand-offs.
-
-### User Flow
-- **Acceptance**: New order received (alarm rings) → manager reviews details → clicks Accept. Order shifts to the Preparing tab, and the delivery driver dispatch search begins.
-- **Kitchen Hand-off**: Food is finished preparing → kitchen staff clicks "Mark as Ready". The system notifies the assigned delivery agent.
-- **Dispatch**: Agent arrives → staff verifies order matches → hands over order → order moves to Out for Delivery status.
+### Validation Rules
+- **Toggling Sync**: Setting an item to disabled must instantly broadcast the update to prevent customers from adding it to their carts.
+- **Checkout Integrity**: If a customer checks out with an item that was toggled to disabled while in their cart, checkout will fail with a warning message.
 
 ---
 
-## 4.2 UI/UX Layout Description
+# 5. Module 3 — Order Management
 
-- **Tabbed Queue Views**: Top navigation tabs split orders by current stage: `Incoming`, `Preparing`, and `Ready`. Active count badges display on each tab label.
-- **Incoming Orders Grid**: Visual layout displaying orders as cards. New order alerts feature pulsing indicators.
-- **Order Card Detail Layout**: Cards contain Order ID, time elapsed timer, item quantities, and primary action buttons.
-- **Order Detail Slide-out / Drawer**: A split layout displaying customer notes on the left, and a tracking timeline alongside delivery agent dispatch radar on the right.
+## Screen 3.1: Active Orders Queue Screen
 
----
-
-## 4.3 Screen Previews
-
-### 4.3.1 Active Orders Screen (Incoming Queue)
+### Screen Preview
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  Orders         [Incoming (2)]  [Preparing (5)]  [Ready (1)]│
@@ -224,7 +172,51 @@ The operational command center. Staff monitors incoming requests, moves orders t
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 4.3.2 Order Detail View (Split Layout)
+### Screen Description & Layout
+- **Purpose**: Operational command view for receiving and tracking current live orders.
+- **Navigation Tabs**: Filter queues for `Incoming`, `Preparing`, and `Ready` orders.
+- **Queue Cards**: Render the Order ID, elapsed time (e.g., "3m ago"), item details, total price, payment method, and primary action buttons.
+- **Incoming Tab Actions**: "Accept" button (advances state and triggers delivery assignment) and "Reject" button (opens Rejection Modal).
+
+---
+
+## Screen 3.2: Rejection Reason Modal
+
+### Screen Preview
+```text
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Reject Order #ORD-101                                               [X] │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  Select Rejection Reason:                                                │
+│  ( ) Out of Stock (select unavailable items next)                        │
+│  ( ) Branch Overloaded (too many active orders)                          │
+│  ( ) Closing Soon / Kitchen Closed                                       │
+│  ( ) Other Reason (specify below)                                        │
+│                                                                          │
+│  Additional Notes:                                                       │
+│  [____________________________________________________________________]  │
+│                                                                          │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                [ Cancel ]  [ Reject Order ]│
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+### Screen Description & Layout
+- **Purpose**: Modal to collect reasons for rejecting a customer's order.
+- **Triggers**: Opens when the "Reject" button is clicked on an incoming order.
+- **Fields**: Radio button selections for common reasons and a text input field for additional comments.
+- **Actions**: "Reject Order" (solid red, requires reason selection) and "Cancel".
+
+### Validation Rules
+- Selecting "Other Reason" requires additional notes of at least 5 characters.
+- Submitting a rejection triggers an automatic refund process for pre-paid orders.
+
+---
+
+## Screen 3.3: Order Detail View
+
+### Screen Preview
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  < Back | Order #ORD-101               ● Preparing          │
@@ -242,50 +234,72 @@ The operational command center. Staff monitors incoming requests, moves orders t
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## 4.4 Screen Fields & Actions
-
-### Order Action Controls
-- **Accept**: Changes status to Preparing. Triggers kitchen ticket.
-- **Reject**: Triggers Reject Reason Modal popup.
-- **Rejection Reason Dropdown**: Selection choices (Out of Stock | Kitchen Too Busy | Custom Note).
-- **Mark as Ready**: Advances status to Ready.
-- **Delivery Status Tracker**: Visual indicator displaying driver search state, driver name, phone, and distance updates.
+### Screen Description & Layout
+- **Purpose**: Displays the complete details of a single order.
+- **Left Column**: Displays the line items list, customer contact details, and the delivery partner block (shows search status or name).
+- **Right Column**: Displays the vertical lifecycle timeline and the primary status advancement action ("Mark as Ready").
 
 ---
 
-# 5. Order Flow Logic & Real-Time States
+## Screen 3.4: Delivery Partner Search Radar Modal
 
-The diagram below details the operational stages and triggers for the order lifecycle.
-
-```mermaid
-graph TD
-    A[Customer Places Order] -->|Status: Pending / Alarm Rings| B(Restaurant Review)
-    B -->|Accept Order| C[Status: Preparing / Driver Search Begins]
-    B -->|Reject Order| D[Status: Rejected / Trigger Refund]
-    C -->|Mark as Ready| E[Status: Ready / Driver Alerted]
-    E -->|Handover to Driver| F[Status: Picked Up / Out for Delivery]
-    F -->|Driver Delivery Complete| G[Status: Delivered]
+### Screen Preview
+```text
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Delivery Partner Search                                             [X] │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  Assigning Delivery Partner for Order #ORD-101                           │
+│                                                                          │
+│                     .  *  .                                              │
+│                  .     *     .                                           │
+│                .      (●)      .                                         │
+│                  .   Pulse   .                                           │
+│                     .  *  .                                              │
+│                                                                          │
+│  Pinging nearby delivery partners within 3km...                          │
+│  Time Elapsed: 00:45                                                     │
+│                                                                          │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                            [ Cancel ]  [ Assign Manual ] │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
-- **Real-Time Sound Loop**: Plays continuous audio ping on `Pending` status until either `Accept` or `Reject` is clicked.
-- **WebSocket Push updates**: State changes instantly re-render order positions across the queue tables without interface lockouts.
+### Screen Description & Layout
+- **Purpose**: Displays delivery partner search radar progress.
+- **Triggers**: Automatically opens when an order is accepted, or when searching is manually re-initiated.
+- **Layout**: Centered popup containing a pulsing radar graphic, a live clock indicating search duration, and a cancel button.
+
+### Edge Cases
+- **No Agent Accepts**: If search exceeds 10 minutes, the modal shifts to a warning state, prompting the manager to cancel/refund or assign a manual courier partner.
 
 ---
 
 # 6. Status Management System
 
-The following color matrix and state rules dictate how statuses are styled and how they progress.
+The order status flow is strictly governed by the following state transitions:
 
-| State Status | visual Color | Next Allowed Screen Action | Allowed Target States |
+| Current Status | Next Allowed Status | Action Trigger | UI Treatment |
 |---|---|---|---|
-| **Pending** | Orange/Yellow | Accept ✅ or Reject ❌ | `Preparing` or `Rejected` |
-| **Preparing** | Blue | Click "Mark as Ready" | `Ready` |
-| **Ready** | Green | Click "Handed Over" | `Picked Up` (Out for Delivery) |
-| **Picked Up** | Purple | View Only (driver active) | `Delivered` |
-| **Delivered** | Muted Gray | View Only (historical) | *None (Terminal state)* |
-| **Rejected** | Red | View Only (refunded) | *None (Terminal state)* |
-| **Cancelled** | Red | View Only (discarded) | *None (Terminal state)* |
+| `Pending` | `Preparing` | Accept Order button clicked | Yellow badge |
+| `Pending` | `Rejected` | Reject Order submitted in modal | Red badge (Terminal) |
+| `Preparing` | `Ready` | Mark as Ready button clicked | Blue badge |
+| `Ready` | `Picked Up` | Delivery Partner confirms pickup | Green badge |
+| `Picked Up` | `Delivered` | Delivery Partner confirms delivery | Purple badge |
+| `Picked Up` | `Cancelled` | Cancelled by Admin/Manager | Red badge (Terminal) |
+
+---
+
+# 7. Role & Permission Logic
+
+Permissions are strictly enforced based on the branch role:
+
+| Feature / Action | Branch Manager | Kitchen Staff |
+|---|:---:|:---:|
+| View Sales & Financial KPIs | ✅ | ❌ |
+| Toggle Menu Item Availability | ✅ | ✅ |
+| Accept / Reject Incoming Orders | ✅ | ❌ |
+| Mark Order as Ready | ✅ | ✅ |
+| Cancel Order & Trigger Refund | ✅ | ❌ |
 
 ***End of Document***
