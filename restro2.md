@@ -110,6 +110,10 @@ Displays the branch landing dashboard, containing current daily statistics and a
 - Metrics update dynamically in real time through WebSocket push events.
 - Sales Metric is masked/hidden if the logged-in user role is Kitchen Staff.
 
+### 5. Dependencies
+- **Data Dependencies**: Relies on real-time transaction updates pushed from the Customer App ordering flows.
+- **Auth Dependencies**: Mapped branch details are restricted by the branch employee's login token scope.
+
 ---
 
 # 4. Module 2 — Food Item List
@@ -152,6 +156,9 @@ Allows kitchen staff or managers to toggle the availability of menu items at the
 - Search utilizes a minimum of `2 characters` before invoking the query.
 - Toggling the availability switch invokes an immediate WebSocket/API broadcast. If the API request fails, the switch reverts to its prior visual state and triggers an error toast message.
 
+### 5. Dependencies
+- **Module Dependencies**: Relies on the Admin Portal's master food catalog (Module 5) to pull list items currently assigned to the branch.
+
 ---
 
 # 5. Module 3 — Order Management
@@ -169,12 +176,12 @@ Operational queue view for receiving and updating incoming branch orders. Separa
 │  🔍 Search Order...                     Sort: [Oldest ▼]    │
 ├─────────────────────────────────────────────────────────────┤
 │ ┌────────────────────────┐ ┌────────────────────────┐       │
-│ │ 🚨 NEW                 │ │ 🚨 NEW                 │       │
-│ │ #ORD-101               │ │ #ORD-102               │       │
-│ │ 3 mins ago             │ │ 1 min ago              │       │
-│ │ 2x Chicken Burger      │ │ 1x Veg Pizza           │       │
-│ │ 1x Coke                │ │ 1x Garlic Bread        │       │
-│ │ ₹450 | Card Paid       │ │ ₹320 | COD             │       │
+│ │ 🚨 NEW                 │ │ #ORD-102               │       │
+│ │ #ORD-101               │ │ 1 min ago              │       │
+│ │ 3 mins ago             │ │ 1x Veg Pizza           │       │
+│ │ 2x Chicken Burger      │ │ 1x Garlic Bread        │       │
+│ │ 1x Coke                │ │ ₹320 | COD             │       │
+│ │ ₹450 | Card Paid       │ │                        │       │
 │ │                        │ │                        │       │
 │ │ [❌ Reject] [✅ Accept] │ │ [❌ Reject] [✅ Accept] │       │
 │ └────────────────────────┘ └────────────────────────┘       │
@@ -198,6 +205,9 @@ Operational queue view for receiving and updating incoming branch orders. Separa
 ### 4. Validations
 - Real-time sound effects trigger when new incoming orders enter the `Incoming` tab.
 - Orders must be accepted within a set threshold (e.g. 5 minutes) before a warning indicator flashes on the card.
+
+### 5. Dependencies
+- **System Dependencies**: Directly dependent on customer order submissions created via the Customer Mobile App.
 
 ---
 
@@ -285,6 +295,10 @@ Redesigned detailed layout showing customer credentials, itemized list, pricing 
 - The customer address card is hidden for Takeaway or Dine-in orders.
 - The "Mark as Ready" button is visible and active only when the order status is currently `Preparing`.
 
+### 5. Dependencies
+- **System Dependencies**: Relies on the Delivery Partner Portal/Service for live geo-matching tracking data.
+- **Workflow Dependencies**: Status updates to `Picked Up` and `Delivered` are dependent on actions executed by the Delivery App operator.
+
 ---
 
 ## Screen 3.4: Delivery Partner Search Radar Modal
@@ -323,6 +337,9 @@ Visual tracking popup showing delivery runner assignment status.
 
 ### 4. Validations
 - If searching duration exceeds `10 minutes`, the modal updates to an alert state, forcing the manager to either select manual mapping or cancel and refund the order.
+
+### 5. Dependencies
+- **System Dependencies**: Directly tied to the Delivery Partner matching microservice network to query active couriers within a 3km radius.
 
 ---
 
