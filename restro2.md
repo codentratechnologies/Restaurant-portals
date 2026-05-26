@@ -180,8 +180,9 @@ Operational queue view for receiving and updating incoming branch orders. Separa
 │ │ #ORD-101               │ │ 1 min ago              │       │
 │ │ 3 mins ago             │ │ 1x Veg Pizza           │       │
 │ │ 2x Chicken Burger      │ │ 1x Garlic Bread        │       │
-│ │ 1x Coke                │ │ ₹320 | COD             │       │
-│ │ ₹450 | Card Paid       │ │                        │       │
+│ │ 1x Coke                │ │ Subt: ₹320 | Tax: ₹16  │       │
+│ │ Subt: ₹450 | Tax: ₹22  │ │ Total: ₹336 | COD      │       │
+│ │ Total: ₹472 | Card Paid│ │                        │       │
 │ │                        │ │                        │       │
 │ │ [❌ Reject] [✅ Accept] │ │ [❌ Reject] [✅ Accept] │       │
 │ └────────────────────────┘ └────────────────────────┘       │
@@ -197,7 +198,9 @@ Operational queue view for receiving and updating incoming branch orders. Separa
 | Card: Order ID | Text | Read-only | Alphanumeric unique format | `#ORD-101` | Clickable to open detailed order panel |
 | Card: Time | Text | Read-only | Elapsed duration string | `3 mins ago` | Counter from creation timestamp |
 | Card: Items List | Text List | Read-only | List of line items | `2x Chicken Burger` | Summary of order components |
-| Card: Total | Currency | Read-only | Positive decimal | `₹450` | Total billing value |
+| Card: Subtotal | Currency | Read-only | Positive decimal | `₹450` | Sum of all item subtotals |
+| Card: Tax Amount | Currency | Read-only | Positive decimal | `₹22` | Computed tax amount |
+| Card: Total | Currency | Read-only | Positive decimal | `₹472` | Total billing value including tax |
 | Card: Payment Status| Badge | Read-only | COD, Card Paid, UPI Paid | `Card Paid` | Payment status indicator badge |
 | Button: Accept | Button | Yes | Invokes accept API transaction | `[Accept]` | Advances status to Preparing (Green) |
 | Button: Reject | Button | Yes | Opens rejection reason drawer | `[Reject]` | Opens Screen 3.2 modal (Red) |
