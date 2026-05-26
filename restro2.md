@@ -9,7 +9,7 @@
 | **Version** | 2.0.0 |
 | **Status** | Approved |
 | **Last Updated** | 2026-05-26 |
-| **Audience** | Branch Managers, Kitchen Staff, UI/UX Designers, QA, Frontend Developers |
+| **Audience** | Branch Managers, UI/UX Designers, QA, Frontend Developers |
 
 ---
 
@@ -36,13 +36,12 @@
 The **Restaurant Portal** is a web-based operational dashboard designed specifically for branch-level management. While the Admin Portal controls global configurations, this portal is strictly localized to a single branch's day-to-day order processing and menu control.
 
 ### Business Goals
-- **Operational Speed**: Enable managers and kitchen staff to process incoming orders with zero latency.
+- **Operational Speed**: Enable managers to process incoming orders with zero latency.
 - **Inventory Control**: Allow branches to toggle live menu availability instantly to prevent customer dissatisfaction from stock-outs.
 - **Delivery Coordination**: Fully track the assignment of orders to third-party delivery partners and manage the physical handover.
 
 ### Target Roles
 - **Branch Manager**: Full access. Manages orders, analytics, refunds, and menu availability.
-- **Kitchen Staff**: Restricted access. Interacts with the active order queue to update preparation statuses.
 
 ---
 
@@ -108,7 +107,6 @@ Displays the branch landing dashboard, containing current daily statistics and a
 
 ### 4. Validations
 - Metrics update dynamically in real time through WebSocket push events.
-- Sales Metric is masked/hidden if the logged-in user role is Kitchen Staff.
 
 ### 5. Dependencies
 - **Data Dependencies**: Relies on real-time transaction updates pushed from the Customer App ordering flows.
@@ -121,7 +119,7 @@ Displays the branch landing dashboard, containing current daily statistics and a
 ## Screen 2.1: Menu Availability (List View)
 
 ### 1. Overview
-Allows kitchen staff or managers to toggle the availability of menu items at the branch level in real time. Items toggled off will instantly be disabled on user ordering apps.
+Allows managers to toggle the availability of menu items at the branch level in real time. Items toggled off will instantly be disabled on user ordering apps.
 
 ### 2. Screen Preview
 ```text
@@ -366,14 +364,14 @@ The order status flow is strictly governed by the following state transitions:
 
 # 7. Role & Permission Logic
 
-Permissions are strictly enforced based on the branch role:
+All actions and features in the Restaurant Portal are restricted to the **Branch Manager** role:
 
-| Feature / Action | Branch Manager | Kitchen Staff |
-|---|:---:|:---:|
-| View Sales & Financial KPIs | ✅ | ❌ |
-| Toggle Menu Item Availability | ✅ | ✅ |
-| Accept / Reject Incoming Orders | ✅ | ❌ |
-| Mark Order as Ready | ✅ | ✅ |
-| Cancel Order & Trigger Refund | ✅ | ❌ |
+| Feature / Action | Branch Manager |
+|---|:---:|
+| View Sales & Financial KPIs | ✅ |
+| Toggle Menu Item Availability | ✅ |
+| Accept / Reject Incoming Orders | ✅ |
+| Mark Order as Ready | ✅ |
+| Cancel Order & Trigger Refund | ✅ |
 
 ***End of Document***
