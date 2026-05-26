@@ -284,108 +284,207 @@ Interface used to update the configuration of an existing branch. The unique Bra
 ## Screen 2.4: View Branch Details Screen
 
 ### 1. Overview
-A premium, modular detail viewport providing managers and administrators with comprehensive operations auditing capabilities for a designated branch. Incorporates a static action shell with a three-tab view switcher to alternate between core Branch Overview, Assigned Menus, and Active Employee Roster.
+A single-page detail screen for viewing all information related to a specific branch. The screen is divided into two zones: a **persistent header card** that always displays the branch's core identity (name, code, email, status), and an **internal tabbed panel** below it that allows switching between different detail views without leaving the page. This follows the pattern shown in the reference design — a clean header section followed by an inline tab switcher.
 
----
+### 2. Screen Layout
 
-### SECTION A: Persistent Screen Shell & Tab Navigation
+The screen is composed of two visual zones stacked vertically:
 
-This section details the global header, primary management commands, and the tab controller panel that remains statically visible across all viewport interactions.
+**Zone 1 — Branch Identity Header Card (Always Visible)**
+A non-scrollable summary card pinned at the top of the screen. Displays core branch identity fields and primary action buttons. This zone never changes when switching tabs.
 
-#### 1. Wireframe & Visual Layout
+**Zone 2 — Internal Tabbed Content Panel**
+A tab bar immediately below the header card. Each tab renders its own content viewport inline, replacing only the area below the tab bar. The active tab is visually indicated with an underline highlight. The screen supports three tabs:
+
+| Tab Label | Badge Count | Description |
+|---|---|---|
+| Branch Information | — | Detailed branch configuration and audit trail |
+| Assigned Menu | Dynamic (e.g. `25`) | Food items mapped to this branch |
+| Employees | Dynamic (e.g. `8`) | Staff assigned to this branch |
+
+### 3. Screen Preview (Full Composite View — Branch Information Tab Active)
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  MG Road Branch — B001 (Active)           [Edit] [Deactivate]│
-├─────────────────────────────────────────────────────────────┤
-│  [Overview]   Assigned Menu (25)   Employees (8)            │
+│  ‹ Back                                                     │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  [==================== TAB VIEWPORT AREA ==================]│
+│  MG Road Branch (B001)                    [Edit] [Deactivate]│
+│  Branch Name:  MG Road Branch                               │
+│  Branch Code:  B001                                         │
+│  Email:        mgroad@roms.com                              │
+│  Status:       ● Active                                     │
+│                                                             │
+│  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│  [Branch Information]    Assigned Menu (25)    Employees (8) │
+│  ─────────────────────                                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │ Branch Code        │ B001                               ││
+│  │ Address Details    │ 123, Main Street, MG Road          ││
+│  │ City               │ Bangalore                          ││
+│  │ State              │ Karnataka                          ││
+│  │ Pincode            │ 560001                             ││
+│  │ Contact Phone      │ +91 9811223344                     ││
+│  │ Operating Hours    │ 10:00 AM to 11:00 PM               ││
+│  │ Created By         │ admin_user on 2026-05-01 10:00 AM  ││
+│  │ Updated By         │ admin_user on 2026-05-20 03:30 PM  ││
+│  └─────────────────────────────────────────────────────────┘│
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-#### 2. Persistent Fields Table
+---
+
+### SECTION A: Branch Identity Header Card (Persistent — Always Visible)
+
+This zone remains fixed at the top regardless of which tab is active. It provides instant identification and primary management actions.
+
+#### 1. Header Card Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Branch Title | Label | Read-only | Format: `{Name} Branch — {Code}` | `MG Road Branch — B001` | Main page heading |
-| Status Indicator | Badge | Read-only | Green pill for Active, Red pill for Inactive | `Active` | Branch status flag |
-| Button: Edit | Button | Yes | Navigates to Update Branch (Screen 2.3) | `[Edit]` | Primary action link |
-| Button: Deactivate | Button | Yes | Triggers confirmation modal (Screen 2.6) | `[Deactivate]` | Destructive action link |
-| Tab Switcher | Buttons | Yes | Swaps out active tab content viewport below | `Overview` | Supports keyboard tab navigation |
+| Back Button | Link | Yes | Navigates back to Branch Dashboard (Screen 2.1) | `‹ Back` | Top-left navigation link |
+| Branch Title | Label | Read-only | Format: `{Name} ({Code})` | `MG Road Branch (B001)` | Main page heading, prominent display |
+| Branch Name | Label | Read-only | Min 3 characters | `MG Road Branch` | Displayed below title |
+| Branch Code | Label | Read-only | Unique alphanumeric code | `B001` | Displayed below branch name |
+| Email | Label | Read-only | Valid email format | `mgroad@roms.com` | Branch contact email |
+| Status Indicator | Badge | Read-only | Green pill for `Active`, Red pill for `Inactive` | `● Active` | Color-coded status pill next to identity |
+| Button: Edit | Button | Yes | Navigates to Update Branch (Screen 2.3) | `[Edit]` | Primary action — top-right |
+| Button: Deactivate | Button | Yes | Triggers confirmation modal (Screen 2.6) | `[Deactivate]` | Destructive action — top-right |
 
 ---
 
-### SECTION B: Tab-Specific Content Viewports
+### SECTION B: Internal Tab Bar Controller
 
-#### Tab 1: Overview Tab Viewport
-Displays operational metadata, geographic address cards, and dynamic system audit trail timestamps.
+The tab bar sits directly below the header card, acting as the switcher for the content panel. Only one tab is active at a time. The active tab displays an **underline highlight** (primary color `#2563EB`) beneath its label.
 
-##### 1. Overview Viewport Preview
+#### 1. Tab Bar Behavior
+| Property | Specification |
+|---|---|
+| Default Active Tab | `Branch Information` (first tab) |
+| Active Tab Indicator | Bottom border underline, `2px solid #2563EB` |
+| Inactive Tab Style | Neutral gray text, no underline |
+| Badge Counts | Dynamic numeric counts shown in parentheses for `Assigned Menu` and `Employees` tabs |
+| URL State Persistence | Active tab selection must be reflected in the URL query parameter (e.g. `?tab=menu`) so that page refresh preserves the selected tab |
+| Keyboard Navigation | Supports `←` / `→` arrow key navigation between tabs, `Enter` to activate |
+
+---
+
+### SECTION C: Tab Content Viewports
+
+Each tab renders its own dedicated content area below the tab bar. When a tab is selected, only the content viewport area swaps — the header card and tab bar remain static.
+
+---
+
+#### Tab 1: Branch Information
+
+Displays the full operational configuration of the branch in a **vertical key-value detail card** format (label on left, value on right), matching the reference design layout. Includes address details, contact information, operating hours, and system audit trail.
+
+##### 1. Branch Information Tab Preview
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│  Branch Code: B001 | Phone: 9811223344 | Email: mgroad@roms │
-│  Address: 123, Main Street, MG Road, Bangalore - 560001     │
-│  Operating Hours: 10:00 AM to 11:00 PM                      │
 ├─────────────────────────────────────────────────────────────┤
-│  Created By: admin_user | Created At: 2026-05-01 10:00 AM   │
-│  Updated By: admin_user | Updated At: 2026-05-20 03:30 PM   │
+│  [Branch Information]    Assigned Menu (25)    Employees (8) │
+│  ─────────────────────                                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌───────────────────┬─────────────────────────────────────┐│
+│  │ Branch Code       │ B001                                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Address Details   │ 123, Main Street, MG Road           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ City              │ Bangalore                           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ State             │ Karnataka                           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Pincode           │ 560001                              ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Contact Phone     │ +91 9811223344                      ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Contact Email     │ mgroad@roms.com                     ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Operating Hours   │ 10:00 AM to 11:00 PM                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Created By        │ admin_user on 2026-05-01 10:00 AM   ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Edited By         │ admin_user on 2026-05-20 03:30 PM   ││
+│  └───────────────────┴─────────────────────────────────────┘│
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-##### 2. Overview Fields Table
+##### 2. Branch Information Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Branch Code | Text | Read-only | Unique alphanumeric code | `B001` | Unique branch identifier |
-| Contact Phone | Phone | Read-only | Exactly 10 digits | `9811223344` | Branch contact number |
+| Address Details | Text | Read-only | Minimum 10 characters | `123, Main Street, MG Road` | Full street address |
+| City | Text | Read-only | Valid city name | `Bangalore` | Branch city |
+| State | Text | Read-only | Valid state name | `Karnataka` | Branch state |
+| Pincode | Text | Read-only | Exactly 6 digits | `560001` | Postal code |
+| Contact Phone | Phone | Read-only | Exactly 10 digits, displayed with `+91` prefix | `+91 9811223344` | Branch contact number |
 | Contact Email | Email | Read-only | Valid email format | `mgroad@roms.com` | Notification email |
-| Address | Text | Read-only | Minimum 10 characters | `123, Main Street...` | Fully concatenated address string |
 | Operating Hours | Text | Read-only | Format: `{Open Time} to {Close Time}` | `10:00 AM to 11:00 PM` | Daily operational window |
-| Created By | Text | Read-only | Existing user signature | `admin_user` | Audit log field |
-| Created At | DateTime| Read-only | Standard timestamp formatting | `2026-05-01 10:00 AM` | Audit log field |
-| Updated By | Text | Read-only | Existing user signature | `admin_user` | Audit log field |
-| Updated At | DateTime| Read-only | Standard timestamp formatting | `2026-05-20 03:30 PM` | Audit log field |
+| Created By | Text | Read-only | Format: `{user} on {timestamp}` | `admin_user on 2026-05-01 10:00 AM` | Audit trail — creator identity and timestamp combined |
+| Edited By | Text | Read-only | Format: `{user} on {timestamp}` | `admin_user on 2026-05-20 03:30 PM` | Audit trail — last editor identity and timestamp combined |
 
 ---
 
-#### Tab 2: Assigned Menu Tab Viewport
-Displays a catalog list representing all culinary items mapped to and purchasable from this branch location.
+#### Tab 2: Assigned Menu
 
-##### 1. Assigned Menu Viewport Preview
+Displays the list of food items currently mapped to this branch in a tabular format. Includes an action button to navigate to the menu assignment screen.
+
+##### 1. Assigned Menu Tab Preview
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│  Assigned Menu Mappings                      [+ Assign Menu]│
-├─────────────┬───────────────────────────────┬───────────────┤
-│  Item Code  │ Food Item Name                │ Price         │
-├─────────────┼───────────────────────────────┼───────────────┤
-│  F012       │ Chicken Biryani               │ ₹299          │
-│  F045       │ Margherita Pizza              │ ₹199          │
-└─────────────┴───────────────────────────────┴───────────────┘
+├─────────────────────────────────────────────────────────────┤
+│   Branch Information    [Assigned Menu (25)]    Employees (8)│
+│                         ─────────────────────                │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Assigned Menu Items                           [+ Assign Menu]│
+│  ┌─────────────┬───────────────────────────────┬────────────┐│
+│  │ Item Code   │ Food Item Name                │ Price      ││
+│  ├─────────────┼───────────────────────────────┼────────────┤│
+│  │ F012        │ Chicken Biryani               │ ₹299       ││
+│  │ F045        │ Margherita Pizza              │ ₹199       ││
+│  │ F023        │ Garlic Bread                  │ ₹149       ││
+│  └─────────────┴───────────────────────────────┴────────────┘│
+│  Showing 1-10 of 25                       [<] [1] [2] [>]   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ##### 2. Assigned Menu Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Button: Assign Menu | Button | Yes | Redirects to Assign Menu (Screen 2.5) | `[+ Assign Menu]` | Tab-specific context action |
-| Menu Table: Item Code| Text | Read-only | Alphanumeric unique code | `F012` | Linked food item code |
+| Button: Assign Menu | Button | Yes | Redirects to Assign Menu (Screen 2.5) | `[+ Assign Menu]` | Tab-specific action to manage menu mappings |
+| Menu Table: Item Code | Text | Read-only | Alphanumeric unique code | `F012` | Linked food item code |
 | Menu Table: Name | Text | Read-only | Minimum 3 characters | `Chicken Biryani` | Master food item title |
 | Menu Table: Price | Currency | Read-only | Positive decimal format | `₹299` | Branch selling price |
+| Pagination | Control | Yes | Standard page navigation | `Showing 1-10 of 25` | Paginated at 10 items per page |
 
 ---
 
-#### Tab 3: Employees Tab Viewport
-Lists the roster of personnel currently assigned to and scheduled at this branch location.
+#### Tab 3: Employees
 
-##### 1. Employees Viewport Preview
+Lists the staff members currently assigned to this branch in a tabular format.
+
+##### 1. Employees Tab Preview
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│  Active Employees Roster                                    │
-├─────────┬──────────────────┬─────────────────┬──────────────┤
-│  ID     │ Full Name        │ Role            │ Status       │
-├─────────┼──────────────────┼─────────────────┼──────────────┤
-│  E101   │ John Doe         │ Manager         │ ● Active     │
-│  E102   │ Jane Smith       │ Kitchen Staff   │ ● Active     │
-└─────────┴──────────────────┴─────────────────┴──────────────┘
+├─────────────────────────────────────────────────────────────┤
+│   Branch Information    Assigned Menu (25)    [Employees (8)]│
+│                                               ──────────────│
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Branch Employees                                           │
+│  ┌──────────┬──────────────────┬────────────────┬──────────┐│
+│  │ ID       │ Full Name        │ Role           │ Status   ││
+│  ├──────────┼──────────────────┼────────────────┼──────────┤│
+│  │ E101     │ John Doe         │ Manager        │ ● Active ││
+│  │ E102     │ Jane Smith       │ Kitchen Staff  │ ● Active ││
+│  │ E103     │ Ravi Patel       │ Delivery       │ ● Active ││
+│  └──────────┴──────────────────┴────────────────┴──────────┘│
+│  Showing 1-8 of 8                                           │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ##### 2. Employees Fields Table
@@ -394,18 +493,21 @@ Lists the roster of personnel currently assigned to and scheduled at this branch
 | Employee Table: ID | Text | Read-only | Unique alphanumeric staff code | `E101` | Unique employee ID |
 | Employee Table: Name | Text | Read-only | Minimum 2 characters | `John Doe` | Combined first and last name |
 | Employee Table: Role | Text | Read-only | Valid operational system role | `Manager` | Role description |
-| Employee Table: Status| Badge | Read-only | 'Active' or 'Inactive' state | `Active` | Color-coded status badge |
+| Employee Table: Status | Badge | Read-only | `Active` or `Inactive` state | `● Active` | Color-coded status badge |
+| Pagination | Control | Yes | Standard page navigation | `Showing 1-8 of 8` | Paginated at 10 items per page |
 
 ---
 
-### SECTION C: Business Validations & Rules
+### SECTION D: Business Validations & Rules
 
-1. **Audit Logs Integrity**: Audit tracking fields (Created By/At, Updated By/At) are system-managed. Under no circumstances can these be edited by an operator.
-2. **Dynamic Badging**: The numeric indicators inside the tab switcher headers (e.g. `Assigned Menu (25)`) must automatically recalculate in real-time if elements are added or removed.
+1. **Audit Trail Integrity**: Audit tracking fields (Created By, Edited By) are system-managed and cannot be edited by any user.
+2. **Dynamic Badge Counts**: The numeric counts displayed in the tab labels (e.g. `Assigned Menu (25)`, `Employees (8)`) must automatically recalculate whenever items are added or removed.
+3. **Tab State Persistence**: The currently active tab must be preserved in the URL query string (e.g. `?tab=menu`) so that browser refresh or shared links restore the correct tab view.
+4. **Back Navigation**: The `‹ Back` link must return the user to the Branch Dashboard (Screen 2.1), preserving any previously applied filters.
 
-### SECTION D: Dependencies
+### SECTION E: Dependencies
 
-- **Module Dependencies**: Depends directly on Module 3 (Employee Management) to retrieve roster records and Module 5 (Food Management) to query master menu catalog items mapped to this branch.
+- **Module Dependencies**: Depends directly on Module 3 (Employee Management) to retrieve staff roster records and Module 5 (Food Management) to query master menu catalog items mapped to this branch.
 
 ---
 
