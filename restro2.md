@@ -145,7 +145,7 @@ Allows kitchen staff or managers to toggle the availability of menu items at the
 |---|---|---|---|---|---|
 | Search Input | Text | No | Max 50 characters | `Pizza` | Filters list by food item name |
 | Category Filter | Dropdown | No | Valid master category ID or 'All' | `Pizza` | Filters list by category classification |
-| Status Filter | Dropdown | No | 'All', 'Enabled', or 'Disabled' | `Enabled` | Filters list by stock state |
+| Status Filter | Dropdown | Yes | 'All', 'Enabled', or 'Disabled' | `Enabled` | Filters list by stock state |
 | Table Column: Image | Image | Read-only | Valid image CDN URL | `[Img]` | Display thumbnail of item |
 | Table Column: Name | Text | Read-only | Min 3 chars | `Chicken Pizza` | Food item title |
 | Table Column: Category| Text | Read-only | Valid category | `Pizza` | Food category label |
