@@ -71,6 +71,18 @@ The **Admin Portal** is a web-based central command panel of the Restaurant Orde
 - **Search Debounce**: Text search bars must run with a standard `300ms` debounce duration to prevent server overloading.
 - **Modals**: Destructive confirmations must require a clear double-click or confirmation button click before API execution.
 
+### 2.3 Tabbed Interface Specification Standard
+To ensure maximum clarity for frontend developers and UI/UX designers, screens containing tabbed views (e.g., within dashboards, tables, or detail panels) must follow a rigorous **Two-Section Structure** in their requirements definitions:
+
+1. **Section A: Persistent Screen Shell & Tab Navigation**
+   - **Persistent Visual Elements**: Define elements that are always visible regardless of the active tab (e.g., page title, breadcrumbs, primary global actions, audit metadata).
+   - **Tab Bar Controller / Switcher**: Specify the navigation mechanism (labels, dynamic counts in badges, active/inactive states, and URL routing state persistence).
+   - **Persistent Elements Field Table**: Fields for global header buttons, title elements, and navigation selectors.
+
+2. **Section B: Tab-Specific Content Viewports**
+   - **Segmented Viewports**: List distinct subsections for *each tab* with their own high-fidelity ASCII wireframes/previews.
+   - **Context-Specific Fields Table**: Provide unique fields tables mapped strictly to each individual tab's viewport content. This eliminates ambiguity around which filters, tables, and actions are local to a specific tab versus global to the screen.
+
 ---
 
 # 3. Module 1 — Home & Analytics
@@ -272,52 +284,128 @@ Interface used to update the configuration of an existing branch. The unique Bra
 ## Screen 2.4: View Branch Details Screen
 
 ### 1. Overview
-Redesigned view page containing comprehensive details of a selected branch. Contains an overview info card and data tables listing both assigned menu food items and assigned employee roster.
+A premium, modular detail viewport providing managers and administrators with comprehensive operations auditing capabilities for a designated branch. Incorporates a static action shell with a three-tab view switcher to alternate between core Branch Overview, Assigned Menus, and Active Employee Roster.
 
-### 2. Screen Preview
+---
+
+### SECTION A: Persistent Screen Shell & Tab Navigation
+
+This section details the global header, primary management commands, and the tab controller panel that remains statically visible across all viewport interactions.
+
+#### 1. Wireframe & Visual Layout
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  MG Road Branch — B001 (Active)           [Edit] [Deactivate]│
 ├─────────────────────────────────────────────────────────────┤
 │  [Overview]   Assigned Menu (25)   Employees (8)            │
 ├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  [==================== TAB VIEWPORT AREA ==================]│
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 2. Persistent Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Branch Title | Label | Read-only | Format: `{Name} Branch — {Code}` | `MG Road Branch — B001` | Main page heading |
+| Status Indicator | Badge | Read-only | Green pill for Active, Red pill for Inactive | `Active` | Branch status flag |
+| Button: Edit | Button | Yes | Navigates to Update Branch (Screen 2.3) | `[Edit]` | Primary action link |
+| Button: Deactivate | Button | Yes | Triggers confirmation modal (Screen 2.6) | `[Deactivate]` | Destructive action link |
+| Tab Switcher | Buttons | Yes | Swaps out active tab content viewport below | `Overview` | Supports keyboard tab navigation |
+
+---
+
+### SECTION B: Tab-Specific Content Viewports
+
+#### Tab 1: Overview Tab Viewport
+Displays operational metadata, geographic address cards, and dynamic system audit trail timestamps.
+
+##### 1. Overview Viewport Preview
+```text
+┌─────────────────────────────────────────────────────────────┐
 │  Branch Code: B001 | Phone: 9811223344 | Email: mgroad@roms │
 │  Address: 123, Main Street, MG Road, Bangalore - 560001     │
 │  Operating Hours: 10:00 AM to 11:00 PM                      │
-│                                                             │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │ Active Employees Roster (Employees Tab Content)       │  │
-│  ├─────────┬──────────────┬──────────────┬───────────────┤  │
-│  │ ID      │ Name         │ Role         │ Status        │  │
-│  ├─────────┼──────────────┼──────────────┼───────────────┤  │
-│  │ E101    │ John Doe     │ Manager      │ ● Active      │  │
-│  │ E102    │ Jane Smith   │ Kitchen Staff│ ● Active      │  │
-│  └─────────┴──────────────┴──────────────┴───────────────┘  │
-│                                                             │
+├─────────────────────────────────────────────────────────────┤
 │  Created By: admin_user | Created At: 2026-05-01 10:00 AM   │
 │  Updated By: admin_user | Updated At: 2026-05-20 03:30 PM   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 3. Screen Fields Table
+##### 2. Overview Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Tab Switcher | Buttons | Yes | Must navigate to Overview, Assigned Menu, or Employees | `Employees` | Swaps out active tab content pane |
-| Employee Table: ID | Text | Read-only | Alphanumeric unique code | `E101` | Employee unique code |
-| Employee Table: Name| Text | Read-only | Min 2 characters | `John Doe` | Combined first and last name |
-| Employee Table: Role| Text | Read-only | Valid employee system role | `Manager` | Operational role |
-| Employee Table: Status| Badge | Read-only | 'Active' or 'Inactive' badge | `Active` | Status pill indicator |
-| Menu Table: Item Code| Text | Read-only | Alphanumeric unique code | `F012` | Food item code |
-| Menu Table: Name | Text | Read-only | Min 3 characters | `Chicken Biryani` | Item name |
-| Menu Table: Price | Currency | Read-only | Positive decimal | `₹299` | Branch selling price |
-| Button: Edit | Button | Yes | Redirects to update branch form | `[Edit]` | Navigates to Screen 2.3 |
-| Button: Deactivate | Button | Yes | Opens confirmation modal | `[Deactivate]` | Opens Screen 2.6 confirmation |
+| Branch Code | Text | Read-only | Unique alphanumeric code | `B001` | Unique branch identifier |
+| Contact Phone | Phone | Read-only | Exactly 10 digits | `9811223344` | Branch contact number |
+| Contact Email | Email | Read-only | Valid email format | `mgroad@roms.com` | Notification email |
+| Address | Text | Read-only | Minimum 10 characters | `123, Main Street...` | Fully concatenated address string |
+| Operating Hours | Text | Read-only | Format: `{Open Time} to {Close Time}` | `10:00 AM to 11:00 PM` | Daily operational window |
+| Created By | Text | Read-only | Existing user signature | `admin_user` | Audit log field |
+| Created At | DateTime| Read-only | Standard timestamp formatting | `2026-05-01 10:00 AM` | Audit log field |
+| Updated By | Text | Read-only | Existing user signature | `admin_user` | Audit log field |
+| Updated At | DateTime| Read-only | Standard timestamp formatting | `2026-05-20 03:30 PM` | Audit log field |
 
-### 4. Validations
-- Audit fields (Created By/At, Updated By/At) are resolved by the server and are strictly non-editable.
+---
 
-### 5. Dependencies
-- **Module Dependencies**: Relies on Module 3 (Employee Management) to query linked staff members and Module 5 (Food Management) to query mapped food menu items.
+#### Tab 2: Assigned Menu Tab Viewport
+Displays a catalog list representing all culinary items mapped to and purchasable from this branch location.
+
+##### 1. Assigned Menu Viewport Preview
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Assigned Menu Mappings                      [+ Assign Menu]│
+├─────────────┬───────────────────────────────┬───────────────┤
+│  Item Code  │ Food Item Name                │ Price         │
+├─────────────┼───────────────────────────────┼───────────────┤
+│  F012       │ Chicken Biryani               │ ₹299          │
+│  F045       │ Margherita Pizza              │ ₹199          │
+└─────────────┴───────────────────────────────┴───────────────┘
+```
+
+##### 2. Assigned Menu Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Button: Assign Menu | Button | Yes | Redirects to Assign Menu (Screen 2.5) | `[+ Assign Menu]` | Tab-specific context action |
+| Menu Table: Item Code| Text | Read-only | Alphanumeric unique code | `F012` | Linked food item code |
+| Menu Table: Name | Text | Read-only | Minimum 3 characters | `Chicken Biryani` | Master food item title |
+| Menu Table: Price | Currency | Read-only | Positive decimal format | `₹299` | Branch selling price |
+
+---
+
+#### Tab 3: Employees Tab Viewport
+Lists the roster of personnel currently assigned to and scheduled at this branch location.
+
+##### 1. Employees Viewport Preview
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Active Employees Roster                                    │
+├─────────┬──────────────────┬─────────────────┬──────────────┤
+│  ID     │ Full Name        │ Role            │ Status       │
+├─────────┼──────────────────┼─────────────────┼──────────────┤
+│  E101   │ John Doe         │ Manager         │ ● Active     │
+│  E102   │ Jane Smith       │ Kitchen Staff   │ ● Active     │
+└─────────┴──────────────────┴─────────────────┴──────────────┘
+```
+
+##### 2. Employees Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Employee Table: ID | Text | Read-only | Unique alphanumeric staff code | `E101` | Unique employee ID |
+| Employee Table: Name | Text | Read-only | Minimum 2 characters | `John Doe` | Combined first and last name |
+| Employee Table: Role | Text | Read-only | Valid operational system role | `Manager` | Role description |
+| Employee Table: Status| Badge | Read-only | 'Active' or 'Inactive' state | `Active` | Color-coded status badge |
+
+---
+
+### SECTION C: Business Validations & Rules
+
+1. **Audit Logs Integrity**: Audit tracking fields (Created By/At, Updated By/At) are system-managed. Under no circumstances can these be edited by an operator.
+2. **Dynamic Badging**: The numeric indicators inside the tab switcher headers (e.g. `Assigned Menu (25)`) must automatically recalculate in real-time if elements are added or removed.
+
+### SECTION D: Dependencies
+
+- **Module Dependencies**: Depends directly on Module 3 (Employee Management) to retrieve roster records and Module 5 (Food Management) to query master menu catalog items mapped to this branch.
 
 ---
 
