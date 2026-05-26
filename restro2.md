@@ -33,12 +33,12 @@
 
 # 1. Executive Summary
 
-The **Restaurant Portal** is a web-based operational dashboard designed specifically for branch-level management. While the Admin Portal controls global operations, this portal is strictly localized to a single branch.
+The **Restaurant Portal** is a web-based operational dashboard designed specifically for branch-level management. While the Admin Portal controls global configurations, this portal is strictly localized to a single branch's day-to-day order processing and menu control.
 
 ### Business Goals
 - **Operational Speed**: Enable managers and kitchen staff to process incoming orders with zero latency.
 - **Inventory Control**: Allow branches to toggle live menu availability instantly to prevent customer dissatisfaction from stock-outs.
-- **Delivery Coordination**: Fully track the assignment of orders to third-party delivery partners and manage the handover.
+- **Delivery Coordination**: Fully track the assignment of orders to third-party delivery partners and manage the physical handover.
 
 ### Target Roles
 - **Branch Manager**: Full access. Manages orders, analytics, refunds, and menu availability.
@@ -68,7 +68,10 @@ The **Restaurant Portal** is a web-based operational dashboard designed specific
 
 ## Screen 1.1: Branch Dashboard (Home)
 
-### Screen Preview
+### 1. Overview
+Displays the branch landing dashboard, containing current daily statistics and a live view of active kitchen statuses. It acts as an overview panel for current daily shifts.
+
+### 2. Screen Preview
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  🍽 MG Road Branch       12:45 PM | 26 May     🔔(2)  👤 ▼  │
@@ -93,23 +96,19 @@ The **Restaurant Portal** is a web-based operational dashboard designed specific
 └────────────┴────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Displays the branch landing dashboard, containing current daily statistics and a live view of active kitchen statuses.
-- **Header Section**: Displays the Branch Name, Live Digital Clock, Notification Bell, and profile avatar.
-- **Row 1 (Metrics)**: Summary cards for Today's Sales, Orders Count, and Cancelled Orders with comparative indicators against the previous period.
-- **Row 2 (Kitchen Load Status)**: Funnel visualizer that maps orders currently in `Pending`, `Preparing`, and `Ready` states.
-- **Row 3 (Analytics Charts)**: Peak Hours bar chart (shows orders per hour) and a ranked list of Top Selling Items (with total order quantities).
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Sales Metric | Currency | Read-only | Positive decimal value | `₹45,200` | Displays today's total sales |
+| Orders Count | Number | Read-only | Integer >= 0 | `124` | Today's total order count |
+| Cancelled Count | Number | Read-only | Integer >= 0 | `3` | Today's cancelled order count |
+| Pending Counter | Number | Read-only | Integer >= 0 | `4` | Live order count in Pending queue |
+| Preparing Counter| Number | Read-only | Integer >= 0 | `12` | Live order count in Preparing queue |
+| Ready Counter | Number | Read-only | Integer >= 0 | `2` | Live order count in Ready queue |
 
-### Screen Fields & Controls
-- **Today's Sales**: Currency text showing total income. Disabled for Kitchen Staff roles.
-- **Live Summary Counters**: Live-updated numeric totals for active statuses. Updates via WebSocket.
-
-### Validation Rules
-- All daily calculations are relative to the branch's local timezone.
-- No data belonging to other branches can be queried.
-
-### Edge Cases
-- **No Orders Placed Yet**: Metric cards show ₹0 / 0. Funnel displays zero numbers and chart area displays *"Waiting for the first order..."*
+### 4. Validations
+- Metrics update dynamically in real time through WebSocket push events.
+- Sales Metric is masked/hidden if the logged-in user role is Kitchen Staff.
 
 ---
 
@@ -117,7 +116,10 @@ The **Restaurant Portal** is a web-based operational dashboard designed specific
 
 ## Screen 2.1: Menu Availability (List View)
 
-### Screen Preview
+### 1. Overview
+Allows kitchen staff or managers to toggle the availability of menu items at the branch level in real time. Items toggled off will instantly be disabled on user ordering apps.
+
+### 2. Screen Preview
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  Menu Availability                                          │
@@ -129,22 +131,26 @@ The **Restaurant Portal** is a web-based operational dashboard designed specific
 │ [Img] │ Chicken Pizza   │ Pizza    │ ₹350  │ [● Enabled]    │
 │ [Img] │ Garlic Bread    │ Sides    │ ₹120  │ [○ Disabled]   │
 │ [Img] │ Choco Lava Cake │ Desserts │ ₹99   │ [● Enabled]    │
-│ ├───────────────────────────────────────────────────────────┤
+├─────────────────────────────────────────────────────────────┤
 │  Showing 1-15 of 80                        [<] [1] [2] [>]  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Allows kitchen staff or managers to toggle the availability of menu items at the branch level in real time.
-- **Filters/Search**: Text search by item name. Dropdowns to filter by Category and stock availability.
-- **Data Table**: Columns showing Item Image, Name, Category, Price, and a prominent Toggle Switch (Enabled = In Stock, Disabled = Out of Stock).
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Search Input | Text | No | Max 50 characters | `Pizza` | Filters list by food item name |
+| Category Filter | Dropdown | No | Valid master category ID or 'All' | `Pizza` | Filters list by category classification |
+| Status Filter | Dropdown | No | 'All', 'Enabled', or 'Disabled' | `Enabled` | Filters list by stock state |
+| Table Column: Image | Image | Read-only | Valid image CDN URL | `[Img]` | Display thumbnail of item |
+| Table Column: Name | Text | Read-only | Min 3 chars | `Chicken Pizza` | Food item title |
+| Table Column: Category| Text | Read-only | Valid category | `Pizza` | Food category label |
+| Table Column: Price | Currency | Read-only | Positive decimal | `₹350` | Item price value |
+| Table Column: Toggle | Switch | Yes | Boolean (true/false) | `true` | Optimistic UI toggle for stock availability |
 
-### Screen Fields & Controls
-- **Availability Toggle Switch**: Updates the item availability. Displays an optimistic UI toggle effect (switches instantly, rolls back if the save request fails).
-
-### Validation Rules
-- **Toggling Sync**: Setting an item to disabled must instantly broadcast the update to prevent customers from adding it to their carts.
-- **Checkout Integrity**: If a customer checks out with an item that was toggled to disabled while in their cart, checkout will fail with a warning message.
+### 4. Validations
+- Search utilizes a minimum of `2 characters` before invoking the query.
+- Toggling the availability switch invokes an immediate WebSocket/API broadcast. If the API request fails, the switch reverts to its prior visual state and triggers an error toast message.
 
 ---
 
@@ -152,7 +158,10 @@ The **Restaurant Portal** is a web-based operational dashboard designed specific
 
 ## Screen 3.1: Active Orders Queue Screen
 
-### Screen Preview
+### 1. Overview
+Operational queue view for receiving and updating incoming branch orders. Separated into queues for `Incoming`, `Preparing`, and `Ready`.
+
+### 2. Screen Preview
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  Orders         [Incoming (2)]  [Preparing (5)]  [Ready (1)]│
@@ -172,17 +181,32 @@ The **Restaurant Portal** is a web-based operational dashboard designed specific
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Operational command view for receiving and tracking current live orders.
-- **Navigation Tabs**: Filter queues for `Incoming`, `Preparing`, and `Ready` orders.
-- **Queue Cards**: Render the Order ID, elapsed time (e.g., "3m ago"), item details, total price, payment method, and primary action buttons.
-- **Incoming Tab Actions**: "Accept" button (advances state and triggers delivery assignment) and "Reject" button (opens Rejection Modal).
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Search Input | Text | No | Alphanumeric characters | `ORD-101` | Filters active queues by Order ID |
+| Sort Dropdown | Dropdown | No | 'Oldest First' or 'Newest First' | `Oldest` | Orders queue sorting priority |
+| Queue Tab | Tab Buttons | Yes | 'Incoming', 'Preparing', or 'Ready' | `Incoming` | Switches active view panels |
+| Card: Order ID | Text | Read-only | Alphanumeric unique format | `#ORD-101` | Clickable to open detailed order panel |
+| Card: Time | Text | Read-only | Elapsed duration string | `3 mins ago` | Counter from creation timestamp |
+| Card: Items List | Text List | Read-only | List of line items | `2x Chicken Burger` | Summary of order components |
+| Card: Total | Currency | Read-only | Positive decimal | `₹450` | Total billing value |
+| Card: Payment Status| Badge | Read-only | COD, Card Paid, UPI Paid | `Card Paid` | Payment status indicator badge |
+| Button: Accept | Button | Yes | Invokes accept API transaction | `[Accept]` | Advances status to Preparing (Green) |
+| Button: Reject | Button | Yes | Opens rejection reason drawer | `[Reject]` | Opens Screen 3.2 modal (Red) |
+
+### 4. Validations
+- Real-time sound effects trigger when new incoming orders enter the `Incoming` tab.
+- Orders must be accepted within a set threshold (e.g. 5 minutes) before a warning indicator flashes on the card.
 
 ---
 
 ## Screen 3.2: Rejection Reason Modal
 
-### Screen Preview
+### 1. Overview
+Modal overlay to specify the reason for rejecting a customer order.
+
+### 2. Screen Preview
 ```text
 ┌──────────────────────────────────────────────────────────────────────────┐
 │  Reject Order #ORD-101                                               [X] │
@@ -202,48 +226,73 @@ The **Restaurant Portal** is a web-based operational dashboard designed specific
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Modal to collect reasons for rejecting a customer's order.
-- **Triggers**: Opens when the "Reject" button is clicked on an incoming order.
-- **Fields**: Radio button selections for common reasons and a text input field for additional comments.
-- **Actions**: "Reject Order" (solid red, requires reason selection) and "Cancel".
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Rejection Reason | Radio Group | Yes | Selection must be one of the enum reasons | `Out of Stock` | System rejection code |
+| Additional Notes | Text Area | No | Max 250 characters | `Kitchen running low on dough.` | Required only if 'Other Reason' is selected |
+| Button: Reject | Button | Yes | Confirmation action | `[Reject Order]` | Submits rejection and issues API refund command |
+| Button: Cancel | Button | Yes | Close overlay | `[Cancel]` | Discards modal changes |
 
-### Validation Rules
-- Selecting "Other Reason" requires additional notes of at least 5 characters.
-- Submitting a rejection triggers an automatic refund process for pre-paid orders.
+### 4. Validations
+- If 'Other Reason' is selected, `Additional Notes` becomes strictly mandatory with a minimum of `5 characters`.
+- Pre-paid orders trigger an automated refund API call upon submission.
 
 ---
 
 ## Screen 3.3: Order Detail View
 
-### Screen Preview
+### 1. Overview
+Redesigned detailed layout showing customer credentials, itemized list, pricing breakdown, delivery partner locator, and a vertical order status stepper timeline.
+
+### 2. Screen Preview
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  < Back | Order #ORD-101               ● Preparing          │
 ├─────────────────────────────────────────────────────────────┤
 │  Items (3)                     |  Order Lifecycle           │
-│  2x Chicken Burger    ₹300     |  [✔] Accepted 12:05 PM     │
-│  1x Coke              ₹150     |  [●] Preparing             │
-│  Total: ₹450                   |  [ ] Ready for Pickup      │
-│                                |                            │
-│  Customer Details              |                            │
-│  John Doe (9876543210)         |      [ Mark as Ready ]     │
-│                                |                            │
+│  2x Chicken Burger    ₹300     |  [✔] Placed    12:00 PM    │
+│  1x Coke              ₹150     |  [✔] Accepted  12:05 PM    │
+│  Total: ₹450                   |  [●] Preparing             │
+│                                |  [ ] Ready for Pickup      │
+│  Customer Details              |  [ ] Out for Delivery      │
+│  John Doe (9876543210)         |  [ ] Delivered             │
+│  123, Main Rd, Bangalore       |                            │
+│                                |      [ Mark as Ready ]     │
 │  Delivery Partner              |                            │
-│  [🔍 Searching nearby agents...]                            │
+│  Name: Mike (9998887776)       |                            │
+│  Status: Out for Delivery      |                            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Displays the complete details of a single order.
-- **Left Column**: Displays the line items list, customer contact details, and the delivery partner block (shows search status or name).
-- **Right Column**: Displays the vertical lifecycle timeline and the primary status advancement action ("Mark as Ready").
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Order Status Badge | Status Badge | Read-only | Color-coded status | `● Preparing` | Mapped from database status value |
+| Customer Name | Text | Read-only | Min 2 chars | `John Doe` | Customer display name |
+| Customer Phone | Phone | Read-only | Numeric digits | `9876543210` | Contact phone |
+| Customer Address | Text | Read-only | Min 10 chars | `123, Main Rd, Bangalore` | Mapped delivery location |
+| Delivery Partner | Text | Read-only | Name of courier | `Mike` | Shows searching status if unassigned |
+| Partner Contact | Phone | Read-only | Numeric digits | `9998887776` | Phone number of courier |
+| Item Table Column: Qty | Number | Read-only | Integer >= 1 | `2x` | Quantity of items |
+| Item Table Column: Name| Text | Read-only | Min 3 chars | `Chicken Burger` | Name of dish |
+| Item Table Column: Total| Currency | Read-only | Positive decimal | `₹300` | Subtotal for line item |
+| Bill Total | Currency | Read-only | Positive decimal | `₹450` | Total billing amount |
+| Timeline Stepper | Step Tracker | Read-only | Step checkmarks | `[✔] Accepted` | Mapped history with timestamps |
+| Button: Ready | Button | Yes* | Active when status is Preparing | `[Mark as Ready]` | Advances state to Ready (Blue) |
+
+### 4. Validations
+- The customer address card is hidden for Takeaway or Dine-in orders.
+- The "Mark as Ready" button is visible and active only when the order status is currently `Preparing`.
 
 ---
 
 ## Screen 3.4: Delivery Partner Search Radar Modal
 
-### Screen Preview
+### 1. Overview
+Visual tracking popup showing delivery runner assignment status.
+
+### 2. Screen Preview
 ```text
 ┌──────────────────────────────────────────────────────────────────────────┐
 │  Delivery Partner Search                                             [X] │
@@ -265,13 +314,15 @@ The **Restaurant Portal** is a web-based operational dashboard designed specific
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Displays delivery partner search radar progress.
-- **Triggers**: Automatically opens when an order is accepted, or when searching is manually re-initiated.
-- **Layout**: Centered popup containing a pulsing radar graphic, a live clock indicating search duration, and a cancel button.
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Elapsed Counter | Timer | Read-only | MM:SS time format | `00:45` | Counter tracking search duration |
+| Button: Manual | Button | Yes | Opens manual assignment listing | `[Assign Manual]` | Overrides radar search |
+| Button: Cancel | Button | Yes | Discards modal search | `[Cancel]` | Aborts search |
 
-### Edge Cases
-- **No Agent Accepts**: If search exceeds 10 minutes, the modal shifts to a warning state, prompting the manager to cancel/refund or assign a manual courier partner.
+### 4. Validations
+- If searching duration exceeds `10 minutes`, the modal updates to an alert state, forcing the manager to either select manual mapping or cancel and refund the order.
 
 ---
 
