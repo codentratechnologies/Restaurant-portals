@@ -9,7 +9,7 @@
 | **Version** | 2.0.0 |
 | **Status** | Approved |
 | **Last Updated** | 2026-05-26 |
-| **Audience** | Product Managers, UI/UX Designers, Frontend Developers, QA |
+| **Audience** | Administrators, Product Managers, UI/UX Designers, QA, Frontend Developers |
 
 ---
 
@@ -18,177 +18,109 @@
 1. [Executive Summary](#1-executive-summary)
 2. [Global UI/UX Standards](#2-global-uiux-standards)
 3. [Module 1 — Home & Analytics](#3-module-1--home--analytics)
-   - [Screen 1.1: Admin Dashboard (Home)](#screen-11-admin-dashboard-home)
+   - [Screen 1.1: Admin Dashboard](#screen-11-admin-dashboard)
 4. [Module 2 — Branch Management](#4-module-2--branch-management)
    - [Screen 2.1: Branch Dashboard (List View)](#screen-21-branch-dashboard-list-view)
-   - [Screen 2.2: Create Branch](#screen-22-create-branch)
-   - [Screen 2.3: Update Branch](#screen-23-update-branch)
-   - [Screen 2.4: View Branch Details](#screen-24-view-branch-details)
+   - [Screen 2.2: Create Branch Screen](#screen-22-create-branch-screen)
+   - [Screen 2.3: Update Branch Screen](#screen-23-update-branch-screen)
+   - [Screen 2.4: View Branch Details Screen](#screen-24-view-branch-details-screen)
    - [Screen 2.5: Assign Menu Screen](#screen-25-assign-menu-screen)
-   - [Screen 2.6: Deactivate Branch Modal](#screen-26-deactivate-branch-modal)
+   - [Screen 2.6: Deactivate Branch Confirmation Modal](#screen-26-deactivate-branch-confirmation-modal)
 5. [Module 3 — Employee Management](#5-module-3--employee-management)
    - [Screen 3.1: Employee Dashboard (List View)](#screen-31-employee-dashboard-list-view)
-   - [Screen 3.2: Create Employee](#screen-32-create-employee)
-   - [Screen 3.3: Update Employee](#screen-33-update-employee)
-   - [Screen 3.4: Deactivate Employee Modal](#screen-34-deactivate-employee-modal)
+   - [Screen 3.2: Create Employee Screen](#screen-32-create-employee-screen)
+   - [Screen 3.3: Update Employee Screen](#screen-33-update-employee-screen)
+   - [Screen 3.4: Deactivate Employee Confirmation Modal](#screen-34-deactivate-employee-confirmation-modal)
 6. [Module 4 — Order Report](#6-module-4--order-report)
-   - [Screen 4.1: Calendar View (Default Screen)](#screen-41-calendar-view-default-screen)
+   - [Screen 4.1: Order Calendar View (Default)](#screen-41-order-calendar-view-default)
    - [Screen 4.2: Order List Screen](#screen-42-order-list-screen)
-   - [Screen 4.3: Order Detail View](#screen-43-order-detail-view)
+   - [Screen 4.3: Order Detail View Screen](#screen-43-order-detail-view-screen)
 7. [Module 5 — Food Management](#7-module-5--food-management)
-   - [Screen 5.1: Food Dashboard (Grid/List View)](#screen-51-food-dashboard-gridlist-view)
-   - [Screen 5.2: Create Food Item](#screen-52-create-food-item)
-   - [Screen 5.3: Update Food Item](#screen-53-update-food-item)
-   - [Screen 5.4: View Food Item Details Drawer](#screen-54-view-food-item-details-drawer)
-   - [Screen 5.5: Deactivate Food Item Modal](#screen-55-deactivate-food-item-modal)
+   - [Screen 5.1: Food Catalog Dashboard](#screen-51-food-catalog-dashboard)
+   - [Screen 5.2: Create Food Item Screen](#screen-52-create-food-item-screen)
+   - [Screen 5.3: Update Food Item Screen](#screen-53-update-food-item-screen)
+   - [Screen 5.4: View Food Item Slide-out Drawer](#screen-54-view-food-item-slide-out-drawer)
+   - [Screen 5.5: Deactivate Food Item Confirmation Modal](#screen-55-deactivate-food-item-confirmation-modal)
+8. [Global Role & Permission Matrix](#8-global-role--permission-matrix)
 
 ---
 
 # 1. Executive Summary
 
-The **Restaurant Order Management System (ROMS)** is a multi-portal SaaS platform designed to manage end-to-end restaurant operations across multiple branches. The platform consists of four portals: Admin Portal, Restaurant Portal, Customer App, and Delivery App.
-
-**This document covers the Admin Portal exclusively, with a focus on UI/UX product flows.**
+The **Admin Portal** is a web-based central command panel of the Restaurant Order Management System (ROMS). It provides owners and corporate administrators with absolute control over the organization's branches, master menus, employee rosters, and financial performance analytics.
 
 ### Business Goals
-- Provide a centralized command center for restaurant chain administrators.
-- Enable real-time visibility into multi-branch operations, orders, and revenue.
-- Streamline food menu management and branch-level menu assignment.
-- Deliver actionable analytics for data-driven decision making.
-
-### Target Users
-- **Super Admin / Admin**: Full system access; manages all modules, branches, employees, food items, and reports.
-- **Manager**: Assigned to specific branches; views local reports and branch-specific details.
+- **Centralized Control**: Single interface to manage global parameters across all branch locations.
+- **Roster & Audit Trail**: Oversee employees and track key operational analytics securely.
+- **Unified Menu Catalog**: Maintain pricing consistency and dietary classification on food items chain-wide.
 
 ---
 
 # 2. Global UI/UX Standards
 
-### 2.1 Layout Structure
-```text
-┌──────────────────────────────────────────────────────────────┐
-│  TOPBAR: Logo | Search | Notifications | Profile Dropdown    │
-├────────────┬─────────────────────────────────────────────────┤
-│            │  BREADCRUMB: Home > Module > Screen             │
-│  SIDEBAR   ├─────────────────────────────────────────────────┤
-│            │                                                 │
-│  • Home    │  MAIN CONTENT AREA                              │
-│  • Branches│                                                 │
-│  • Employees│  ┌─────────────────────────────────────────┐   │
-│  • Orders  │  │  Page Title + Action Buttons             │   │
-│  • Food    │  ├─────────────────────────────────────────┤   │
-│  • Settings│  │  Filters / Search Bar                    │   │
-│            │  ├─────────────────────────────────────────┤   │
-│            │  │  Data Table / Cards / Content            │   │
-│            │  │                                          │   │
-│            │  ├─────────────────────────────────────────┤   │
-│            │  │  Pagination                              │   │
-│            │  └─────────────────────────────────────────┘   │
-└────────────┴─────────────────────────────────────────────────┘
-```
+### 2.1 Design Tokens
+- **Primary Color**: `#2563EB` (Blue 600) — Default call-to-action buttons, active navigation, hyperlinks
+- **Success Color**: `#16A34A` (Green 600) — Save, activate, successful confirmations, active status pills
+- **Warning Color**: `#F59E0B` (Amber 500) — Warning states, pending status pills
+- **Danger Color**: `#DC2626` (Red 600) — Destructive actions, delete, deactivate, error banners
+- **Neutral BG**: `#F8FAFC` (Slate 50) — App layout backdrop
+- **Card BG**: `#FFFFFF` — Table grids, forms, detail summaries
 
-### 2.2 Design Tokens
-- **Primary Color**: `#2563EB` (Blue 600) — Buttons, links, active states
-- **Secondary Color**: `#16A34A` (Green 600) — Success states, positive metrics
-- **Warning Color**: `#F59E0B` (Amber 500) — Warnings, pending states
-- **Danger Color**: `#DC2626` (Red 600) — Errors, delete actions, negative metrics
-- **Neutral BG**: `#F8FAFC` (Slate 50) — Page background
-- **Card BG**: `#FFFFFF` — Card surfaces
-- **Text Primary**: `#1E293B` (Slate 800) — Headings, primary text
-- **Text Secondary**: `#64748B` (Slate 500) — Labels, descriptions
-- **Border Color**: `#E2E8F0` (Slate 200) — Dividers, card borders
-- **Font Family**: `Inter, system-ui, sans-serif`
-- **Border Radius**: `8px` — Cards, buttons, inputs
-
-### 2.3 Global States
-- **Loading**: Skeleton placeholders matching content layout; spinner on buttons.
-- **Empty**: Illustration + descriptive text + primary CTA button.
-- **Error**: Red alert banner with retry action; inline field errors in red.
-- **Success**: Green toast notification (auto-dismiss after 4 seconds).
-- **Confirmation**: Centered modal with destructive action in red, cancel in outline.
-
-### 2.4 Status Badge Standards
-- **Active**: Green `#16A34A` (Filled pill)
-- **Inactive**: Gray `#94A3B8` (Filled pill)
-- **Pending**: Amber `#F59E0B` (Filled pill)
-- **Assigned**: Blue `#2563EB` (Filled pill)
-- **Delivered**: Green `#16A34A` (Outlined pill)
-- **Cancelled**: Red `#DC2626` (Filled pill)
-- **Processing**: Blue `#2563EB` (Outlined pill with pulse)
-- **Out for Delivery**: Indigo `#6366F1` (Filled pill)
-
-### 2.5 Audit Fields (All Details Views)
-All detail pages display the following audit trail metadata:
-- `created_by` (Username) | `created_at` (`DD MMM YYYY, hh:mm A`)
-- `updated_by` (Username) | `updated_at` (`DD MMM YYYY, hh:mm A`)
+### 2.2 Global Interaction Rules
+- **Optimistic UI Updates**: Toggles and simple configuration switches should display visual updates instantly, with automatic state rollback if the server API responds with an error.
+- **Search Debounce**: Text search bars must run with a standard `300ms` debounce duration to prevent server overloading.
+- **Modals**: Destructive confirmations must require a clear double-click or confirmation button click before API execution.
 
 ---
 
 # 3. Module 1 — Home & Analytics
 
-## Screen 1.1: Admin Dashboard (Home)
+## Screen 1.1: Admin Dashboard
 
-### Screen Preview
+### 1. Overview
+Central dashboard that serves as the landing interface for ROMS Administrators. Displays aggregated metrics, revenue trends, top items, and recent orders. Supports date range, branch, and period-based filters.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Home > Dashboard                                           │
-│  ▶ Home    │─────────────────────────────────────────────────────────────│
-│    Dashboard│  Welcome back, John          📅 01 May - 26 May  │All Branches ▼│
-│    Analytics│                              [Daily|Weekly|Monthly] [Export ▼]│
-│  ○ Branches│─────────────────────────────────────────────────────────────│
-│  ○ Employees│ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌────────────┐│
-│  ○ Orders  │ │ 💰 Revenue   │ │ 📦 Orders    │ │ 🏪 Branches  │ │ 👥 Staff   ││
-│  ○ Food    │ │ ₹12,45,600   │ │ 3,842        │ │ 12 Active    │ │ 86 Active  ││
-│            │ │ ▲ 12.5%      │ │ ▲ 8.3%       │ │              │ │            ││
-│            │ └──────────────┘ └──────────────┘ └──────────────┘ └────────────┘│
-│            │─────────────────────────────────────────────────────────────│
-│            │ ┌──────────────────────────────┐ ┌────────────────────────┐│
-│            │ │  Revenue Trend (Line Chart)  │ │  Order Status (Donut)  ││
-│            │ │  ___/\___/\___               │ │     ╭───╮              ││
-│            │ │ /            \               │ │    │     │             ││
-│            │ │/              \_____         │ │     ╰───╯              ││
-│            │ │                              │ │ ● Delivered  72%       ││
-│            │ │ Jan Feb Mar Apr May          │ │ ● Cancelled   8%       ││
-│            │ └──────────────────────────────┘ │ ● Pending    12%       ││
-│            │                                  │ ● Processing  8%       ││
-│            │                                  └────────────────────────┘│
-│            │─────────────────────────────────────────────────────────────│
-│            │  Recent Orders                              [View All →]    │
-│            │ ┌──────┬──────────┬──────────┬─────┬────────┬───────────┐   │
-│            │ │ ID   │ Customer │ Branch   │ Qty │ Amount │ Status    │   │
-│            │ ├──────┼──────────┼──────────┼─────┼────────┼───────────┤   │
-│            │ │#4021 │ Rahul S. │ Koramang.│  3  │ ₹450   │ ● Deliver.│   │
-│            │ │#4020 │ Priya K. │ MG Road  │  5  │ ₹820   │ ● Pending │   │
-│            │ │#4019 │ Amit R.  │ Whitefld.│  2  │ ₹320   │ ● Process.│   │
-│            │ └──────┴──────────┴──────────┴─────┴────────┴───────────┘   │
-│            │                       [1] [2] [3] ... [→]                   │
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  🍽 ROMS Admin    Search...           🔔 (3)  👤 Admin User ▼ │
+├────────────┬────────────────────────────────────────────────┤
+│            │  Dashboard                                     │
+│  ▶ Home    │────────────────────────────────────────────────│
+│  ○ Branches│ Welcome back, John          📅 May 1 - May 26  │
+│  ○ Staff   │ Filter Branch: [All Branches ▼]   Period: [D|W|M]│
+│  ○ Orders  │────────────────────────────────────────────────│
+│  ○ Food    │ ┌────────────┐ ┌────────────┐ ┌────────────┐   │
+│            │ │ 💰 Revenue  │ │ 📦 Orders  │ │ 🏪 Branches│   │
+│            │ │ ₹12,45,600 │ │ 3,842      │ │ 12 Active  │   │
+│            │ │ ▲ 12.5%    │ │ ▲ 8.3%     │ │            │   │
+│            │ └────────────┘ └────────────┘ └────────────┘   │
+│            │────────────────────────────────────────────────│
+│            │  Revenue Trend Chart (Line Chart)              │
+│            │  ₹ |       _/\_                                │
+│            │  0 |______/____\_________________              │
+│            │     May 1  May 7  May 14  May 21               │
+│            │────────────────────────────────────────────────│
+│            │ ┌──────────────────────┐ ┌───────────────────┐ │
+│            │ │ Top Selling Items    │ │ Recent Orders     │ │
+│            │ │ 1. Chicken Biryani   │ │ #ORD4021 - ₹450   │ │
+│            │ │ 2. Margherita Pizza  │ │ #ORD4020 - ₹820   │ │
+│            │ │ 3. Garlic Bread      │ │ #ORD4019 - ₹320   │ │
+│            │ └──────────────────────┘ └───────────────────┘ │
+└────────────┴────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Serves as the central command dashboard. It provides a real-time overview of revenue, orders, branch status, staff activity, and performance trends.
-- **Top Filters Bar**: Contains Date Range Picker, Multi-select Branch Filter dropdown, Period Toggle (Daily/Weekly/Monthly), and Export Button (PDF/CSV options).
-- **Row 1 (KPI Cards)**: Displays Revenue, Total Orders, Active Branches, and Active Staff. Shows comparison indicators (▲/▼ % vs previous period) with sparkline trends.
-- **Row 2 (Charts Section)**: Split layout showing Revenue Trend (interactive Line Chart) on the left (60%) and Order Status distribution (Doughnut Chart) on the right (40%).
-- **Row 3 (Recent Orders)**: Data table displaying the latest 20 orders with columns for ID, Customer, Branch, Qty, Amount, and Status Badge. Clicking a row navigates to the Order Detail View.
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Date Range Start | Date | No | Must be <= Date Range End; Cannot be in future | `2026-05-01` | Defaults to 30 days ago |
+| Date Range End | Date | No | Must be >= Date Range Start; Cannot be in future | `2026-05-26` | Defaults to today |
+| Filter Branch | Dropdown | No | Must exist in active branches table | `All Branches` | Supports multi-select or single branch |
+| Period Toggle | Segmented | No | Must be Daily, Weekly, or Monthly | `Monthly` | Controls trend chart aggregation |
 
-### Screen Fields & Controls
-- **Date Range Picker**: Select custom start and end dates. Start date must be before or equal to today.
-- **Branch Filter**: Dropdown allowing search and selection of "All Branches" or specific branch IDs.
-- **Period Toggle**: Segmented control switching between `Daily`, `Weekly`, and `Monthly`.
-- **Export Trigger**: Button that initiates download. Shows a temporary loading status on the button during PDF/CSV compilation.
-
-### Validation Rules
-- Date range selection must not exceed 365 days.
-- Triggering an export on a filter criteria that yields zero data displays a warning toast.
-
-### Edge Cases & Toasts
-- **No Branches Created**: Displays empty state in place of charts with illustration and CTA "Create Your First Branch".
-- **Export Initiated**: Information Toast: *"Preparing your export. Please wait..."*
-- **Export Completed**: Success Toast: *"Report exported successfully."*
-- **Export Failed**: Error Toast: *"Failed to export report. Please try again."*
+### 4. Validations
+- Date range query interval cannot exceed `365 days`.
+- Trend analytics calculations must safely handle division-by-zero check (e.g., zero sales in reference previous period).
 
 ---
 
@@ -196,220 +128,218 @@ All detail pages display the following audit trail metadata:
 
 ## Screen 2.1: Branch Dashboard (List View)
 
-### Screen Preview
+### 1. Overview
+Central branch management landing page that lists active and inactive restaurant locations. Admins can filter locations and access creation, detail view, or edit actions.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Branches > List                                            │
-│  ○ Home    │─────────────────────────────────────────────────────────────│
-│  ▶ Branches│  Branches                                    [+ Add Branch] │
-│    List    │─────────────────────────────────────────────────────────────│
-│    Create  │  🔍 Search Code/Name...   [Status: All ▼]   [City: All ▼]   │
-│  ○ Employees│─────────────────────────────────────────────────────────────│
-│  ○ Orders  │ ┌──────┬──────────────┬───────────┬────────────┬──────────┐ │
-│  ○ Food    │ │ Code │ Name         │ City      │ Status     │ Actions  │ │
-│            │ ├──────┼──────────────┼───────────┼────────────┼──────────┤ │
-│            │ │ B001 │ MG Road      │ Bangalore │ ● Active   │ [View]   │ │
-│            │ │ B002 │ Andheri West │ Mumbai    │ ● Active   │ [Edit]   │ │
-│            │ │ B003 │ CP Delhi     │ Delhi     │ ● Inactive │ [Menu]   │ │
-│            │ └──────┴──────────────┴───────────┴────────────┴──────────┘ │
-│            │  Showing 1-10 of 24                        [<] [1] [2] [>]  │
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Branches                                   [+ Add Branch]  │
+├─────────────────────────────────────────────────────────────┤
+│  🔍 Search by Name/Code...  [Status: All ▼] [City: All ▼]   │
+├─────────────────────────────────────────────────────────────┤
+│ Code  │ Name        │ City      │ Status     │ Actions      │
+│-------│-------------│-----------│------------│--------------│
+│ B001  │ MG Road     │ Bangalore │ ● Active   │ [View][Edit] │
+│ B002  │ Andheri W   │ Mumbai    │ ● Active   │ [View][Edit] │
+│ B003  │ CP Delhi    │ New Delhi │ ● Inactive │ [View][Edit] │
+├─────────────────────────────────────────────────────────────┤
+│  Showing 1-10 of 24                        [<] [1] [2] [>]  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Displays the list of all restaurant branch locations. Provides filters to quickly query by operational status or location.
-- **Header Bar**: Title "Branches" and a primary CTA "+ Add Branch" button.
-- **Search & Filters**: Search bar queries by Branch Code or Branch Name. Status dropdown filters by `All`, `Active`, `Inactive`. City dropdown filters by cities loaded from active branch locations.
-- **Branches Table**: Displays Code, Name, City, Status Badge, and Actions dropdown. Clicking "View" opens the Branch Detail view, "Edit" opens the Update screen, and "Menu" opens the Assign Menu screen.
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Search Box | Text | No | Max 50 characters | `MG Road` | Filters table columns by Branch Name or Code |
+| Status Filter | Dropdown | No | Must match 'Active', 'Inactive', or 'All' | `Active` | Filters branch listings |
+| City Filter | Dropdown | No | Must exist in systems city master database | `Bangalore` | Filters branch listings |
+
+### 4. Validations
+- Search box input must contain at least `2 characters` before querying database records.
 
 ---
 
-## Screen 2.2: Create Branch
+## Screen 2.2: Create Branch Screen
 
-### Screen Preview
+### 1. Overview
+Input form used to register a new physical restaurant location in the system database.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Branches > Create Branch                                   │
-│  ○ Home    │─────────────────────────────────────────────────────────────│
-│  ▶ Branches│  Create New Branch                                          │
-│    List    │─────────────────────────────────────────────────────────────│
-│    Create  │  ┌───────────────────────────┐ ┌──────────────────────────┐ │
-│  ○ Employees│  │ Basic Information         │ │ Operational Details      │ │
-│  ○ Orders  │  │ Name:   [_______________] │ │ Open Time:  [10:00 AM]   │ │
-│  ○ Food    │  │ Code:   [_______________] │ │ Close Time: [11:00 PM]   │ │
-│            │  │ Email:  [_______________] │ │ Status:     [Active  ▼]  │ │
-│            │  │ Phone:  [_______________] │ └──────────────────────────┘ │
-│            │  └───────────────────────────┘ ┌──────────────────────────┐ │
-│            │  ┌───────────────────────────┐ │ Location Details         │ │
-│            │  │ Address:                  │ │ City:       [Select   ▼] │ │
-│            │  │ [_______________________] │ │ State:      [Select   ▼] │ │
-│            │  │ [_______________________] │ │ Pincode:    [______]     │ │
-│            │  └───────────────────────────┘ └──────────────────────────┘ │
-│            │                                 [ Cancel ]  [ Save Branch ] │
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Create New Branch                                          │
+├─────────────────────────────────────────────────────────────┤
+│  Basic Information                                          │
+│  [Branch Code: B004     ]   [Branch Name: Indiranagar      ]  │
+│  [Contact Email: indira@roms.com] [Phone Number: 9876543210]  │
+│                                                             │
+│  Location Details                                           │
+│  [Address Line 1: 100 Feet Rd, 4th Block                    ]  │
+│  [City: Bangalore      ▼]   [State: Karnataka        ▼]     │
+│  [Pincode: 560038       ]                                   │
+│                                                             │
+│  Operational Details                                        │
+│  [Opening Time: 10:00 AM]   [Closing Time: 11:00 PM ]       │
+│                                                             │
+│                                       [Cancel] [Create Branch]│
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Enables admins to register a new branch location with contact details, operating times, and physical address.
-- **Form Layout**: 2-column grid categorized into "Basic Information", "Operational Details", "Address", and "Location Details".
-- **Primary Actions**: "Save Branch" button (solid color, bottom right) and "Cancel" button (outlined, cancels form edit and redirects to List view).
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Branch Code | Text | Yes | Unique, alphanumeric, min 3 / max 10 characters | `B004` | Identifier |
+| Branch Name | Text | Yes | Min 3, max 100 characters | `Indiranagar` | Official location name |
+| Contact Email | Email | Yes | Valid email format | `indira@roms.com` | Rerouted alerts |
+| Phone Number | Phone | Yes | Numeric, exactly 10 digits | `9876543210` | Contact phone |
+| Address Line 1 | Text | Yes | Min 10, max 255 characters | `100 Feet Rd, 4th Block` | Location address |
+| City | Dropdown | Yes | Selected value must match active city list | `Bangalore` | City list |
+| State | Dropdown | Yes | Selected value must match active state list | `Karnataka` | State list |
+| Pincode | Text | Yes | Numeric, exactly 6 digits | `560038` | Local postal code |
+| Opening Time | Time | Yes | Valid 12-hour/24-hour time format | `10:00 AM` | Start of shift |
+| Closing Time | Time | Yes | Valid time format, chronologically after Opening | `11:00 PM` | End of shift |
 
-### Screen Fields & Controls
-- **Name**: Text box. Maximum 100 characters.
-- **Code**: Text box. Unique ID (e.g., B004). Can be edited on creation but locked thereafter.
-- **Email**: Text box. Valid email string.
-- **Phone**: Text box. Standard 10-digit number.
-- **Open / Close Time**: Time pickers (HH:MM AM/PM).
-- **Status**: Dropdown containing `Active` (default) and `Inactive`.
-- **Address / Pincode**: Text area for address, 6-digit numeric input for Pincode.
-- **City / State**: Dropdowns loaded with regional constants.
-
-### Validation Rules
-- **Branch Code**: Must be unique (checked inline `onBlur` or during submit).
-- **Time Logic**: Close Time must be chronologically after Open Time.
-- **Pincode**: Exactly 6 digits.
-
-### Toasts
-- **Creation Success**: Success Toast: *"Branch 'MG Road' has been created successfully."*
-- **Code Conflict**: Error Toast: *"Branch code already exists. Please choose a unique code."*
+### 4. Validations
+- **Duplicate Code**: System checks that the inputted `Branch Code` is unique before allow registration.
+- **Operating Hours**: Closing time must be chronologically after the opening time.
+- **Data Format**: Phone number must contain only numeric characters.
 
 ---
 
-## Screen 2.3: Update Branch
+## Screen 2.3: Update Branch Screen
 
-### Screen Preview
+### 1. Overview
+Interface used to update the configuration of an existing branch. The unique Branch Code is permanently locked to preserve data records.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Branches > Edit Branch                                     │
-│  ○ Home    │─────────────────────────────────────────────────────────────│
-│  ▶ Branches│  Edit Branch: MG Road (B001)                                │
-│    List    │─────────────────────────────────────────────────────────────│
-│    Create  │  ┌───────────────────────────┐ ┌──────────────────────────┐ │
-│  ○ Employees│  │ Basic Information         │ │ Operational Details      │ │
-│  ○ Orders  │  │ Name:   [MG Road        ] │ │ Open Time:  [10:00 AM]   │ │
-│  ○ Food    │  │ Code:   [B001 (Locked)]   │ │ Close Time: [11:00 PM]   │ │
-│            │  │ Email:  [mgroad@roms.com] │ │ Status:     [Active  ▼]  │ │
-│            │  │ Phone:  [9876543210     ] │ └──────────────────────────┘ │
-│            │  └───────────────────────────┘ ┌──────────────────────────┐ │
-│            │  ┌───────────────────────────┐ │ Location Details         │ │
-│            │  │ Address:                  │ │ City:       [Bangalore▼] │ │
-│            │  │ [123, Main Street       ] │ │ State:      [Karnataka▼] │ │
-│            │  │ [                       ] │ │ Pincode:    [560001]     │ │
-│            │  └───────────────────────────┘ └──────────────────────────┘ │
-│            │                                 [ Cancel ]  [ Save Changes ]│
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Update Branch — MG Road (B001)                             │
+├─────────────────────────────────────────────────────────────┤
+│  Basic Information                                          │
+│  Branch Code: B001 (Locked) [Branch Name: MG Road Branch   ]  │
+│  [Contact Email: mgroad@roms.com] [Phone Number: 9811223344]  │
+│                                                             │
+│  Location Details                                           │
+│  [Address Line 1: 123, Main Street, MG Road                 ]  │
+│  [City: Bangalore      ▼]   [State: Karnataka        ▼]     │
+│  [Pincode: 560001       ]                                   │
+│                                                             │
+│  Operational Details                                        │
+│  [Opening Time: 10:00 AM]   [Closing Time: 11:00 PM ]       │
+│                                                             │
+│                                       [Cancel] [Save Changes]│
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Modifies details of an existing branch.
-- **Key Difference from Create**:
-  - The "Branch Code" input field is permanently disabled/greyed-out to preserve relational database mapping.
-  - Page title includes the current Branch Code.
-- **Primary Actions**: "Save Changes" (Primary blue) and "Cancel" (Outlined).
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Branch Code | Label | — | Locked read-only display element | `B001` | Non-editable |
+| Branch Name | Text | Yes | Min 3, max 100 characters | `MG Road Branch` | Location name |
+| Contact Email | Email | Yes | Valid email format | `mgroad@roms.com` | Alerts email |
+| Phone Number | Phone | Yes | Numeric, exactly 10 digits | `9811223344` | Contact phone |
+| Address Line 1 | Text | Yes | Min 10, max 255 characters | `123, Main Street` | Location address |
+| City | Dropdown | Yes | Selected value must match active city list | `Bangalore` | City list |
+| State | Dropdown | Yes | Selected value must match active state list | `Karnataka` | State list |
+| Pincode | Text | Yes | Numeric, exactly 6 digits | `560001` | Postal code |
+| Opening Time | Time | Yes | Valid time format | `10:00 AM` | Opening hours |
+| Closing Time | Time | Yes | Valid time format, chronologically after Opening | `11:00 PM` | Closing hours |
 
-### Validation Rules
-- All fields (except Code) follow the same rules as the Create screen.
-- Changing status to `Inactive` triggers the Deactivate Branch Modal if there are active ongoing orders.
+### 4. Validations
+- Closing time must be chronologically after the opening time.
+- Changes must be saved using an active database transaction.
 
 ---
 
-## Screen 2.4: View Branch Details
+## Screen 2.4: View Branch Details Screen
 
-### Screen Preview
+### 1. Overview
+Multi-tab view displaying the details, employee mapping, and assigned menu configurations of a selected branch.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Branches > Branch Details                                  │
-│  ○ Home    │─────────────────────────────────────────────────────────────│
-│  ▶ Branches│  MG Road (B001)                                 ● Active    │
-│    List    │  [ Edit Branch ] [ Deactivate ]                             │
-│    Create  │─────────────────────────────────────────────────────────────│
-│  ○ Employees│  [ Overview ]  | Assigned Menu | Employees                 │
-│  ○ Orders  │─────────────────────────────────────────────────────────────│
-│  ○ Food    │  ┌───────────────────────────┐ ┌──────────────────────────┐ │
-│            │  │ Contact Information       │ │ Operating Timings        │ │
-│            │  │ Phone: +91 9876543210     │ │ Daily: 10:00 AM - 11:00PM│ │
-│            │  │ Email: mgroad@roms.com    │ │                          │ │
-│            │  └───────────────────────────┘ └──────────────────────────┘ │
-│            │  ┌────────────────────────────────────────────────────────┐ │
-│            │  │ Address                                                │ │
-│            │  │ 123, Main Street, Bangalore, Karnataka - 560001        │ │
-│            │  └────────────────────────────────────────────────────────┘ │
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  MG Road Branch — B001 (Active)           [Edit] [Deactivate]│
+├─────────────────────────────────────────────────────────────┤
+│  [Overview]   Assigned Menu   Employees                     │
+├─────────────────────────────────────────────────────────────┤
+│  Address: 123, Main Street, MG Road, Bangalore - 560001     │
+│  Contact: mgroad@roms.com | 9811223344                      │
+│  Operating Hours: 10:00 AM to 11:00 PM                      │
+│                                                             │
+│  Created By: admin_user | Created At: 2026-05-01 10:00 AM   │
+│  Updated By: admin_user | Updated At: 2026-05-20 03:30 PM   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: A read-only overview page of a branch's configuration, menu, and personnel.
-- **Header Section**: Displays branch name, unique code, active status badge, and action triggers: "Edit Branch" and "Deactivate".
-- **Tabs Selection**:
-  - **Overview**: Shows basic information cards, contact details, operating hours, and address details.
-  - **Assigned Menu**: Lists food items mapped to this branch with local availability toggles.
-  - **Employees**: Lists employees currently mapped to this branch.
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Tab Selector | Buttons | Yes | Must navigate to Overview, Assigned Menu, or Employees | `Overview` | Swaps out active tab content pane |
+
+### 4. Validations
+- Audit fields (Created By/At, Updated By/At) are resolved by the server and are strictly non-editable.
 
 ---
 
 ## Screen 2.5: Assign Menu Screen
 
-### Screen Preview
+### 1. Overview
+Map food items from the master menu catalog to be available at this branch.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Branches > MG Road > Assign Menu                           │
-│  ○ Home    │─────────────────────────────────────────────────────────────│
-│  ▶ Branches│  Assign Menu: MG Road (B001)               [ Save Menu ]    │
-│            │─────────────────────────────────────────────────────────────│
-│  ○ Employees│  Category: [All           ▼]  🔍 Search items...            │
-│  ○ Orders  │─────────────────────────────────────────────────────────────│
-│  ○ Food    │  [x] Select All (12 items)                                  │
-│            │  ┌────────────────────────────────────────────────────────┐ │
-│            │  │ [x] Margherita Pizza     | Category: Pizza    | ₹299   │ │
-│            │  │ [ ] Farmhouse Pizza      | Category: Pizza    | ₹399   │ │
-│            │  │ [x] Garlic Bread         | Category: Sides    | ₹149   │ │
-│            │  │ [ ] Choco Lava Cake      | Category: Desserts | ₹129   │ │
-│            │  │ [x] Coca Cola 300ml      | Category: Beverages| ₹60    │ │
-│            │  └────────────────────────────────────────────────────────┘ │
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Assign Menu — MG Road (B001)                [Save Changes] │
+├─────────────────────────────────────────────────────────────┤
+│  Category: [Pizza     ▼]   🔍 Search Food Item...            │
+├─────────────────────────────────────────────────────────────┤
+│ [x] Select All                                              │
+│                                                             │
+│ [x] Margherita Pizza     | Category: Pizza    | ₹299        │
+│ [x] Farmhouse Pizza      | Category: Pizza    | ₹399        │
+│ [ ] Garlic Bread         | Category: Sides    | ₹149        │
+│ [ ] Choco Lava Cake      | Category: Desserts | ₹129        │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Maps food items from the global food catalog to be available at this specific branch.
-- **Layout**: Simple checkbox list with food name, category, and base price. 
-- **Filters**: Category dropdown filter and text search for food items.
-- **Primary Actions**: "Save Menu" (Primary green, top right) updates the branch menu mapping.
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Checkbox List | Array | Yes | Checked items must have valid active food item UUIDs | `[item_uuid_1]` | Map items to branch |
+| Category Filter | Dropdown | No | Must match active master category | `Pizza` | Filters list |
+| Search Bar | Text | No | Max 50 characters | `Pizza` | Filters list by food name |
+
+### 4. Validations
+- Saving an empty menu selection must trigger a warning confirmation before execution.
 
 ---
 
-## Screen 2.6: Deactivate Branch Modal
+## Screen 2.6: Deactivate Branch Confirmation Modal
 
-### Screen Preview
+### 1. Overview
+Confirmation dialog when an Admin deactivates a branch. Halts online checkout operations at that specific branch immediately.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  Deactivate Branch                                                   [X] │
-├──────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  ⚠️  Warning: Are you sure you want to deactivate 'MG Road (B001)'?     │
-│                                                                          │
-│  This action will:                                                       │
-│  - Prevent customers from placing new orders from this branch.           │
-│  - Allow existing processing orders (5 active) to be completed.          │
-│                                                                          │
-├──────────────────────────────────────────────────────────────────────────┤
-│                                            [ Cancel ]  [ Yes, Deactivate]│
-└──────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│  Deactivate Branch — MG Road?                          [X]│
+├───────────────────────────────────────────────────────────┤
+│  ⚠️ WARNING: Deactivating this branch will immediately stop  │
+│  all customer applications from placing new orders here.   │
+│  Active orders (5) will still be processed.               │
+│                                                           │
+│                       [Cancel]  [Confirm Deactivation]    │
+└───────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Visual modal prompt to confirm branch deactivation.
-- **Trigger**: Clicked "Deactivate" button in List view, Update form, or Detail view.
-- **Actions**: "Cancel" (dismisses modal) and "Yes, Deactivate" (sets branch status to Inactive).
+### 3. Screen Fields Table
+None. (Dialog confirmation buttons only).
+
+### 4. Validations
+- Executing the deactivation automatically flags the database status indicator to `Inactive`, disabling the branch for consumer search.
 
 ---
 
@@ -417,388 +347,427 @@ All detail pages display the following audit trail metadata:
 
 ## Screen 3.1: Employee Dashboard (List View)
 
-### Screen Preview
+### 1. Overview
+Tabular display containing the profile records of all system workers. Allows filtering by role type and branch assignment.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Employees > List                                           │
-│  ○ Home    │─────────────────────────────────────────────────────────────│
-│  ○ Branches│  Employees                                   [+ Add Member] │
-│  ▶ Employees│─────────────────────────────────────────────────────────────│
-│    List    │  🔍 Search Name/Email...   [Role: All ▼]   [Branch: All ▼]   │
-│    Create  │─────────────────────────────────────────────────────────────│
-│  ○ Orders  │ ┌──────┬──────────────┬──────────┬───────────┬────────────┐ │
-│  ○ Food    │ │ ID   │ Name         │ Role     │ Branch    │ Status     │ │
-│            │ ├──────┼──────────────┼──────────┼───────────┼────────────┤ │
-│            │ │ E101 │ John Doe     │ Manager  │ MG Road   │ ● Active   │ │
-│            │ │ E102 │ Jane Smith   │ Kitchen  │ MG Road   │ ● Active   │ │
-│            │ │ E103 │ Bob Martin   │ Delivery │ CP Delhi  │ ● Inactive │ │
-│            │ └──────┴──────────────┴──────────┴───────────┴────────────┘ │
-│            │  Showing 1-10 of 42                        [<] [1] [2] [>]  │
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Employees                                [+ Add Employee]  │
+├─────────────────────────────────────────────────────────────┤
+│  🔍 Search by Name/Email... [Role: All ▼] [Branch: All ▼]   │
+├─────────────────────────────────────────────────────────────┤
+│ ID    │ Name        │ Role    │ Branch  │ Status   │ Action │
+│-------│-------------│---------│---------│----------│--------│
+│ E101  │ John Doe    │ Manager │ MG Road │ ● Active │ [Edit] │
+│ E102  │ Jane Smith  │ Kitchen │ MG Road │ ● Active │ [Edit] │
+│ E103  │ Bob Martin  │ Delivery│ CP Delhi│ ● Inactive│ [Edit] │
+├─────────────────────────────────────────────────────────────┤
+│  Showing 1-10 of 42                        [<] [1] [2] [>]  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Displays profiles of all onboarded restaurant staff (Managers, Kitchen, Delivery executives).
-- **Header Section**: Title "Employees" and CTA "+ Add Member".
-- **Filters**: Search by Name or Email. Dropdown filter by Role (Manager, Kitchen, Delivery, Admin) and Assigned Branch.
-- **Action Item**: Clicking an employee row opens their edit profile screen.
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Search Bar | Text | No | Max 50 characters | `John` | Filters by employee name, email, or employee code |
+| Role Filter | Dropdown | No | Must match 'Manager', 'Kitchen', 'Delivery', or 'All' | `Manager` | Filters rows by operational role |
+| Branch Filter | Dropdown | No | Must match active branch ID | `MG Road` | Filters rows by mapped location |
+
+### 4. Validations
+- Standard alphanumeric search. Debounced at client level.
 
 ---
 
-## Screen 3.2: Create Employee
+## Screen 3.2: Create Employee Screen
 
-### Screen Preview
+### 1. Overview
+Registration form to onboard system operators and managers, mapping them to explicit branch environments.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Employees > Add Member                                     │
-│  ○ Home    │─────────────────────────────────────────────────────────────│
-│  ○ Branches│  Onboard New Employee                                       │
-│  ▶ Employees│─────────────────────────────────────────────────────────────│
-│    List    │  ┌───────────────────────────┐ ┌──────────────────────────┐ │
-│    Create  │  │ Personal Details          │ │ Employment Details       │ │
-│            │  │ First Name: [___________] │ │ Role:       [Select   ▼] │ │
-│  ○ Orders  │  │ Last Name:  [___________] │ │ Branch:     [Select   ▼] │ │
-│  ○ Food    │  │ Email:      [___________] │ │ Date Join:  [2026-05-26] │ │
-│            │  │ Phone:      [___________] │ └──────────────────────────┘ │
-│            │  └───────────────────────────┘ ┌──────────────────────────┐ │
-│            │                                │ Credentials              │ │
-│            │                                │ Password:   [********]   │ │
-│            │                                │ Confirm PW: [********]   │ │
-│            │                                └──────────────────────────┘ │
-│            │                                 [ Cancel ]  [ Save Profile] │
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Create New Employee                                        │
+├─────────────────────────────────────────────────────────────┤
+│  Personal Details                                           │
+│  [First Name: Amit     ]      [Last Name: Kumar         ]   │
+│  [Email: amit@roms.com ]      [Phone Number: 9876543211 ]   │
+│                                                             │
+│  Employment Details                                         │
+│  [Role: Manager       ▼]      [Assign Branch: MG Road   ▼]  │
+│  [Date of Joining: 2026-05-26]                              │
+│                                                             │
+│  Authentication                                             │
+│  [Password: ********** ]      [Confirm Password: *******]   │
+│                                                             │
+│                                      [Cancel] [Save Profile]│
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Form to onboard staff. Includes basic info, credentials, and business operational assignments.
-- **Layout**: Dual columns. Left column contains Personal Details. Right column contains Employment assignments and Authentication setup.
-- **Actions**: "Save Profile" (solid blue) and "Cancel".
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| First Name | Text | Yes | Min 2, max 50 characters; letters only | `Amit` | Staff given name |
+| Last Name | Text | Yes | Min 2, max 50 characters; letters only | `Kumar` | Staff surname |
+| Email Address | Email | Yes | Valid unique email syntax | `amit@roms.com` | Used for portal credentials |
+| Phone Number | Phone | Yes | Numeric, exactly 10 digits | `9876543211` | Contact phone |
+| Role Selection | Dropdown | Yes | Role must be in validated system enum | `Manager` | Determines portal permissions |
+| Assign Branch | Dropdown | Yes* | Mapped branch ID | `MG Road` | Required if role is Manager, Kitchen, or Delivery |
+| Date of Joining| Date | Yes | Cannot be future date | `2026-05-26` | Start date record |
+| Password | Password | Yes | Min 8 characters; 1 upper, 1 lower, 1 digit, 1 special | `**********` | Authentication pass |
+| Confirm Password| Password| Yes | Must match Password exactly | `**********` | Password verification |
 
-### Validation Rules
-- **Email**: Must be unique globally.
-- **Password Strength**: Minimum 8 characters, at least 1 uppercase, 1 lowercase, 1 number, and 1 special character.
-- **Branch Assignment**: Required for "Manager" and "Kitchen Staff" roles. Left blank/ignored for Global Admin roles.
+### 4. Validations
+- Email must be unique globally across users.
+- Confirm Password must match Password exactly.
+- Assign Branch is dynamically required if the user role selected is Manager, Kitchen Staff, or Delivery Executive.
 
 ---
 
-## Screen 3.3: Update Employee
+## Screen 3.3: Update Employee Screen
 
-### Screen Preview
+### 1. Overview
+Interface to update staff profiles. Password entry is hidden by default and can be bypassed unless explicitly resetting credentials.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Employees > Edit Profile                                   │
-│  ○ Home    │─────────────────────────────────────────────────────────────│
-│  ○ Branches│  Edit Profile: John Doe (E101)                              │
-│  ▶ Employees│─────────────────────────────────────────────────────────────│
-│    List    │  ┌───────────────────────────┐ ┌──────────────────────────┐ │
-│    Create  │  │ Personal Details          │ │ Employment Details       │ │
-│            │  │ First Name: [John       ] │ │ Role:       [Manager  ▼] │ │
-│  ○ Orders  │  │ Last Name:  [Doe        ] │ │ Branch:     [MG Road  ▼] │ │
-│  ○ Food    │  │ Email:  [john@roms.com(L)]│ │ Date Join:  [2025-01-10] │ │
-│            │  │ Phone:      [9876543210   ] │ │ Status:     [Active   ▼] │ │
-│            │  └───────────────────────────┘ └──────────────────────────┘ │
-│            │                                ┌──────────────────────────┐ │
-│            │                                │ Reset Password (Optional)│ │
-│            │                                │ New PW:     [********]   │ │
-│            │                                └──────────────────────────┘ │
-│            │                                 [ Cancel ]  [ Save Changes] │
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Update Employee — John Doe (E101)                          │
+├─────────────────────────────────────────────────────────────┤
+│  Personal & Employment Details                              │
+│  Employee ID: E101 (Locked)                                 │
+│  [First Name: John     ]      [Last Name: Doe           ]   │
+│  [Email: john@roms.com (Locked)] [Phone Number: 9811223344]  │
+│  [Role: Manager       ▼]      [Assign Branch: MG Road   ▼]  │
+│  [Date of Joining: 2026-05-01]                              │
+│                                                             │
+│  [ Reset Password (Optional) ]                              │
+│                                                             │
+│                                      [Cancel] [Save Changes]│
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Modifies an existing employee's details and active state.
-- **Key Modifications**:
-  - Employee's login email field is locked (read-only) to preserve identification mappings.
-  - Option to type a new password to trigger an override reset.
-  - Dropdown menu contains a status selector (`Active`/`Inactive`). Toggling to `Inactive` launches the Deactivation Modal.
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| First Name | Text | Yes | Min 2, max 50 characters | `John` | Given name |
+| Last Name | Text | Yes | Min 2, max 50 characters | `Doe` | Surname |
+| Email Address | Label | — | Locked read-only | `john@roms.com` | Cannot modify username |
+| Phone Number | Phone | Yes | Numeric, exactly 10 digits | `9811223344` | Contact number |
+| Role Selection | Dropdown | Yes | Valid system role | `Manager` | System permission |
+| Assign Branch | Dropdown | Yes* | Mapped branch ID | `MG Road` | Mapped location |
+| Date of Joining| Date | Yes | Cannot be future date | `2026-05-01` | Start date |
+
+### 4. Validations
+- Email and Employee ID fields are locked and non-editable.
+- If password reset is toggled, new password validation rules are enforced.
 
 ---
 
-## Screen 3.4: Deactivate Employee Modal
+## Screen 3.4: Deactivate Employee Confirmation Modal
 
-### Screen Preview
+### 1. Overview
+Warning panel triggered when suspending employee accounts, revoking portal permissions immediately.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  Deactivate Employee Account                                         [X] │
-├──────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  ⚠️  Warning: Are you sure you want to deactivate John Doe (E101)?      │
-│                                                                          │
-│  This action will:                                                       │
-│  - Immediately revoke all active login sessions.                         │
-│  - Prevent user access to all associated portals (Web/Mobile).           │
-│  - Maintain historical logs associated with this user.                   │
-│                                                                          │
-├──────────────────────────────────────────────────────────────────────────┤
-│                                            [ Cancel ]  [ Yes, Deactivate]│
-└──────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│  Deactivate Employee — John Doe?                       [X]│
+├───────────────────────────────────────────────────────────┤
+│  ⚠️ WARNING: Deactivating this employee will immediately     │
+│  revoke all access to active ROMS portals and sessions.    │
+│  Active orders handled by them will not be deleted.       │
+│                                                           │
+│                       [Cancel]  [Confirm Deactivation]    │
+└───────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Prompt to verify employee deactivation.
-- **Behavior**: Toggling an employee to Inactive prompts this confirmation window. Once confirmed, the employee status shifts to Inactive, and active session tokens are invalidated.
+### 3. Screen Fields Table
+None.
+
+### 4. Validations
+- On confirmation, the employee's status in the database switches to `Inactive`, and all active user JWT tokens are revoked instantly.
 
 ---
 
 # 6. Module 4 — Order Report
 
-## Screen 4.1: Calendar View (Default Screen)
+## Screen 4.1: Order Calendar View (Default)
 
-### Screen Preview
+### 1. Overview
+A calendar dashboard displaying aggregated daily totals of completed orders and sales figures. Admins can click any date cell to browse that day's orders.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Orders > Calendar View                                     │
-│  ○ Home    │─────────────────────────────────────────────────────────────│
-│  ○ Branches│  Order Reports                             [<] May 2026 [>] │
-│  ○ Employees│─────────────────────────────────────────────────────────────│
-│  ▶ Orders  │  Sun    │  Mon    │  Tue    │  Wed    │  Thu    │  Fri    │ │
-│    Calendar│ ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤ │
-│    List    │ │         │         │         │         │ 1       │ 2       │ │
-│  ○ Food    │ │         │         │         │         │ Ord: 12 │ Ord: 15 │ │
-│            │ │         │         │         │         │ Rev: 6k │ Rev: 9k │ │
-│            │ ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤ │
-│            │ │ 3       │ 4       │ 5       │ 6       │ 7       │ 8       │ │
-│            │ │ Ord: 8  │ Ord: 14 │ Ord: 22 │ Ord: 19 │ Ord: 11 │ Ord: 25 │ │
-│            │ │ Rev: 4k │ Rev: 7k │ Rev: 11k│ Rev: 9.5│ Rev: 5k │ Rev: 13k│ │
-│            │ └─────────┴─────────┴─────────┴─────────┴─────────┴─────────┘ │
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Order Reports                             [<] May 2026 [>] │
+├─────────────────────────────────────────────────────────────┤
+│  Sun    │  Mon    │  Tue    │  Wed    │  Thu    │  Fri    │
+├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+│         │         │         │         │ 1       │ 2       │
+│         │         │         │         │ Ord: 12 │ Ord: 15 │
+│         │         │         │         │ ₹4,500  │ ₹5,200  │
+├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+│ 3       │ 4       │ 5       │ 6       │ 7       │ 8       │
+│ Ord: 8  │ Ord: 14 │ Ord: 22 │ Ord: 19 │ Ord: 11 │ Ord: 25 │
+│ ₹2,100  │ ₹4,200  │ ₹8,500  │ ₹6,100  │ ₹3,800  │ ₹9,500  │
+└─────────┴─────────┴─────────┴─────────┴─────────┴─────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: High-level calendar representation showing daily order volumes and aggregate revenues.
-- **Top Header**: Title and Month/Year navigation control arrows (`<` and `>`).
-- **Calendar Grid**: Shows a 7-day grid week alignment. Active cells render the day's index, aggregate order counts, and revenue.
-- **Navigation Action**: Clicking any calendar cell date navigates to the Order List Screen, filtered specifically for that day. Future dates are disabled/greyed-out.
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Month Selector | Buttons | Yes | Calendar boundary navigation | `May 2026` | Switches month and queries daily summary metrics |
+
+### 4. Validations
+- Clicking future dates is disabled.
+- Calendar renders only aggregated metrics.
 
 ---
 
 ## Screen 4.2: Order List Screen
 
-### Screen Preview
+### 1. Overview
+Lists orders that were logged on a specific day. Admins can filter the orders and export the visible records.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Orders > Reports > May 5, 2026                             │
-│  ○ Home    │─────────────────────────────────────────────────────────────│
-│  ○ Branches│  Orders: May 5, 2026                        [Export CSV]    │
-│  ○ Employees│─────────────────────────────────────────────────────────────│
-│  ▶ Orders  │  🔍 Order ID/Customer Phone...  [Branch: All ▼] [Status:All▼]│
-│    Calendar│─────────────────────────────────────────────────────────────│
-│    List    │ ┌──────────┬──────────┬──────────┬────────┬──────────┬──────┐│
-│  ○ Food    │ │ Order ID │ Branch   │ Customer │ Amount │ Status   │Action││
-│            │ ├──────────┼──────────┼──────────┼────────┼──────────┼──────┤│
-│            │ │ #ORD101  │ MG Road  │ John D.  │ ₹450   │ ● Deliv. │[View]││
-│            │ │ #ORD102  │ CP Delhi │ Sara K.  │ ₹120   │ ● Cancel │[View]││
-│            │ └──────────┴──────────┴──────────┴────────┴──────────┴──────┘│
-│            │  Showing 1-20 of 220                       [<] [1] [2] [>]  │
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Orders for May 5, 2026                  [Export to CSV ▼]  │
+├─────────────────────────────────────────────────────────────┤
+│  🔍 Search Order ID...   [Branch: All ▼] [Status: All ▼]    │
+├─────────────────────────────────────────────────────────────┤
+│ Order ID │ Branch  │ Customer │ Amount │ Status     │ Action│
+│----------│---------│----------│--------│------------│-------│
+│ #ORD101  │ MG Road │ John D.  │ ₹450   │ ● Delivered│ [View]│
+│ #ORD102  │ CP Delhi│ Sara K.  │ ₹120   │ ● Cancelled│ [View]│
+├─────────────────────────────────────────────────────────────┤
+│  Showing 1-20 of 220                       [<] [1] [2] [>]  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Displays detailed entries of orders registered on the selected date.
-- **Filters**: Search field queries Order ID or Customer Phone. Dropdowns filter list by Branch and status.
-- **Actions**: Clicking "View" opens the read-only Order Detail View. "Export CSV" downloads the daily list.
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Search Input | Text | No | Alphanumeric characters | `ORD101` | Search by Order ID or customer phone |
+| Branch Filter | Dropdown | No | Must be valid branch ID or All | `MG Road` | Filters lists by branch location |
+| Status Filter | Dropdown | No | Valid order status values | `Delivered` | Filters orders by status |
+
+### 4. Validations
+- CSV Exports are limited to a maximum range of `31 days` of order records in a single query block to prevent backend response timeouts.
 
 ---
 
-## Screen 4.3: Order Detail View
+## Screen 4.3: Order Detail View Screen
 
-### Screen Preview
+### 1. Overview
+Comprehensive panel listing purchase items, billing particulars, customer contacts, and the order's real-time lifecycle tracking timeline. Read-only.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Orders > Reports > Order #ORD101                           │
-│  ○ Home    │─────────────────────────────────────────────────────────────│
-│  ○ Branches│  < Back to List | Order #ORD101                 ● Delivered │
-│  ○ Employees│─────────────────────────────────────────────────────────────│
-│  ▶ Orders  │  ┌───────────────────────────┐ ┌──────────────────────────┐ │
-│    Calendar│  │ Customer & Delivery Info  │ │ Order Tracking Timeline  │ │
-│    List    │  │ Name:   John Doe          │ │ [x] Placed    (12:00 PM) │ │
-│  ○ Food    │  │ Phone:  9876543210        │ │ [x] Kitchen   (12:05 PM) │ │
-│            │  │ Address: 123 Main St      │ │ [x] Out/Deliv (12:20 PM) │ │
-│            │  │ Agent:  Mike (9998887776) │ │ [x] Delivered (12:45 PM) │ │
-│            │  └───────────────────────────┘ └──────────────────────────┘ │
-│            │  ┌────────────────────────────────────────────────────────┐ │
-│            │  │ Order Items & Bill Breakdown                           │ │
-│            │  │ 1x Margherita Pizza ............................ ₹299  │ │
-│            │  │ 2x Coca Cola 300ml ............................. ₹100  │ │
-│            │  │ ------------------------------------------------------ │ │
-│            │  │ Subtotal: ₹399 | GST Tax: ₹20 | Total Paid: ₹419       │ │
-│            │  └────────────────────────────────────────────────────────┘ │
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  < Back to List | Order #ORD101               ● Delivered   │
+├─────────────────────────────────────────────────────────────┤
+│  Customer Details                    |  Order Timeline      │
+│  John Doe (9876543210)               |  [x] Placed 12:00 PM │
+│  123 Main St, Bangalore              |  [x] Kitchen12:05 PM │
+│                                      |  [x] Out    12:20 PM │
+│  Order Items                         |  [x] Deliv. 12:45 PM │
+│  1x Margherita Pizza - ₹299          |                      │
+│  2x Coke             - ₹100          |  Delivery Agent      │
+│                                      |  Mike (9998887776)   │
+│  Bill Summary                        |                      │
+│  Subtotal: ₹399 | Tax: ₹20 | Total: ₹419                    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Displays a read-only layout of customer parameters, line items, timestamps, pricing breakdown, and logistics tracking.
-- **Grid Layout**: Split layout.
-  - **Left Section**: Customer information card (delivery address omitted if takeout) and Order Items Table with full price adjustments.
-  - **Right Section**: Real-time delivery/kitchen vertical timeline and assigned delivery executive contact metrics.
+### 3. Screen Fields Table
+None. (Read-only view).
+
+### 4. Validations
+- Historical records are read-only.
+- Delivery address is hidden for takeaway or dine-in orders.
 
 ---
 
 # 7. Module 5 — Food Management
 
-## Screen 5.1: Food Dashboard (Grid/List View)
+## Screen 5.1: Food Catalog Dashboard
 
-### Screen Preview
+### 1. Overview
+Catalog repository listing all master items. Supports list and grid layouts.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Food Management > Master Catalog                           │
-│  ○ Home    │─────────────────────────────────────────────────────────────│
-│  ○ Branches│  Food Catalog                           [+ Add Food Item]   │
-│  ○ Employees│─────────────────────────────────────────────────────────────│
-│  ○ Orders  │  🔍 Search Item Name...   [Category: All ▼] [Type: All ▼]   │
-│  ▶ Food    │─────────────────────────────────────────────────────────────│
-│            │ ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │
-│            │ │ [Image]      │  │ [Image]      │  │ [Image]      │        │
-│            │ │ Veg Burger   │  │ Choco Lava   │  │ Coke 300ml   │        │
-│            │ │ ₹150 | 🟢 Veg │  │ ₹99  | 🟢 Veg │  │ ₹60 | 🟢 Veg  │        │
-│            │ │ [Edit][View] │  │ [Edit][View] │  │ [Edit][View] │        │
-│            │ └──────────────┘  └──────────────┘  └──────────────┘        │
-│            │  Showing 1-12 of 85                        [<] [1] [2] [>]  │
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Food Catalog                            [+ Add Food Item]  │
+├─────────────────────────────────────────────────────────────┤
+│  🔍 Search Item...     [Category: All ▼] [Type: All ▼]      │
+├─────────────────────────────────────────────────────────────┤
+│ ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │
+│ │ [Image]      │  │ [Image]      │  │ [Image]      │        │
+│ │ Veg Burger   │  │ Choco Lava   │  │ Coke 300ml   │        │
+│ │ ₹150 | 🟢 Veg │  │ ₹99  | 🟢 Veg │  │ ₹60 | 🟢 Veg  │        │
+│ │ [Edit][View] │  │ [Edit][View] │  │ [Edit][View] │        │
+│ └──────────────┘  └──────────────┘  └──────────────┘        │
+├─────────────────────────────────────────────────────────────┤
+│  Showing 1-12 of 85                        [<] [1] [2] [>]  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: The master food repository. Admins can view, edit, categorize, and price items globally before mapping them to branches.
-- **Top Actions**: "+ Add Food Item" button and layout switch control (switches between Grid view and Table list view).
-- **Grid Display**: Shows image thumbnail, title, price, dietary tags (Veg green, Non-veg red, Vegan green outline), and actions. Clicking "Edit" opens the Update screen, and "View" slides out the Drawer detail.
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Search Bar | Text | No | Alphanumeric characters | `Burger` | Search by item name |
+| Category Filter | Dropdown | No | Must be valid Category ID | `Pizza` | Filters by food category |
+| Dietary Filter | Dropdown | No | Must match Veg, Non-Veg, Egg, Vegan | `Veg` | Filters by type |
+
+### 4. Validations
+- Standard debounced query validations.
 
 ---
 
-## Screen 5.2: Create Food Item
+## Screen 5.2: Create Food Item Screen
 
-### Screen Preview
+### 1. Overview
+Form used to add a new food item to the system.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Food Management > Create Food Item                         │
-│  ○ Home    │─────────────────────────────────────────────────────────────│
-│  ○ Branches│  Create Master Food Item                                    │
-│  ○ Employees│─────────────────────────────────────────────────────────────│
-│  ○ Orders  │  ┌───────────────────────────┐ ┌──────────────────────────┐ │
-│  ▶ Food    │  │ Item Details              │ │ Item Image               │ │
-│            │  │ Name:       [___________] │ │ ┌──────────────────────┐ │ │
-│            │  │ Category:   [Select   ▼]  │ │ │                      │ │ │
-│            │  │ Base Price: [______] (₹)  │ │ │ Drag & Drop Image    │ │ │
-│            │  │ Dietary:    [Veg      ▼]  │ │ │ or Browse (Max 2MB)  │ │ │
-│            │  │ Description:              │ │ │                      │ │ │
-│            │  │ [_______________________] │ │ └──────────────────────┘ │ │
-│            │  └───────────────────────────┘ └──────────────────────────┘ │
-│            │                                 [ Cancel ]  [ Save Item ]   │
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Create Food Item                                           │
+├─────────────────────────────────────────────────────────────┤
+│  Item Details                  |  Item Image                │
+│  [Item Name: Paneer Tikka    ] |  ┌──────────────────────┐  │
+│  [Category: Starters      ▼]   |  │ [Image Preview]      │  │
+│  [Dietary Type: Veg       ▼]   |  │ paneer_tikka.png     │  │
+│  [Base Price (₹): 249.00     ] |  │                      │  │
+│  [Description: Spiced cottage] |  │ [Change Image]       │  │
+│  [cheese grilled in tandoor  ] |  └──────────────────────┘  │
+│                                |                            │
+│                       [Cancel] [Save Food Item]             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Creates a new recipe master profile in the system database.
-- **Layout**: 2 columns. Left column collects text metadata. Right column contains an interactive drop-zone block supporting file drags (JPG/PNG).
-- **Actions**: "Save Item" (solid green) and "Cancel".
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Item Name | Text | Yes | Min 3, max 100 characters, Unique | `Paneer Tikka` | Display name of the item |
+| Category | Dropdown | Yes | Must match active categories master | `Starters` | Item classification |
+| Dietary Type | Dropdown | Yes | Veg, Non-Veg, Egg, Vegan | `Veg` | Dietary classification |
+| Base Price | Currency | Yes | Numeric, greater than zero | `249.00` | Default customer pricing |
+| Description | Text Area | No | Max 500 characters | `Spiced cottage cheese...` | Item description |
+| Item Image | File | Yes | PNG or JPG format, size < 2MB | `paneer_tikka.png` | Thumbnail upload |
 
-### Validation Rules
-- **Base Price**: Must be a positive number greater than zero.
-- **Image Upload**: Restricted to `.jpg`, `.jpeg`, `.png` files under 2MB.
+### 4. Validations
+- **Price Limit**: Price must be greater than zero.
+- **Image Check**: Only JPG or PNG formats are allowed, under `2MB` max size.
+- **Item Name**: Must be unique globally to avoid duplication.
 
 ---
 
-## Screen 5.3: Update Food Item
+## Screen 5.3: Update Food Item Screen
 
-### Screen Preview
+### 1. Overview
+Edit existing menu item details. Highlights current image and allows replacing it.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  🍽 ROMS          🔍 Search...        🔔 (3)    👤 Admin ▼             │
-├────────────┬─────────────────────────────────────────────────────────────┤
-│            │  Food Management > Edit Food Item                           │
-│  ○ Home    │─────────────────────────────────────────────────────────────│
-│  ○ Branches│  Edit Master Food Item: Veg Burger                          │
-│  ○ Employees│─────────────────────────────────────────────────────────────│
-│  ○ Orders  │  ┌───────────────────────────┐ ┌──────────────────────────┐ │
-│  ▶ Food    │  │ Item Details              │ │ Item Image               │ │
-│            │  │ Name:       [Veg Burger ] │ │ ┌──────────────────────┐ │ │
-│            │  │ Category:   [Burgers  ▼]  │ │ │ [ Current Image ]    │ │ │
-│            │  │ Base Price: [150   ] (₹)  │ │ │                      │ │ │
-│            │  │ Dietary:    [Veg      ▼]  │ │ │ [Replace Image]      │ │ │
-│            │  │ Status:     [Active   ▼]  │ │ └──────────────────────┘ │ │
-│            │  │ Description:              │ └──────────────────────────┘ │
-│            │  │ [Classic vegetable patty] │                              │
-│            │  └───────────────────────────┘  [ Cancel ]  [ Save Changes ]│
-└────────────┴─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Update Food Item — Paneer Tikka                            │
+├─────────────────────────────────────────────────────────────┤
+│  Item Details                  |  Item Image                │
+│  [Item Name: Paneer Tikka    ] |  ┌──────────────────────┐  │
+│  [Category: Starters      ▼]   |  │ [Current Image]      │  │
+│  [Dietary Type: Veg       ▼]   |  │ paneer_tikka.png     │  │
+│  [Base Price (₹): 279.00     ] |  │                      │  │
+│  [Description: Spiced cottage] |  │ [Upload New Image]   │  │
+│  [cheese grilled in tandoor  ] |  └──────────────────────┘  │
+│                                |                            │
+│                       [Cancel] [Save Changes]               │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Edits an existing food catalog item.
-- **Key Modifications**:
-  - Name uniqueness validation prevents duplicate designations.
-  - Image block displays the current active CDN image thumbnail with a "Replace Image" option.
-  - Displays a status selector (`Active`/`Inactive`). Toggling to `Inactive` launches the Global Deactivation Modal.
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Item Name | Text | Yes | Min 3, max 100 characters, Unique | `Paneer Tikka` | Display name of the item |
+| Category | Dropdown | Yes | Must match active categories master | `Starters` | Item classification |
+| Dietary Type | Dropdown | Yes | Veg, Non-Veg, Egg, Vegan | `Veg` | Dietary classification |
+| Base Price | Currency | Yes | Numeric, greater than zero | `279.00` | Default customer pricing |
+| Description | Text Area | No | Max 500 characters | `Spiced cottage cheese...` | Item description |
+| Item Image | File | No | PNG or JPG format, size < 2MB | `paneer_tikka.png` | Replaces current thumbnail |
+
+### 4. Validations
+- Item image upload is optional for updates.
+- Modifying price only affects future orders; historical order items tables retain checkout price details.
 
 ---
 
-## Screen 5.4: View Food Item Details Drawer
+## Screen 5.4: View Food Item Slide-out Drawer
 
-### Screen Preview
+### 1. Overview
+Inspect master food item configuration metrics and active branch menus where the item is mapped.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────┐
-│  🍽 ROMS Master Food Catalog                      [Close X]   │
-├──────────────────────────────────────────────────────────────┤
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │                     [ Veg Burger Image ]               │  │
-│  └────────────────────────────────────────────────────────┘  │
-│  Veg Burger                                        ● Active  │
-│  Category: Burgers | Price: ₹150                             │
-│                                                              │
-│  Description:                                                │
-│  Classic vegetable patty with cheese slice and visual garnish.│
-│                                                              │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │ Assigned Branches (Active at 3 locations)               │  │
-│  │ - MG Road (B001)                                       │  │
-│  │ - Andheri West (B002)                                  │  │
-│  │ - CP Delhi (B003)                                      │  │
-│  └────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Paneer Tikka Detail View                                [X]│
+├─────────────────────────────────────────────────────────────┤
+│  [Image: Paneer Tikka CDN URL]                             │
+│  Name: Paneer Tikka | Price: ₹279.00 | Tag: 🟢 Veg          │
+│  Category: Starters                                         │
+│  Description: Spiced cottage cheese grilled in tandoor.     │
+│                                                             │
+│  Active Locations (Assigned Branches):                      │
+│  - MG Road Branch (B001)                                    │
+│  - Indiranagar Branch (B004)                                │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Slides in from the right edge when an admin clicks "View" on a food card.
-- **Layout**: Full-height drawer presenting the high-resolution image banner, description, and list of branches where this item is assigned.
+### 3. Screen Fields Table
+None. (Read-only view).
+
+### 4. Validations
+None.
 
 ---
 
-## Screen 5.5: Deactivate Food Item Modal
+## Screen 5.5: Deactivate Food Item Confirmation Modal
 
-### Screen Preview
+### 1. Overview
+Confirmation panel verifying global item deactivation, which removes it from customer-facing menus globally.
+
+### 2. Screen Preview
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  Deactivate Master Food Item                                         [X] │
-├──────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  ⚠️  Warning: Are you sure you want to deactivate 'Veg Burger'?         │
-│                                                                          │
-│  This action will:                                                       │
-│  - Deactivate this item in the master catalog.                           │
-│  - Automatically hide it from all assigned branch menus.                 │
-│  - Prevent customers from ordering this item across all active branches. │
-│                                                                          │
-├──────────────────────────────────────────────────────────────────────────┤
-│                                            [ Cancel ]  [ Yes, Deactivate]│
-└──────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│  Deactivate Food Item Globally?                        [X]│
+├───────────────────────────────────────────────────────────┤
+│  ⚠️ WARNING: Deactivating this item will instantly remove    │
+│  it from customer menus at all assigned branches.          │
+│                                                           │
+│                       [Cancel]  [Confirm Deactivation]    │
+└───────────────────────────────────────────────────────────┘
 ```
 
-### Screen Description & Layout
-- **Purpose**: Confirmation prompt before removing an item globally.
-- **Behavior**: Once confirmed, the item status changes to Inactive, and the system filters it out of all branch-level customer menus.
+### 3. Screen Fields Table
+None.
+
+### 4. Validations
+- Requires explicit confirmation click.
+
+---
+
+# 8. Global Role & Permission Matrix
+
+Permissions are strictly enforced based on the system roles:
+
+| Module | Super Admin | Admin | Manager |
+|---|:---:|:---:|:---:|
+| **Dashboard / Analytics** | Full Access | Full Access | Branch Only |
+| **Branch Management** | Full Access | Full Access | View Branch Only |
+| **Employee Management**| Full Access | Full Access | View Branch Only |
+| **Order Reports** | Full Access | Full Access | View Branch Only |
+| **Food Management** | Full Access | Full Access | Read Only |
 
 ***End of Document***
