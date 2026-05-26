@@ -129,6 +129,9 @@ Central dashboard that serves as the landing interface for ROMS Administrators. 
 - Date range query interval cannot exceed `365 days`.
 - Trend analytics calculations must safely handle division-by-zero check (e.g., zero sales in reference previous period).
 
+### 5. Dependencies
+- **Module Dependencies**: Depends on aggregated metrics provided by Module 2 (Branch data), Module 3 (Staff counts), Module 4 (Order details), and Module 5 (Food details).
+
 ---
 
 # 4. Module 2 — Branch Management
@@ -313,6 +316,9 @@ Redesigned view page containing comprehensive details of a selected branch. Cont
 ### 4. Validations
 - Audit fields (Created By/At, Updated By/At) are resolved by the server and are strictly non-editable.
 
+### 5. Dependencies
+- **Module Dependencies**: Relies on Module 3 (Employee Management) to query linked staff members and Module 5 (Food Management) to query mapped food menu items.
+
 ---
 
 ## Screen 2.5: Assign Menu Screen
@@ -349,6 +355,9 @@ Map food items from the master menu catalog to be available at this branch.
 
 ### 4. Validations
 - Saving an empty menu selection must trigger a warning confirmation before execution.
+
+### 5. Dependencies
+- **Module Dependencies**: Relies directly on Module 5 (Food Management) master catalog to query the list of active food items available to assign.
 
 ---
 
@@ -463,6 +472,9 @@ Registration form to onboard system operators and managers, mapping them to expl
 - Confirm Password must match Password exactly.
 - Assign Branch is dynamically required if the user role selected is Manager, Kitchen Staff, or Delivery Executive.
 
+### 5. Dependencies
+- **Module Dependencies**: Relies on Module 2 (Branch Management) to load active physical branches inside the dropdown selection.
+
 ---
 
 ## Screen 3.3: Update Employee Screen
@@ -502,6 +514,9 @@ Interface to update staff profiles. Password entry is hidden by default and can 
 ### 4. Validations
 - Email and Employee ID fields are locked and non-editable.
 - If password reset is toggled, new password validation rules are enforced.
+
+### 5. Dependencies
+- **Module Dependencies**: Relies on Module 2 (Branch Management) to populate the active branch selection choices.
 
 ---
 
@@ -605,6 +620,9 @@ Lists orders that were logged on a specific day. Admins can filter the orders an
 ### 4. Validations
 - CSV Exports are limited to a maximum range of `31 days` of order records in a single query block to prevent backend response timeouts.
 
+### 5. Dependencies
+- **System Dependencies**: Dependent on historical order data generated from Customer App checkout transactions and branch-level order states.
+
 ---
 
 ## Screen 4.3: Order Detail View Screen
@@ -654,6 +672,10 @@ Redesigned detailed layout showing the customer details, order itemization table
 ### 4. Validations
 - Historical records are read-only and cannot be altered by admins.
 - Delivery address is hidden for takeaway or dine-in orders.
+
+### 5. Dependencies
+- **Module Dependencies**: Relies on Module 2 (Branch details) and Module 5 (Food item details) to fetch location and menu metadata.
+- **System Dependencies**: Linked to delivery status events tracked by the Delivery App system.
 
 ---
 
@@ -736,6 +758,9 @@ Form used to add a new food item to the system.
 - **Image Check**: Only JPG or PNG formats are allowed, under `2MB` max size.
 - **Item Name**: Must be unique globally to avoid duplication.
 
+### 5. Dependencies
+- **Data Dependencies**: Relies on categories master mapping tables (e.g. Starters, Sides, Desserts) to resolve Category dropdown.
+
 ---
 
 ## Screen 5.3: Update Food Item Screen
@@ -773,6 +798,9 @@ Edit existing menu item details. Highlights current image and allows replacing i
 ### 4. Validations
 - Item image upload is optional for updates.
 - Modifying price only affects future orders; historical order items tables retain checkout price details.
+
+### 5. Dependencies
+- **Data Dependencies**: Relies on categories configuration tables to resolve Category dropdown.
 
 ---
 
@@ -814,6 +842,9 @@ Redesigned detailed drawer panel sliding from the right edge. Displays CDN image
 
 ### 4. Validations
 - Mapped branch list queries active `branch_menus` tables to generate locations data dynamically.
+
+### 5. Dependencies
+- **Module Dependencies**: Relies on Module 2 (Branch Management) relationship tables to pull assigned branches mapping logs.
 
 ---
 
