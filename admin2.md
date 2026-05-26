@@ -117,6 +117,13 @@ Central dashboard that serves as the landing interface for ROMS Administrators. 
 | Date Range End | Date | No | Must be >= Date Range Start; Cannot be in future | `2026-05-26` | Defaults to today |
 | Filter Branch | Dropdown | No | Must exist in active branches table | `All Branches` | Supports multi-select or single branch |
 | Period Toggle | Segmented | No | Must be Daily, Weekly, or Monthly | `Monthly` | Controls trend chart aggregation |
+| Metric: Revenue | Currency | Read-only | Positive decimal | `₹12,45,600` | Displays total revenue of delivered orders |
+| Metric: Orders | Number | Read-only | Integer >= 0 | `3,842` | Total orders count for selected filters |
+| Metric: Branches | Number | Read-only | Integer >= 0 | `12 Active` | Count of currently active branches |
+| Top Items Column: Rank| Number | Read-only | Integer >= 1 | `1` | Ranking of item by order volume |
+| Top Items Column: Name| Text | Read-only | Min 3 chars | `Chicken Biryani` | Mapped food item title |
+| Recent Orders: Order ID| Text | Read-only | Unique ID | `#ORD4021` | Clickable link to Screen 4.3 |
+| Recent Orders: Amount | Currency | Read-only | Positive decimal | `₹450` | Billing total of order |
 
 ### 4. Validations
 - Date range query interval cannot exceed `365 days`.
@@ -154,6 +161,12 @@ Central branch management landing page that lists active and inactive restaurant
 | Search Box | Text | No | Max 50 characters | `MG Road` | Filters table columns by Branch Name or Code |
 | Status Filter | Dropdown | No | Must match 'Active', 'Inactive', or 'All' | `Active` | Filters branch listings |
 | City Filter | Dropdown | No | Must exist in systems city master database | `Bangalore` | Filters branch listings |
+| Table Column: Code | Text | Read-only | Unique alphanumeric code | `B001` | Unique branch identifier |
+| Table Column: Name | Text | Read-only | Min 3 chars | `MG Road` | Branch branch name |
+| Table Column: City | Text | Read-only | Valid city | `Bangalore` | Branch city location |
+| Table Column: Status | Badge | Read-only | 'Active' or 'Inactive' badge | `Active` | Color-coded status badge |
+| Row Action: View | Link | — | Triggers page change | `[View]` | Navigates to Screen 2.4 (Detail) |
+| Row Action: Edit | Link | — | Triggers page change | `[Edit]` | Navigates to Screen 2.3 (Update) |
 
 ### 4. Validations
 - Search box input must contain at least `2 characters` before querying database records.
@@ -191,7 +204,7 @@ Input form used to register a new physical restaurant location in the system dat
 |---|---|---|---|---|---|
 | Branch Code | Text | Yes | Unique, alphanumeric, min 3 / max 10 characters | `B004` | Identifier |
 | Branch Name | Text | Yes | Min 3, max 100 characters | `Indiranagar` | Official location name |
-| Contact Email | Email | Yes | Valid email format | `indira@roms.com` | Rerouted alerts |
+| Contact Email | Email | Yes | Valid email format | `indira@roms.com` | Alerts sent to this address |
 | Phone Number | Phone | Yes | Numeric, exactly 10 digits | `9876543210` | Contact phone |
 | Address Line 1 | Text | Yes | Min 10, max 255 characters | `100 Feet Rd, 4th Block` | Location address |
 | City | Dropdown | Yes | Selected value must match active city list | `Bangalore` | City list |
@@ -256,18 +269,27 @@ Interface used to update the configuration of an existing branch. The unique Bra
 ## Screen 2.4: View Branch Details Screen
 
 ### 1. Overview
-Multi-tab view displaying the details, employee mapping, and assigned menu configurations of a selected branch.
+Redesigned view page containing comprehensive details of a selected branch. Contains an overview info card and data tables listing both assigned menu food items and assigned employee roster.
 
 ### 2. Screen Preview
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  MG Road Branch — B001 (Active)           [Edit] [Deactivate]│
 ├─────────────────────────────────────────────────────────────┤
-│  [Overview]   Assigned Menu   Employees                     │
+│  [Overview]   Assigned Menu (25)   Employees (8)            │
 ├─────────────────────────────────────────────────────────────┤
+│  Branch Code: B001 | Phone: 9811223344 | Email: mgroad@roms │
 │  Address: 123, Main Street, MG Road, Bangalore - 560001     │
-│  Contact: mgroad@roms.com | 9811223344                      │
 │  Operating Hours: 10:00 AM to 11:00 PM                      │
+│                                                             │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │ Active Employees Roster (Employees Tab Content)       │  │
+│  ├─────────┬──────────────┬──────────────┬───────────────┤  │
+│  │ ID      │ Name         │ Role         │ Status        │  │
+│  ├─────────┼──────────────┼──────────────┼───────────────┤  │
+│  │ E101    │ John Doe     │ Manager      │ ● Active      │  │
+│  │ E102    │ Jane Smith   │ Kitchen Staff│ ● Active      │  │
+│  └─────────┴──────────────┴──────────────┴───────────────┘  │
 │                                                             │
 │  Created By: admin_user | Created At: 2026-05-01 10:00 AM   │
 │  Updated By: admin_user | Updated At: 2026-05-20 03:30 PM   │
@@ -277,7 +299,16 @@ Multi-tab view displaying the details, employee mapping, and assigned menu confi
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Tab Selector | Buttons | Yes | Must navigate to Overview, Assigned Menu, or Employees | `Overview` | Swaps out active tab content pane |
+| Tab Switcher | Buttons | Yes | Must navigate to Overview, Assigned Menu, or Employees | `Employees` | Swaps out active tab content pane |
+| Employee Table: ID | Text | Read-only | Alphanumeric unique code | `E101` | Employee unique code |
+| Employee Table: Name| Text | Read-only | Min 2 characters | `John Doe` | Combined first and last name |
+| Employee Table: Role| Text | Read-only | Valid employee system role | `Manager` | Operational role |
+| Employee Table: Status| Badge | Read-only | 'Active' or 'Inactive' badge | `Active` | Status pill indicator |
+| Menu Table: Item Code| Text | Read-only | Alphanumeric unique code | `F012` | Food item code |
+| Menu Table: Name | Text | Read-only | Min 3 characters | `Chicken Biryani` | Item name |
+| Menu Table: Price | Currency | Read-only | Positive decimal | `₹299` | Branch selling price |
+| Button: Edit | Button | Yes | Redirects to update branch form | `[Edit]` | Navigates to Screen 2.3 |
+| Button: Deactivate | Button | Yes | Opens confirmation modal | `[Deactivate]` | Opens Screen 2.6 confirmation |
 
 ### 4. Validations
 - Audit fields (Created By/At, Updated By/At) are resolved by the server and are strictly non-editable.
@@ -308,7 +339,11 @@ Map food items from the master menu catalog to be available at this branch.
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Checkbox List | Array | Yes | Checked items must have valid active food item UUIDs | `[item_uuid_1]` | Map items to branch |
+| Selection Checkbox | Checkbox | No | Checked state maps item to branch | `true` | Select individual item |
+| Select All Checkbox| Checkbox | No | Boolean | `true` | Selects all currently filtered items |
+| Item Name | Text | Read-only | Min 3 chars | `Margherita Pizza` | Master food item name |
+| Item Category | Text | Read-only | Valid category tag | `Pizza` | Master category classification |
+| Item Price | Currency | Read-only | Positive decimal | `₹299` | Item selling price |
 | Category Filter | Dropdown | No | Must match active master category | `Pizza` | Filters list |
 | Search Bar | Text | No | Max 50 characters | `Pizza` | Filters list by food name |
 
@@ -373,6 +408,12 @@ Tabular display containing the profile records of all system workers. Allows fil
 | Search Bar | Text | No | Max 50 characters | `John` | Filters by employee name, email, or employee code |
 | Role Filter | Dropdown | No | Must match 'Manager', 'Kitchen', 'Delivery', or 'All' | `Manager` | Filters rows by operational role |
 | Branch Filter | Dropdown | No | Must match active branch ID | `MG Road` | Filters rows by mapped location |
+| Table Column: ID | Text | Read-only | Alphanumeric unique code | `E101` | Employee unique code |
+| Table Column: Name | Text | Read-only | Min 2 chars | `John Doe` | Employee name |
+| Table Column: Role | Text | Read-only | Mapped enum role | `Manager` | Mapped employee role |
+| Table Column: Branch | Text | Read-only | Mapped branch location | `MG Road` | Mapped branch location |
+| Table Column: Status | Badge | Read-only | 'Active' or 'Inactive' badge | `Active` | Status pill indicator |
+| Row Action: Edit | Link | — | Triggers page change | `[Edit]` | Navigates to Screen 3.3 |
 
 ### 4. Validations
 - Standard alphanumeric search. Debounced at client level.
@@ -414,8 +455,8 @@ Registration form to onboard system operators and managers, mapping them to expl
 | Role Selection | Dropdown | Yes | Role must be in validated system enum | `Manager` | Determines portal permissions |
 | Assign Branch | Dropdown | Yes* | Mapped branch ID | `MG Road` | Required if role is Manager, Kitchen, or Delivery |
 | Date of Joining| Date | Yes | Cannot be future date | `2026-05-26` | Start date record |
-| Password | Password | Yes | Min 8 characters; 1 upper, 1 lower, 1 digit, 1 special | `**********` | Authentication pass |
-| Confirm Password| Password| Yes | Must match Password exactly | `**********` | Password verification |
+| Password | Password | Yes | Min 8 characters; 1 upper, 1 lower, 1 digit, 1 special | `**********` | Hashed securely |
+| Confirm Password| Password| Yes | Must match Password exactly | `**********` | Verification check |
 
 ### 4. Validations
 - Email must be unique globally across users.
@@ -518,6 +559,7 @@ A calendar dashboard displaying aggregated daily totals of completed orders and 
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Month Selector | Buttons | Yes | Calendar boundary navigation | `May 2026` | Switches month and queries daily summary metrics |
+| Calendar Day Cell| Button | Yes | Interactive date click trigger | `Ord: 22` | Clicking cell redirects to Screen 4.2 |
 
 ### 4. Validations
 - Clicking future dates is disabled.
@@ -552,6 +594,13 @@ Lists orders that were logged on a specific day. Admins can filter the orders an
 | Search Input | Text | No | Alphanumeric characters | `ORD101` | Search by Order ID or customer phone |
 | Branch Filter | Dropdown | No | Must be valid branch ID or All | `MG Road` | Filters lists by branch location |
 | Status Filter | Dropdown | No | Valid order status values | `Delivered` | Filters orders by status |
+| Table Column: ID | Text | Read-only | Unique alphanumeric code | `#ORD101` | Clickable link to details |
+| Table Column: Branch | Text | Read-only | Valid branch | `MG Road` | Branch location label |
+| Table Column: Customer| Text | Read-only | Min 2 characters | `John D.` | Customer billing name |
+| Table Column: Amount| Currency | Read-only | Positive decimal | `₹450` | Total billing value |
+| Table Column: Status| Badge | Read-only | Valid status badge pill | `Delivered` | Color-coded status badge |
+| Row Action: View | Link | — | Triggers detail page change | `[View]` | Navigates to Screen 4.3 |
+| Button: Export | Button | Yes | Invokes CSV creation | `[Export to CSV]` | Triggers CSV download |
 
 ### 4. Validations
 - CSV Exports are limited to a maximum range of `31 days` of order records in a single query block to prevent backend response timeouts.
@@ -561,7 +610,7 @@ Lists orders that were logged on a specific day. Admins can filter the orders an
 ## Screen 4.3: Order Detail View Screen
 
 ### 1. Overview
-Comprehensive panel listing purchase items, billing particulars, customer contacts, and the order's real-time lifecycle tracking timeline. Read-only.
+Redesigned detailed layout showing the customer details, order itemization table, billing calculation block, vertical order lifecycle stepper, and delivery executive tracking metadata.
 
 ### 2. Screen Preview
 ```text
@@ -573,19 +622,37 @@ Comprehensive panel listing purchase items, billing particulars, customer contac
 │  123 Main St, Bangalore              |  [x] Kitchen12:05 PM │
 │                                      |  [x] Out    12:20 PM │
 │  Order Items                         |  [x] Deliv. 12:45 PM │
-│  1x Margherita Pizza - ₹299          |                      │
-│  2x Coke             - ₹100          |  Delivery Agent      │
-│                                      |  Mike (9998887776)   │
-│  Bill Summary                        |                      │
-│  Subtotal: ₹399 | Tax: ₹20 | Total: ₹419                    │
+│  ┌────────────────────────┬───────┬──────┬──────────────┐   │
+│  │ Item Name              │ Price │ Qty  │ Subtotal     │   │
+│  ├────────────────────────┼───────┼──────┼──────────────┤   │
+│  │ Margherita Pizza       │ ₹299  │ 1    │ ₹299         │   │
+│  │ Coke                   │ ₹50   │ 2    │ ₹100         │   │
+│  └────────────────────────┴───────┴──────┴──────────────┘   │
+│  Bill Summary                        |  Delivery Agent      │
+│  Subtotal: ₹399 | Tax: ₹20 | Total: ₹419  Mike (9998887776) │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### 3. Screen Fields Table
-None. (Read-only view).
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Order Status Badge | Status Badge | Read-only | Color-coded status | `● Delivered` | Current database state |
+| Customer Name | Text | Read-only | Min 2 chars | `John Doe` | Customer display name |
+| Customer Phone | Phone | Read-only | Numeric digits | `9876543210` | Contact phone |
+| Customer Address | Text | Read-only | Min 10 chars | `123 Main St, Bangalore` | Mapped delivery location |
+| Delivery Agent | Text | Read-only | Name of courier | `Mike` | Display courier name |
+| Agent Contact | Phone | Read-only | Numeric digits | `9998887776` | Phone number of courier |
+| Item Table: Name | Text | Read-only | Min 3 characters | `Margherita Pizza` | Mapped food item title |
+| Item Table: Price | Currency | Read-only | Positive decimal | `₹299` | Captured selling price |
+| Item Table: Qty | Number | Read-only | Integer >= 1 | `1` | Ordered quantity count |
+| Item Table: Subtotal| Currency | Read-only | Positive decimal | `₹299` | Line item total subtotal |
+| Subtotal | Currency | Read-only | Positive decimal | `₹399` | Sum of all subtotals |
+| Tax Amount | Currency | Read-only | Positive decimal | `₹20` | Computed taxes |
+| Total Amount | Currency | Read-only | Positive decimal | `₹419` | Grand total billing price |
+| Timeline Stepper | Step Tracker | Read-only | Step checkmarks | `[x] Placed` | Order tracking history |
 
 ### 4. Validations
-- Historical records are read-only.
+- Historical records are read-only and cannot be altered by admins.
 - Delivery address is hidden for takeaway or dine-in orders.
 
 ---
@@ -621,6 +688,11 @@ Catalog repository listing all master items. Supports list and grid layouts.
 | Search Bar | Text | No | Alphanumeric characters | `Burger` | Search by item name |
 | Category Filter | Dropdown | No | Must be valid Category ID | `Pizza` | Filters by food category |
 | Dietary Filter | Dropdown | No | Must match Veg, Non-Veg, Egg, Vegan | `Veg` | Filters by type |
+| Item Card: Name | Text | Read-only | Min 3 chars | `Veg Burger` | Display name of food |
+| Item Card: Price | Currency | Read-only | Positive decimal | `₹150` | Base selling price |
+| Item Card: Dietary | Badge | Read-only | Veg, Non-Veg, Egg, Vegan | `Veg` | Dietary badge pill |
+| Row Action: Edit | Link | — | Triggers page change | `[Edit]` | Navigates to Screen 5.3 |
+| Row Action: View | Link | — | Opens slide-out panel | `[View]` | Navigates to Screen 5.4 |
 
 ### 4. Validations
 - Standard debounced query validations.
@@ -707,7 +779,7 @@ Edit existing menu item details. Highlights current image and allows replacing i
 ## Screen 5.4: View Food Item Slide-out Drawer
 
 ### 1. Overview
-Inspect master food item configuration metrics and active branch menus where the item is mapped.
+Redesigned detailed drawer panel sliding from the right edge. Displays CDN image preview, item configurations, and a mapping table showing which branch locations have this item active on their menu.
 
 ### 2. Screen Preview
 ```text
@@ -719,17 +791,29 @@ Inspect master food item configuration metrics and active branch menus where the
 │  Category: Starters                                         │
 │  Description: Spiced cottage cheese grilled in tandoor.     │
 │                                                             │
-│  Active Locations (Assigned Branches):                      │
-│  - MG Road Branch (B001)                                    │
-│  - Indiranagar Branch (B004)                                │
+│  Assigned Locations Mappings                                │
+│  ┌─────────────┬─────────────────────┬──────────────────┐   │
+│  │ Branch Code │ Branch Name         │ Branch Status    │   │
+│  ├─────────────┼─────────────────────┼──────────────────┤   │
+│  │ B001        │ MG Road Branch      │ ● Active         │   │
+│  │ B004        │ Indiranagar Branch  │ ● Active         │   │
+│  └─────────────┴─────────────────────┴──────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### 3. Screen Fields Table
-None. (Read-only view).
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Item Name | Text | Read-only | Min 3 chars | `Paneer Tikka` | Food item title |
+| Base Price | Currency | Read-only | Positive decimal | `₹279.00` | Current base pricing |
+| Category Label | Text | Read-only | Min 3 chars | `Starters` | Category classification |
+| Description | Text | Read-only | Max 500 chars | `Spiced cottage cheese...` | Description notes |
+| Branch Table: Code | Text | Read-only | Valid alphanumeric code | `B001` | Mapped branch code |
+| Branch Table: Name | Text | Read-only | Min 3 chars | `MG Road Branch` | Mapped branch name |
+| Branch Table: Status| Badge | Read-only | 'Active' or 'Inactive' badge | `Active` | Branch status badge |
 
 ### 4. Validations
-None.
+- Mapped branch list queries active `branch_menus` tables to generate locations data dynamically.
 
 ---
 
