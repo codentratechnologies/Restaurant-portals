@@ -165,7 +165,7 @@ $$\text{Return Rate \%} = \left( \frac{\text{Total Returned Orders}}{\text{Total
 ┌────────────────────────────────────────────────────────────────────────┐
 │ [🍽 DineOs]   Menu Availability Manager                                │
 ├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  🔍 [ Search food item...   ]   Category: [ All Categories ▼ ]│
+│ ○ Dashboard  │  🔍 [ Search food item...   ]   Category: [ All Categories ▼ ]   Status: [ All Statuses ▼ ]│
 │ ▶ Menu       │                                                         │
 │ ○ Orders     │ ┌──────────┬─────────────────┬────────┬───────────┬──────────┐ │
 │ ○ Reviews    │ │ Item ID  │ Food Name       │ Price  │ Status    │ Category │ │
@@ -179,7 +179,7 @@ $$\text{Return Rate \%} = \left( \frac{\text{Total Returned Orders}}{\text{Total
 
 #### 3. UI/UX Layout Description
 *   **Main Grid**: Multi-column list with unique food ID, name, locked master prices, Green/Red availability status, and category labels.
-*   **Search**: Persistent header bar containing search queries and a dropdown selection list to group items by category.
+*   **Search & Filters**: Persistent header bar containing search queries, a dropdown selection list to group items by category, and a dropdown selection list to filter by availability status (All, Available, Unavailable).
 *   **Modals**: Confirmation modal displays if toggle is turned off: "Disable this item? This will instantly remove it from the Customer App."
 
 #### 4. Screen Fields Table
@@ -189,6 +189,7 @@ $$\text{Return Rate \%} = \left( \frac{\text{Total Returned Orders}}{\text{Total
 |---|---|---|---|---|---|
 | Search Query | Input Text | No | Max 100 characters, sanitizes inputs | `Pizza` | Filters list dynamically |
 | Category Dropdown| Selector | No | Must exist in categories catalog | `Pizza` | Filter grouping |
+| Status Dropdown | Selector | No | Must match 'All', 'Available', or 'Unavailable' | `Available` | Filters items by status |
 
 ##### Menu List Table
 | Field Name | Type | Required | Validation | Example | Notes |
@@ -207,7 +208,7 @@ $$\text{Return Rate \%} = \left( \frac{\text{Total Returned Orders}}{\text{Total
 *   **Customer App Menu View**: Synchronously pulls branch mapping data to refresh ordering menus.
 
 #### 7. API Requirement Suggestions
-*   **GET** `/api/v1/restaurant/menu?branch_id=br_mg_road&page=1&search=Veg`
+*   **GET** `/api/v1/restaurant/menu?branch_id=br_mg_road&page=1&search=Veg&category=Pizza&status=Available`
     *   *Response*: `{"status": "success", "items": [{"id": "food_101", "name": "Veg Pizza", "category": "Pizza", "price": 299.00, "is_available": true}]}`
 *   **POST** `/api/v1/restaurant/menu/toggle`
     *   *Payload*: `{"branch_id": "br_mg_road", "food_item_id": "food_101", "is_available": false}`
@@ -305,11 +306,12 @@ CREATE TABLE branch_food_mapping (
 | Order Ticket: Tax Amount | Currency (Read-only) | Yes | Positive decimal | `₹14.24` | Computed tax amount applied to the order. |
 | Order Ticket: Total Bill | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Final payable amount (Subtotal + Tax Amount). |
 | Order Ticket: Payment Method | Badge (Read-only) | Yes | Value must be 'COD' or 'Online' | `Prepaid` (Online) | Specifies payment channel. |
-| Action: Accept | Button | Yes | Requires active auth token | `[Accept]` | Sends POST to `/accept` endpoint; transitions status to `Accepted`. |
+| Action: Accept | Button | Yes | Requires active auth token | `[Accept]` | Sends POST to `/accept` endpoint immediately without prompting for cooking or preparation time; transitions status to `Accepted`. |
 | Action: Reject | Button | Yes | Requires active auth token | `[Reject]` | Opens the Rejection Reason dialog modal to log cancellation. |
 
 #### 5. Validations
 *   **Shift Operation Lock**: Rejects/Accepts cannot be submitted if branch manager has marked the overall branch state as offline.
+*   **Direct Order Acceptance**: Accepting an order must not prompt the operator for any cooking time or preparation time. The action executes immediately upon button click.
 
 #### 6. Dependencies
 *   **Customer Checkouts**: Generates the incoming order queues.
@@ -581,51 +583,174 @@ CREATE TABLE order_status_history (
 *   **User Workflow**: Select `- List` from sidebar ➔ Click target Tab (Accept / Reject / Delivered / Return) ➔ Use filters/search ➔ Select row to inspect details via drawer.
 *   **Main Functionality**: Tabbed queue selector, CSV report exporter, alphanumeric search bar, payment mode dropdown filter, detailed order drawer widget.
 
-#### 2. Screen Preview (Text Wireframe)
+#### 2. Screen Layout
+The screen is composed of two visual zones stacked vertically:
+
+*   **Zone 1 — Persistent Screen Shell & Tab Navigation (Always Visible)**: A sidebar for navigation, and a persistent top filtering and search panel containing search inputs and a payment mode selector. This header remains fixed as the user transitions between tabs.
+*   **Zone 2 — Internal Tabbed Content Panel**: A tab bar immediately below the persistent search panel with four tabs:
+    *   *Accept*: Lists active orders currently in Accepted, Preparing, Ready For Pickup, Out For Delivery, or Arrived status.
+    *   *Reject*: Lists cancelled orders with refund details.
+    *   *Delivered*: Lists successfully completed deliveries.
+    *   *Return*: Lists orders rejected/returned by the customer.
+
+Each tab renders its own dedicated data table grid layout.
+
+#### 3. Screen Preview (Full Composite View — Accept Tab Active)
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
 │ [🍽 DineOs]   Order List Ledger                                        │
 ├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  [ Accept ]  [ Reject ]  [ Delivered ]  [ Return ]      │
+│ ○ Dashboard  │  [ Accept (5) ]  [ Reject (2) ]  [ Delivered ]  [ Return ]│
 │ ○ Menu       ├─────────────────────────────────────────────────────────┤
 │ ▶ Orders     │  🔍 [ Search Order ID...   ]   Filter: [ Payment Mode ▼ ] │
 │   - Queue    ├──────────┬──────────────┬──────────────┬────────────────┤
 │   - List     │ Order ID │ Timestamp    │ Total Value  │ Status/Payment │
 │ ○ Reviews    ├──────────┼──────────────┼──────────────┼────────────────┤
-│ ○ Profile    │ #99018   │ 12:46 PM     │ ₹299.00      │ Reject (Onl)   │
-│              │ #99016   │ 12:30 PM     │ ₹420.00      │ Delivered (Onl)│
+│ ○ Profile    │ #99018   │ 12:46 PM     │ ₹299.00      │ Preparing (Onl)│
+│              │ #99016   │ 12:30 PM     │ ₹420.00      │ Accepted (COD) │
 │              │ └────────┴──────────────┴──────────────┴────────────────┘ │
-│              │ Showing 1-20 of 1,240 entries         [<] [1] [2] [>]   │
+│              │ Showing 1-20 of 5 entries             [<] [1] [>]       │
 └──────────────┴─────────────────────────────────────────────────────────┘
 ```
 
-#### 3. UI/UX Layout Description
-*   **Tabbed Navigation**: Horizontal tab block at the top allowing the operator to toggle views between `Accept`, `Reject`, `Delivered`, and `Return` order lists.
-*   **Search & Filters**: Persistent top panel containing a search query input and a dropdown menu to filter rows by payment method (Online vs. COD).
-*   **Consolidated Grid**: Grid layout presenting:
-    *   *Accept Tab*: Orders currently in kitchen preparation, ready queue, or transit stages (Statuses: Accepted, Preparing, Ready For Pickup, Out For Delivery, Arrived).
-    *   *Reject Tab*: Cancelled orders displaying Stripe refund success/pending states.
-    *   *Delivered Tab*: Complete transaction logs of successfully completed deliveries.
-    *   *Return Tab*: Customer rejected returns with complaint detail links and refund status.
-*   **Slide-out Drawer**: Row selection triggers a slide-out drawer from the right containing customer metadata, bill breakdown (subtotal + tax = total bill), and delivery partner tracking.
+---
 
-#### 4. Screen Fields Table
+### SECTION A: Persistent Screen Shell & Tab Navigation (Persistent — Always Visible)
 
-##### Search & Filter Fields
+This zone remains fixed regardless of which tab is active. It contains the search input, payment mode filter, and CSV export action.
+
+#### 1. Persistent Screen Shell Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Tab Switcher | Buttons | Yes | Must navigate to Accept, Reject, Delivered, or Return | `Reject` | Changes the active list database query scope. |
-| Search Box | Input Text | No | Alphanumeric validation limits | `99018` | Filters the selected tab rows by matching Order ID. |
-| Payment Mode Filter | Selector | No | Must match 'COD', 'Online', or 'All' | `Online` | Filters records by payment method. |
-| Export Button | Button | No | Requires active list scope | `[CSV]` | Exports the currently filtered order records to a CSV file. |
+| Search Box | Input Text | No | Alphanumeric validation limits | `99018` | Filters the selected tab rows by matching Order ID |
+| Payment Mode Filter | Selector | No | Must match 'COD', 'Online', or 'All' | `Online` | Filters records by payment method |
+| Export Button | Button | No | Requires active list scope | `[CSV]` | Exports the currently filtered order records to a CSV file |
 
-##### Order List Table Columns
+---
+
+### SECTION B: Internal Tab Bar Controller
+
+The tab bar sits below the persistent header card. The active tab displays an underline highlight (primary color `#2563EB`) beneath its label, with dynamic badge counts indicating matching order volume.
+
+#### 1. Tab Bar Behavior
+| Property | Specification |
+|---|---|
+| Default Active Tab | `Accept` |
+| Active Tab Indicator | Bottom border underline, `2px solid #2563EB` |
+| Inactive Tab Style | Neutral gray text, no underline |
+| Badge Counts | Dynamic count shown in parentheses next to active tabs with pending items |
+| URL State Persistence | Tab state must be persisted in the URL query parameter (e.g., `?tab=reject`) |
+
+---
+
+### SECTION C: Tab Content Viewports
+
+Swaps the data table grid based on the active tab selection. Row selection in any tab opens a slide-out detailed drawer from the right.
+
+---
+
+#### Tab 1: Accept
+Displays active orders currently in progress.
+
+##### 1. Accept Tab Preview
+```text
+┌──────────┬──────────────┬──────────────┬────────────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Status/Payment │
+├──────────┼──────────────┼──────────────┼────────────────┤
+│ #99018   │ 12:46 PM     │ ₹299.00      │ Preparing (Onl)│
+│ #99016   │ 12:30 PM     │ ₹420.00      │ Accepted (COD) │
+└──────────┴──────────────┴──────────────┴────────────────┘
+```
+
+##### 2. Accept Tab Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Table Column: Order ID | Text (Read-only) | Yes | Unique reference code format | `#99018` | Unique ID of the order; row click opens details drawer. |
-| Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `12:46 PM` | Date and time when the order checkout occurred. |
-| Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Grand total bill of the transaction (inclusive of tax). |
-| Table Column: Status/Payment | Badge (Read-only) | Yes | Valid state + method badge | `Delivered (Online)` | Combined badge displaying operational status and payment method. |
+| Table Column: Order ID | Text (Read-only) | Yes | Unique reference format | `#99018` | Row click opens details drawer |
+| Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `12:46 PM` | Order creation timestamp |
+| Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Inclusive of tax |
+| Table Column: Status/Payment | Badge (Read-only) | Yes | Active status + method | `Preparing (Online)` | Valid states: Accepted, Preparing, Ready For Pickup, Out For Delivery, Arrived |
+
+---
+
+#### Tab 2: Reject
+Displays cancelled orders with refund statuses.
+
+##### 1. Reject Tab Preview
+```text
+┌──────────┬──────────────┬──────────────┬─────────────────┬───────────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Rejection Code  │ Refund Status │
+├──────────┼──────────────┼──────────────┼─────────────────┼───────────────┤
+│ #99015   │ 11:20 AM     │ ₹180.00      │ out_of_stock    │ Refunded      │
+│ #99011   │ 10:15 AM     │ ₹320.00      │ customer_cancel │ Refund Pending│
+└──────────┴──────────────┴──────────────┴─────────────────┴───────────────┘
+```
+
+##### 2. Reject Tab Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Table Column: Order ID | Text (Read-only) | Yes | Unique reference format | `#99015` | Row click opens details drawer |
+| Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `11:20 AM` | Order checkout timestamp |
+| Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹180.00` | Order total |
+| Table Column: Rejection Code | Badge (Read-only) | Yes | Valid system reason enum | `out_of_stock` | Reason code selected in Screen 3.2 |
+| Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Not Required (for COD), Refund Pending, Refunded, Refund Failed |
+
+---
+
+#### Tab 3: Delivered
+Displays completed historical orders.
+
+##### 1. Delivered Tab Preview
+```text
+┌──────────┬──────────────┬──────────────┬─────────────────┬──────────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Delivered Time  │ Rider Rating │
+├──────────┼──────────────┼──────────────┼─────────────────┼──────────────┤
+│ #99014   │ 11:05 AM     │ ₹450.00      │ 11:35 AM        │ ⭐⭐⭐⭐⭐ (5) │
+│ #99012   │ 10:00 AM     │ ₹220.00      │ 10:30 AM        │ ⭐⭐⭐⭐☆ (4) │
+└──────────┴──────────────┴──────────────┴─────────────────┴──────────────┘
+```
+
+##### 2. Delivered Tab Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Table Column: Order ID | Text (Read-only) | Yes | Unique reference format | `#99014` | Row click opens details drawer |
+| Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `11:05 AM` | Checkout timestamp |
+| Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹450.00` | Order total |
+| Table Column: Delivered Time | DateTime (Read-only) | Yes | Valid timestamp | `11:35 AM` | Time when delivered to customer |
+| Table Column: Rider Rating | Rating Stars | No | 1 to 5 stars | `⭐⭐⭐⭐⭐ (5)` | Rating left for the delivery agent |
+
+---
+
+#### Tab 4: Return
+Displays customer returned/rejected orders.
+
+##### 1. Return Tab Preview
+```text
+┌──────────┬──────────────┬──────────────┬─────────────────┬───────────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Return Reason   │ Refund Status │
+├──────────┼──────────────┼──────────────┼─────────────────┼───────────────┤
+│ #99013   │ 10:45 AM     │ ₹299.00      │ damaged_items   │ Refunded      │
+└──────────┴──────────────┴──────────────┴─────────────────┴───────────────┘
+```
+
+##### 2. Return Tab Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Table Column: Order ID | Text (Read-only) | Yes | Unique reference format | `#99013` | Row click opens details drawer |
+| Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `10:45 AM` | Checkout timestamp |
+| Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Order total |
+| Table Column: Return Reason | Text (Read-only) | Yes | Reason given by customer | `damaged_items` | Customer return code |
+| Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Pending, Refunded, Refund Failed |
+
+---
+
+#### Detailed Order Slide-out Drawer (Activated on Row Click)
+Row selection on any tab triggers a slide-out drawer containing:
+*   **Customer Information**: Name, phone, and delivery address.
+*   **Item Breakdown Table**: Itemized list showing Name, Qty, and Subtotal.
+*   **Billing Summary**: Subtotal, Applied Tax, Grand Total, and Payment Method.
+*   **Delivery Details**: Matched courier name, contact info, and registration details.
+
+---
 
 #### 5. Validations
 *   **Export Range Limit**: Block CSV generation requests that capture more than 30 consecutive calendar days of records.
