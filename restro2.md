@@ -607,9 +607,20 @@ CREATE TABLE order_status_history (
     *   *COD - Refund Not Required*: Grey background chip.
 
 #### 4. Screen Fields Table
+
+##### Search & Filter Fields
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Search Box | Input Text | No | Alphanumeric validation limits | `99018` | Filters table records |
+| Search Box | Input Text | No | Alphanumeric validation limits | `99018` | Filters table records by matching Order ID. |
+| Export Selected | Button | No | Requires selected table row keys | `[CSV]` | Exports the selected records to a downloadable CSV report. |
+
+##### Rejected Orders List Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Table Column: Order ID | Text (Read-only) | Yes | Unique order reference code format | `#99018` | Unique ID of the order; row click opens details drawer. |
+| Table Column: Rejected At | DateTime (Read-only) | Yes | Valid timestamp | `12:46 PM` | Date and time when the order rejection occurred. |
+| Table Column: Reason | Text (Read-only) | Yes | Rejection reason string | `Out of Stock` | Cancellation reason selected during reject flow. |
+| Table Column: Refund Status | Badge (Read-only) | Yes | 'Success', 'Pending', or 'Refund Not Required' | `Success` | Reflects status of payment refund. |
 
 #### 5. Validations
 *   **Export Range Limit**: Block CSV generation requests that capture more than 30 consecutive calendar days of records.
