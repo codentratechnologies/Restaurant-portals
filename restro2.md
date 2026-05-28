@@ -507,6 +507,7 @@ CREATE TABLE rejected_orders (
 | Order Card: ID | Text (Read-only) | Yes | Unique identifier format (`#ORD-XXXXX`) | `#ORD-99018` | Displays order serial reference key. |
 | Order Card: Time Elapsed | Duration (Timer) | Yes | Computed dynamically: `current_time - accepted_at` | `04:20` | Tracks cooking duration elapsed in MM:SS. |
 | Order Card: Items Summary | Array (Read-only) | Yes | Standard listing of food items | `1x Veg Pizza` | Brief catalog of dishes for fast kitchen readability. |
+| Order Card: Status | Badge (Read-only) | Yes | Must be 'Accepted', 'Preparing', or 'Ready' | `Preparing` | Displays the current stage status of the order. |
 | Order Card: Courier Match | Badge (Read-only) | Yes | 'Unassigned', 'Assigned', or 'Arrived' | `Assigned` | Live status tracking of matched dispatch riders. |
 | Courier Card: Name | Text (Read-only) | Yes* | Alphabetical characters, only when matched | `Mike` | Assigned courier dispatch partner name. |
 | Courier Card: Phone | Phone (Read-only) | Yes* | E.164 standard phone format | `+91 9998887776` | Courier phone details for quick customer contact. |
