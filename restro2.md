@@ -99,6 +99,15 @@ The **DineOs Restaurant Portal** is a web-based operational system designed spec
 | Date Filter Start | Date Selector | Yes | Must be <= today; Cannot exceed End Date | `2026-05-01` | Defaults to today |
 | Date Filter End | Date Selector | Yes | Must be >= Start Date; Cannot exceed today | `2026-05-27` | Defaults to today |
 | Chart Granularity | Radio Toggle | Yes | Value must be 'D' (Daily), 'W', or 'M' | `D` | Aggregates line chart ticks |
+| Metric: Revenue | Currency | Read-only | Positive decimal | `₹1,45,200` | Displays total revenue of delivered orders for the branch |
+| Metric: Orders | Number | Read-only | Integer >= 0 | `342` | Total orders count for selected filters |
+| Metric: Rejections | Number & Perc. | Read-only | String format `{count} ({perc}%)` | `8 (2.3%)` | Count of rejected orders with rejection percentage rate |
+| Top Items Column: Rank | Number | Read-only | Integer >= 1 | `1` | Ranking of item by order volume |
+| Top Items Column: Name | Text | Read-only | Min 3 characters | `Veg Pizza` | Mapped food item title |
+| Top Items Column: Units | Number | Read-only | Integer >= 0 | `124 units` | Number of units sold at this branch |
+| Recent Orders Column: Order ID | Text Link | Read-only | Format `#ORD-XXXXX` | `#ORD-9801` | Clickable link opens order details drawer |
+| Recent Orders Column: Total Value | Currency | Read-only | Positive decimal | `₹420` | Grand billing total of order |
+| Recent Orders Column: Status | Badge | Read-only | Delivered, Rejected, Returned | `Del` | Order lifecycle status badge |
 
 #### 5. Validations
 *   **Date Threshold**: Range queries cannot exceed 90 calendar days on branch level to maintain UI caching speeds.
