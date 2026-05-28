@@ -561,6 +561,10 @@ CREATE TABLE order_status_history (
 | `Accepted` | Light Blue | Initialized order state | `Preparing` |
 | `Preparing` | Amber | Active kitchen processing | `Ready For Pickup` |
 | `Ready For Pickup`| Purple | Awaiting courier handover | `Out For Delivery` |
+| `Out For Delivery`| Dark Blue | Rider carrying package to customer | `Arrived` |
+| `Arrived` | Teal | Rider has arrived at delivery destination | `Delivered` or `Returned` |
+| `Delivered` | Green | Order completed successfully | None |
+| `Returned` | Orange-Red | Order returned by customer | None |
 
 #### 16. Analytics Logic
 *   Kitchen performance analytics calculate differences between `Accepted` and `Ready For Pickup` milestones.
