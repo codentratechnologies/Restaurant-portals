@@ -185,10 +185,16 @@ $$\text{Return Rate \%} = \left( \frac{\text{Total Returned Orders}}{\text{Total
 *   **Modals**: Confirmation modal displays if toggle is turned off: "Disable this item? This will instantly remove it from the Customer App."
 
 #### 4. Screen Fields Table
+
+##### Search & Filter Fields
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Search Query | Input Text | No | Max 100 characters, sanitizes inputs | `Pizza` | Filters list dynamically |
 | Category Dropdown| Selector | No | Must exist in categories catalog | `Pizza` | Filter grouping |
+
+##### Menu List Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
 | Table Column: ID | Text | Read-only | Unique alphanumeric code | `food_101` | Unique food item identifier |
 | Table Column: Name | Text | Read-only | Min 3 characters | `Veg Pizza` | Display name of the food item |
 | Table Column: Price | Currency | Read-only | Positive decimal | `₹299` | Branch selling price |
