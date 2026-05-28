@@ -21,11 +21,10 @@
    - [Screen 1.1: Admin Dashboard](#screen-11-admin-dashboard)
 4. [Module 2 — Branch Management](#4-module-2--branch-management)
    - [Screen 2.1: Branch Dashboard (List View)](#screen-21-branch-dashboard-list-view)
-   - [Screen 2.2: Create Branch Screen](#screen-22-create-branch-screen)
-   - [Screen 2.3: Update Branch Screen](#screen-23-update-branch-screen)
+   - [Screen 2.2: Create Branch — Multi-Step Wizard](#screen-22-create-branch--multi-step-wizard)
+   - [Screen 2.3: Update Branch — Multi-Step Wizard](#screen-23-update-branch--multi-step-wizard)
    - [Screen 2.4: View Branch Details Screen](#screen-24-view-branch-details-screen)
-   - [Screen 2.5: Assign Menu Screen](#screen-25-assign-menu-screen)
-   - [Screen 2.6: Deactivate Branch Confirmation Modal](#screen-26-deactivate-branch-confirmation-modal)
+   - [Screen 2.5: Deactivate Branch Confirmation Modal](#screen-25-deactivate-branch-confirmation-modal)
 5. [Module 3 — Employee Management](#5-module-3--employee-management)
    - [Screen 3.1: Employee Dashboard (List View)](#screen-31-employee-dashboard-list-view)
    - [Screen 3.2: Create Employee Screen](#screen-32-create-employee-screen)
@@ -151,23 +150,23 @@ Central dashboard that serves as the landing interface for ROMS Administrators. 
 ## Screen 2.1: Branch Dashboard (List View)
 
 ### 1. Overview
-Central branch management landing page that lists active and inactive restaurant locations. Admins can filter locations and access creation, detail view, or edit actions.
+Central branch management landing page that lists active and inactive restaurant locations. Admins can filter locations and access creation, detail view, edit, or inactivate/activate actions.
 
 ### 2. Screen Preview
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│  Branches                                   [+ Add Branch]  │
-├─────────────────────────────────────────────────────────────┤
-│  🔍 Search by Name/Code...  [Status: All ▼] [City: All ▼]   │
-├─────────────────────────────────────────────────────────────┤
-│ Code  │ Name        │ City      │ Status     │ Actions      │
-│-------│-------------│-----------│------------│--------------│
-│ B001  │ MG Road     │ Bangalore │ ● Active   │ [View][Edit] │
-│ B002  │ Andheri W   │ Mumbai    │ ● Active   │ [View][Edit] │
-│ B003  │ CP Delhi    │ New Delhi │ ● Inactive │ [View][Edit] │
-├─────────────────────────────────────────────────────────────┤
-│  Showing 1-10 of 24                        [<] [1] [2] [>]  │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│  Branches                                          [+ Add Branch]   │
+├──────────────────────────────────────────────────────────────────────┤
+│  🔍 Search by Name/Code...  [Status: All ▼] [City: All ▼]            │
+├──────────────────────────────────────────────────────────────────────┤
+│ Code  │ Name        │ City      │ Status     │ Actions               │
+│-------│-------------│-----------│------------│-----------------------│
+│ B001  │ MG Road     │ Bangalore │ ● Active   │ [View][Edit][Inactivate]│
+│ B002  │ Andheri W   │ Mumbai    │ ● Active   │ [View][Edit][Inactivate]│
+│ B003  │ CP Delhi    │ New Delhi │ ● Inactive │ [View][Edit][Activate]  │
+├──────────────────────────────────────────────────────────────────────┤
+│  Showing 1-10 of 24                               [<] [1] [2] [>]   │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 3. Screen Fields Table
@@ -181,22 +180,53 @@ Central branch management landing page that lists active and inactive restaurant
 | Table Column: City | Text | Read-only | Valid city | `Bangalore` | Branch city location |
 | Table Column: Status | Badge | Read-only | 'Active' or 'Inactive' badge | `Active` | Color-coded status badge |
 | Row Action: View | Link | — | Triggers page change | `[View]` | Navigates to Screen 2.4 (Detail) |
-| Row Action: Edit | Link | — | Triggers page change | `[Edit]` | Navigates to Screen 2.3 (Update) |
+| Row Action: Edit | Link | — | Triggers page change | `[Edit]` | Navigates to Screen 2.3 (Update — Multi-Step Wizard) |
+| Row Action: Inactivate | Button | — | Triggers deactivation confirmation modal (Screen 2.5) | `[Inactivate]` | Shown only for `Active` branches. Opens Deactivate Branch Confirmation Modal |
+| Row Action: Activate | Button | — | Triggers activation API call | `[Activate]` | Shown only for `Inactive` branches. Directly activates the branch with optimistic UI update |
 
 ### 4. Validations
 - Search box input must contain at least `2 characters` before querying database records.
 
 ---
 
-## Screen 2.2: Create Branch Screen
+## Screen 2.2: Create Branch — Multi-Step Wizard
 
 ### 1. Overview
-Input form used to register a new physical restaurant location in the system database.
+A two-step guided wizard for registering a new restaurant branch. **Step 1** captures branch details (basic info, location, operational hours). Upon successful creation, **Step 2** presents the menu assignment interface where the admin maps food items to the newly created branch. Menu assignment is mandatory — the admin must assign at least one menu item before completing the wizard.
 
-### 2. Screen Preview
+### 2. Wizard Step Indicator
+A horizontal step progress bar is displayed at the top of the screen throughout both steps. The indicator visually communicates the current position in the workflow.
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│     ① Branch Creation ─────────── ② Assign Menu             │
+│     ● (Active)                    ○ (Upcoming)              │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| State | Visual Style |
+|---|---|
+| Completed Step | Filled circle with checkmark (`✓`), primary color `#2563EB` |
+| Active Step | Filled circle with step number, primary color `#2563EB`, bold label |
+| Upcoming Step | Hollow circle with step number, neutral gray `#94A3B8` |
+| Connector Line (completed) | Solid line, primary color `#2563EB` |
+| Connector Line (upcoming) | Dashed line, neutral gray `#94A3B8` |
+
+---
+
+### STEP 1: Branch Creation
+
+#### 1. Overview
+Input form to register the new branch's basic information, location details, and operational hours. This is the same form content as the original create branch screen.
+
+#### 2. Screen Preview
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  Create New Branch                                          │
+│     ① Branch Creation ─────────── ② Assign Menu             │
+│     ● (Active)                    ○ (Upcoming)              │
 ├─────────────────────────────────────────────────────────────┤
 │  Basic Information                                          │
 │  [Branch Code: B004     ]   [Branch Name: Indiranagar      ]  │
@@ -210,11 +240,11 @@ Input form used to register a new physical restaurant location in the system dat
 │  Operational Details                                        │
 │  [Opening Time: 10:00 AM]   [Closing Time: 11:00 PM ]       │
 │                                                             │
-│                                       [Cancel] [Create Branch]│
+│                                          [Cancel] [Next →]   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 3. Screen Fields Table
+#### 3. Step 1 Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Branch Code | Text | Yes | Unique, alphanumeric, min 3 / max 10 characters | `B004` | Identifier |
@@ -227,23 +257,87 @@ Input form used to register a new physical restaurant location in the system dat
 | Pincode | Text | Yes | Numeric, exactly 6 digits | `560038` | Local postal code |
 | Opening Time | Time | Yes | Valid 12-hour/24-hour time format | `10:00 AM` | Start of shift |
 | Closing Time | Time | Yes | Valid time format, chronologically after Opening | `11:00 PM` | End of shift |
+| Button: Cancel | Button | Yes | Navigates back to Branch Dashboard (Screen 2.1) | `[Cancel]` | Discards form data |
+| Button: Next | Button | Yes | Validates all fields, creates branch via API, proceeds to Step 2 | `[Next →]` | Triggers branch creation API call on click |
 
-### 4. Validations
-- **Duplicate Code**: System checks that the inputted `Branch Code` is unique before allow registration.
+#### 4. Step 1 Validations
+- **Duplicate Code**: System checks that the inputted `Branch Code` is unique before allowing registration.
 - **Operating Hours**: Closing time must be chronologically after the opening time.
 - **Data Format**: Phone number must contain only numeric characters.
+- **API Call**: Branch is created (persisted) when the admin clicks `Next →`. If creation fails, the admin remains on Step 1 with error feedback.
 
 ---
 
-## Screen 2.3: Update Branch Screen
+### STEP 2: Assign Menu
+
+#### 1. Overview
+After the branch is successfully created in Step 1, this step presents the menu assignment interface. The admin maps food items from the master catalog to the newly created branch. At least one menu item must be assigned — this step cannot be skipped.
+
+#### 2. Screen Preview
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Create New Branch — Indiranagar (B004)                      │
+│     ✓ Branch Creation ─────────── ② Assign Menu             │
+│       (Completed)                 ● (Active)                │
+├─────────────────────────────────────────────────────────────┤
+│  Assign Menu Items to Branch                                │
+│  Category: [All Categories ▼]   🔍 Search Food Item...       │
+├─────────────────────────────────────────────────────────────┤
+│ [x] Select All                                              │
+│                                                             │
+│ [x] Margherita Pizza     | Category: Pizza    | ₹299        │
+│ [x] Farmhouse Pizza      | Category: Pizza    | ₹399        │
+│ [ ] Garlic Bread         | Category: Sides    | ₹149        │
+│ [ ] Choco Lava Cake      | Category: Desserts | ₹129        │
+│                                                             │
+│                                  [← Back] [Save & Finish]   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 3. Step 2 Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Selection Checkbox | Checkbox | No | Checked state maps item to branch | `true` | Select individual item |
+| Select All Checkbox | Checkbox | No | Boolean | `true` | Selects all currently filtered items |
+| Item Name | Text | Read-only | Min 3 chars | `Margherita Pizza` | Master food item name |
+| Item Category | Text | Read-only | Valid category tag | `Pizza` | Master category classification |
+| Item Price | Currency | Read-only | Positive decimal | `₹299` | Item selling price |
+| Category Filter | Dropdown | No | Must match active master category | `All Categories` | Filters list by food category |
+| Search Bar | Text | No | Max 50 characters | `Pizza` | Filters list by food name |
+| Button: Back | Button | Yes | Returns to Step 1 in read-only summary mode | `[← Back]` | Branch already created — Step 1 fields are non-editable on return |
+| Button: Save & Finish | Button | Yes | Saves menu assignments and redirects to Branch Dashboard | `[Save & Finish]` | Requires at least 1 item selected |
+
+#### 4. Step 2 Validations
+- At least **one menu item** must be selected before the admin can click `Save & Finish`.
+- Attempting to save with zero selections displays an inline error: _"Please assign at least one menu item to continue."_
+- The `← Back` button returns to Step 1, but since the branch is already created, all Step 1 fields are displayed as **read-only summary** (non-editable).
+
+#### 5. Dependencies
+- **Module Dependencies**: Relies directly on Module 5 (Food Management) master catalog to query the list of active food items available to assign.
+
+---
+
+## Screen 2.3: Update Branch — Multi-Step Wizard
 
 ### 1. Overview
-Interface used to update the configuration of an existing branch. The unique Branch Code is permanently locked to preserve data records.
+A two-step guided wizard for updating an existing branch. **Step 1** displays the editable branch configuration form (Branch Code is permanently locked). Upon saving changes, **Step 2** presents the menu assignment interface showing current menu assignments with the ability to add or remove items. Menu assignment is mandatory — the branch must retain at least one assigned menu item.
 
-### 2. Screen Preview
+### 2. Wizard Step Indicator
+Uses the same horizontal step progress bar as Screen 2.2 (Create Branch Wizard). Visual states are identical.
+
+---
+
+### STEP 1: Update Branch Details
+
+#### 1. Overview
+Interface to update the configuration of an existing branch. The unique Branch Code is permanently locked to preserve data records. All other fields are pre-filled with current values and fully editable.
+
+#### 2. Screen Preview
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  Update Branch — MG Road (B001)                             │
+│     ① Branch Details ─────────── ② Assign Menu              │
+│     ● (Active)                   ○ (Upcoming)               │
 ├─────────────────────────────────────────────────────────────┤
 │  Basic Information                                          │
 │  Branch Code: B001 (Locked) [Branch Name: MG Road Branch   ]  │
@@ -257,11 +351,11 @@ Interface used to update the configuration of an existing branch. The unique Bra
 │  Operational Details                                        │
 │  [Opening Time: 10:00 AM]   [Closing Time: 11:00 PM ]       │
 │                                                             │
-│                                       [Cancel] [Save Changes]│
+│                                          [Cancel] [Next →]   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 3. Screen Fields Table
+#### 3. Step 1 Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Branch Code | Label | — | Locked read-only display element | `B001` | Non-editable |
@@ -274,62 +368,123 @@ Interface used to update the configuration of an existing branch. The unique Bra
 | Pincode | Text | Yes | Numeric, exactly 6 digits | `560001` | Postal code |
 | Opening Time | Time | Yes | Valid time format | `10:00 AM` | Opening hours |
 | Closing Time | Time | Yes | Valid time format, chronologically after Opening | `11:00 PM` | Closing hours |
+| Button: Cancel | Button | Yes | Navigates back to Branch Dashboard (Screen 2.1) | `[Cancel]` | Discards unsaved changes |
+| Button: Next | Button | Yes | Validates all fields, saves changes via API, proceeds to Step 2 | `[Next →]` | Triggers branch update API call on click |
 
-### 4. Validations
+#### 4. Step 1 Validations
 - Closing time must be chronologically after the opening time.
+- Changes are saved (persisted via API) when the admin clicks `Next →`. If the update fails, the admin remains on Step 1 with error feedback.
 - Changes must be saved using an active database transaction.
+
+---
+
+### STEP 2: Assign Menu
+
+#### 1. Overview
+After branch details are saved in Step 1, this step displays the current menu assignments for the branch. The admin can add or remove food item mappings. Pre-existing assignments are shown with checkboxes already checked. At least one menu item must remain assigned.
+
+#### 2. Screen Preview
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Update Branch — MG Road (B001)                             │
+│     ✓ Branch Details ─────────── ② Assign Menu              │
+│       (Completed)                ● (Active)                 │
+├─────────────────────────────────────────────────────────────┤
+│  Assign Menu Items to Branch                                │
+│  Category: [All Categories ▼]   🔍 Search Food Item...       │
+├─────────────────────────────────────────────────────────────┤
+│ [ ] Select All                                              │
+│                                                             │
+│ [x] Margherita Pizza     | Category: Pizza    | ₹299        │
+│ [x] Farmhouse Pizza      | Category: Pizza    | ₹399        │
+│ [x] Garlic Bread         | Category: Sides    | ₹149        │
+│ [ ] Choco Lava Cake      | Category: Desserts | ₹129        │
+│                                                             │
+│                                  [← Back] [Save & Finish]   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 3. Step 2 Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Selection Checkbox | Checkbox | No | Checked state maps item to branch | `true` | Select individual item. Pre-checked for currently assigned items |
+| Select All Checkbox | Checkbox | No | Boolean | `false` | Selects all currently filtered items |
+| Item Name | Text | Read-only | Min 3 chars | `Margherita Pizza` | Master food item name |
+| Item Category | Text | Read-only | Valid category tag | `Pizza` | Master category classification |
+| Item Price | Currency | Read-only | Positive decimal | `₹299` | Item selling price |
+| Category Filter | Dropdown | No | Must match active master category | `All Categories` | Filters list by food category |
+| Search Bar | Text | No | Max 50 characters | `Pizza` | Filters list by food name |
+| Button: Back | Button | Yes | Returns to Step 1 with editable fields (update mode) | `[← Back]` | Step 1 fields remain editable since this is an update flow |
+| Button: Save & Finish | Button | Yes | Saves menu assignments and redirects to Branch Dashboard | `[Save & Finish]` | Requires at least 1 item selected |
+
+#### 4. Step 2 Validations
+- At least **one menu item** must remain assigned before the admin can click `Save & Finish`.
+- Attempting to save with zero selections displays an inline error: _"Please assign at least one menu item to continue."_
+- The `← Back` button returns to Step 1 with all fields **editable** (since this is an update flow, the admin may continue editing branch details).
+
+#### 5. Dependencies
+- **Module Dependencies**: Relies directly on Module 5 (Food Management) master catalog to query the list of active food items available to assign.
 
 ---
 
 ## Screen 2.4: View Branch Details Screen
 
 ### 1. Overview
-A single-page detail screen for viewing all information related to a specific branch. The screen is divided into two zones: a **persistent header card** that always displays the branch's core identity (name, code, email, status), and an **internal tabbed panel** below it that allows switching between different detail views without leaving the page. This follows the pattern shown in the reference design — a clean header section followed by an inline tab switcher.
+A read-only detail screen for viewing all information related to a specific branch. The screen is divided into two zones: a **persistent header card** displaying the branch's core identity (name, code, email, status) with only a Back button, and an **internal tabbed panel** below it with two read-only tabs. This is a pure view-only screen — no edit, delete, or deactivate actions are available.
 
 ### 2. Screen Layout
 
 The screen is composed of two visual zones stacked vertically:
 
 **Zone 1 — Branch Identity Header Card (Always Visible)**
-A non-scrollable summary card pinned at the top of the screen. Displays core branch identity fields and primary action buttons. This zone never changes when switching tabs.
+A non-scrollable summary card pinned at the top of the screen. Displays core branch identity fields and a Back navigation link. This zone never changes when switching tabs.
 
 **Zone 2 — Internal Tabbed Content Panel**
-A tab bar immediately below the header card. Each tab renders its own content viewport inline, replacing only the area below the tab bar. The active tab is visually indicated with an underline highlight. The screen supports three tabs:
+A tab bar immediately below the header card with two read-only tabs:
 
 | Tab Label | Badge Count | Description |
 |---|---|---|
 | Branch Information | — | Detailed branch configuration and audit trail |
-| Assigned Menu | Dynamic (e.g. `25`) | Food items mapped to this branch |
-| Employees | Dynamic (e.g. `8`) | Staff assigned to this branch |
+| Branch Menu | Dynamic (e.g. `25`) | Food items currently assigned to this branch |
 
 ### 3. Screen Preview (Full Composite View — Branch Information Tab Active)
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  ‹ Back                                                     │
+│  ‹ Back to Branches                                         │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  MG Road Branch (B001)                    [Edit] [Deactivate]│
+│  MG Road Branch (B001)                                      │
 │  Branch Name:  MG Road Branch                               │
 │  Branch Code:  B001                                         │
 │  Email:        mgroad@roms.com                              │
 │  Status:       ● Active                                     │
 │                                                             │
 │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
-│  [Branch Information]    Assigned Menu (25)    Employees (8) │
+│  [Branch Information]    Branch Menu (25)                    │
 │  ─────────────────────                                      │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │ Branch Code        │ B001                               ││
-│  │ Address Details    │ 123, Main Street, MG Road          ││
-│  │ City               │ Bangalore                          ││
-│  │ State              │ Karnataka                          ││
-│  │ Pincode            │ 560001                             ││
-│  │ Contact Phone      │ +91 9811223344                     ││
-│  │ Operating Hours    │ 10:00 AM to 11:00 PM               ││
-│  │ Created By         │ admin_user on 2026-05-01 10:00 AM  ││
-│  │ Updated By         │ admin_user on 2026-05-20 03:30 PM  ││
-│  └─────────────────────────────────────────────────────────┘│
+│  ┌───────────────────┬─────────────────────────────────────┐│
+│  │ Branch Code       │ B001                                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Address Details   │ 123, Main Street, MG Road           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ City              │ Bangalore                           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ State             │ Karnataka                           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Pincode           │ 560001                              ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Contact Phone     │ +91 9811223344                      ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Contact Email     │ mgroad@roms.com                     ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Operating Hours   │ 10:00 AM to 11:00 PM                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Created By        │ admin_user on 2026-05-01 10:00 AM   ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Edited By         │ admin_user on 2026-05-20 03:30 PM   ││
+│  └───────────────────┴─────────────────────────────────────┘│
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -338,19 +493,17 @@ A tab bar immediately below the header card. Each tab renders its own content vi
 
 ### SECTION A: Branch Identity Header Card (Persistent — Always Visible)
 
-This zone remains fixed at the top regardless of which tab is active. It provides instant identification and primary management actions.
+This zone remains fixed at the top regardless of which tab is active. It displays branch identity and a Back navigation link only — no management actions.
 
 #### 1. Header Card Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Back Button | Link | Yes | Navigates back to Branch Dashboard (Screen 2.1) | `‹ Back` | Top-left navigation link |
+| Back Button | Link | Yes | Navigates back to Branch Dashboard (Screen 2.1) | `‹ Back to Branches` | Top-left navigation link. Preserves previously applied dashboard filters |
 | Branch Title | Label | Read-only | Format: `{Name} ({Code})` | `MG Road Branch (B001)` | Main page heading, prominent display |
 | Branch Name | Label | Read-only | Min 3 characters | `MG Road Branch` | Displayed below title |
 | Branch Code | Label | Read-only | Unique alphanumeric code | `B001` | Displayed below branch name |
 | Email | Label | Read-only | Valid email format | `mgroad@roms.com` | Branch contact email |
 | Status Indicator | Badge | Read-only | Green pill for `Active`, Red pill for `Inactive` | `● Active` | Color-coded status pill next to identity |
-| Button: Edit | Button | Yes | Navigates to Update Branch (Screen 2.3) | `[Edit]` | Primary action — top-right |
-| Button: Deactivate | Button | Yes | Triggers confirmation modal (Screen 2.6) | `[Deactivate]` | Destructive action — top-right |
 
 ---
 
@@ -364,7 +517,7 @@ The tab bar sits directly below the header card, acting as the switcher for the 
 | Default Active Tab | `Branch Information` (first tab) |
 | Active Tab Indicator | Bottom border underline, `2px solid #2563EB` |
 | Inactive Tab Style | Neutral gray text, no underline |
-| Badge Counts | Dynamic numeric counts shown in parentheses for `Assigned Menu` and `Employees` tabs |
+| Badge Counts | Dynamic numeric count shown in parentheses for `Branch Menu` tab |
 | URL State Persistence | Active tab selection must be reflected in the URL query parameter (e.g. `?tab=menu`) so that page refresh preserves the selected tab |
 | Keyboard Navigation | Supports `←` / `→` arrow key navigation between tabs, `Enter` to activate |
 
@@ -372,18 +525,18 @@ The tab bar sits directly below the header card, acting as the switcher for the 
 
 ### SECTION C: Tab Content Viewports
 
-Each tab renders its own dedicated content area below the tab bar. When a tab is selected, only the content viewport area swaps — the header card and tab bar remain static.
+Each tab renders its own dedicated content area below the tab bar. When a tab is selected, only the content viewport area swaps — the header card and tab bar remain static. Both tabs are **read-only** with no editable fields or action buttons.
 
 ---
 
 #### Tab 1: Branch Information
 
-Displays the full operational configuration of the branch in a **vertical key-value detail card** format (label on left, value on right), matching the reference design layout. Includes address details, contact information, operating hours, and system audit trail.
+Displays the full operational configuration of the branch in a **vertical key-value detail card** format (label on left, value on right). Includes address details, contact information, operating hours, and system audit trail.
 
 ##### 1. Branch Information Tab Preview
 ```text
 ├─────────────────────────────────────────────────────────────┤
-│  [Branch Information]    Assigned Menu (25)    Employees (8) │
+│  [Branch Information]    Branch Menu (25)                    │
 │  ─────────────────────                                      │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
@@ -428,18 +581,18 @@ Displays the full operational configuration of the branch in a **vertical key-va
 
 ---
 
-#### Tab 2: Assigned Menu
+#### Tab 2: Branch Menu
 
-Displays the list of food items currently mapped to this branch in a tabular format. Includes an action button to navigate to the menu assignment screen.
+Displays the list of food items currently assigned to this branch in a **read-only tabular format**. This tab provides visibility into the branch's menu without any edit or assignment capabilities — menu management is handled through the Edit flow (Screen 2.3, Step 2).
 
-##### 1. Assigned Menu Tab Preview
+##### 1. Branch Menu Tab Preview
 ```text
 ├─────────────────────────────────────────────────────────────┤
-│   Branch Information    [Assigned Menu (25)]    Employees (8)│
-│                         ─────────────────────                │
+│   Branch Information    [Branch Menu (25)]                   │
+│                         ─────────────────                    │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  Assigned Menu Items                           [+ Assign Menu]│
+│  Assigned Menu Items                                        │
 │  ┌─────────────┬───────────────────────────────┬────────────┐│
 │  │ Item Code   │ Food Item Name                │ Price      ││
 │  ├─────────────┼───────────────────────────────┼────────────┤│
@@ -452,109 +605,34 @@ Displays the list of food items currently mapped to this branch in a tabular for
 └─────────────────────────────────────────────────────────────┘
 ```
 
-##### 2. Assigned Menu Fields Table
+##### 2. Branch Menu Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Button: Assign Menu | Button | Yes | Redirects to Assign Menu (Screen 2.5) | `[+ Assign Menu]` | Tab-specific action to manage menu mappings |
 | Menu Table: Item Code | Text | Read-only | Alphanumeric unique code | `F012` | Linked food item code |
-| Menu Table: Name | Text | Read-only | Minimum 3 characters | `Chicken Biryani` | Master food item title |
+| Menu Table: Food Item Name | Text | Read-only | Minimum 3 characters | `Chicken Biryani` | Master food item title |
 | Menu Table: Price | Currency | Read-only | Positive decimal format | `₹299` | Branch selling price |
 | Pagination | Control | Yes | Standard page navigation | `Showing 1-10 of 25` | Paginated at 10 items per page |
-
----
-
-#### Tab 3: Employees
-
-Lists the staff members currently assigned to this branch in a tabular format.
-
-##### 1. Employees Tab Preview
-```text
-├─────────────────────────────────────────────────────────────┤
-│   Branch Information    Assigned Menu (25)    [Employees (8)]│
-│                                               ──────────────│
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Branch Employees                                           │
-│  ┌──────────┬──────────────────┬────────────────┬──────────┐│
-│  │ ID       │ Full Name        │ Role           │ Status   ││
-│  ├──────────┼──────────────────┼────────────────┼──────────┤│
-│  │ E101     │ John Doe         │ Manager        │ ● Active ││
-│  │ E102     │ Jane Smith       │ Kitchen Staff  │ ● Active ││
-│  │ E103     │ Ravi Patel       │ Delivery       │ ● Active ││
-│  └──────────┴──────────────────┴────────────────┴──────────┘│
-│  Showing 1-8 of 8                                           │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-##### 2. Employees Fields Table
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
-| Employee Table: ID | Text | Read-only | Unique alphanumeric staff code | `E101` | Unique employee ID |
-| Employee Table: Name | Text | Read-only | Minimum 2 characters | `John Doe` | Combined first and last name |
-| Employee Table: Role | Text | Read-only | Valid operational system role | `Manager` | Role description |
-| Employee Table: Status | Badge | Read-only | `Active` or `Inactive` state | `● Active` | Color-coded status badge |
-| Pagination | Control | Yes | Standard page navigation | `Showing 1-8 of 8` | Paginated at 10 items per page |
 
 ---
 
 ### SECTION D: Business Validations & Rules
 
 1. **Audit Trail Integrity**: Audit tracking fields (Created By, Edited By) are system-managed and cannot be edited by any user.
-2. **Dynamic Badge Counts**: The numeric counts displayed in the tab labels (e.g. `Assigned Menu (25)`, `Employees (8)`) must automatically recalculate whenever items are added or removed.
+2. **Dynamic Badge Count**: The numeric count displayed in the `Branch Menu` tab label (e.g. `Branch Menu (25)`) must automatically recalculate whenever items are added or removed via the Edit flow.
 3. **Tab State Persistence**: The currently active tab must be preserved in the URL query string (e.g. `?tab=menu`) so that browser refresh or shared links restore the correct tab view.
-4. **Back Navigation**: The `‹ Back` link must return the user to the Branch Dashboard (Screen 2.1), preserving any previously applied filters.
+4. **Back Navigation**: The `‹ Back to Branches` link must return the user to the Branch Dashboard (Screen 2.1), preserving any previously applied filters.
+5. **Read-Only Screen**: This screen has no edit, delete, deactivate, or assign actions. All management actions are accessible from the Branch Dashboard table (Screen 2.1) or through the Edit flow (Screen 2.3).
 
 ### SECTION E: Dependencies
 
-- **Module Dependencies**: Depends directly on Module 3 (Employee Management) to retrieve staff roster records and Module 5 (Food Management) to query master menu catalog items mapped to this branch.
+- **Module Dependencies**: Depends directly on Module 5 (Food Management) to query master menu catalog items mapped to this branch.
 
 ---
 
-## Screen 2.5: Assign Menu Screen
+## Screen 2.5: Deactivate Branch Confirmation Modal
 
 ### 1. Overview
-Map food items from the master menu catalog to be available at this branch.
-
-### 2. Screen Preview
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  Assign Menu — MG Road (B001)                [Save Changes] │
-├─────────────────────────────────────────────────────────────┤
-│  Category: [Pizza     ▼]   🔍 Search Food Item...            │
-├─────────────────────────────────────────────────────────────┤
-│ [x] Select All                                              │
-│                                                             │
-│ [x] Margherita Pizza     | Category: Pizza    | ₹299        │
-│ [x] Farmhouse Pizza      | Category: Pizza    | ₹399        │
-│ [ ] Garlic Bread         | Category: Sides    | ₹149        │
-│ [ ] Choco Lava Cake      | Category: Desserts | ₹129        │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 3. Screen Fields Table
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
-| Selection Checkbox | Checkbox | No | Checked state maps item to branch | `true` | Select individual item |
-| Select All Checkbox| Checkbox | No | Boolean | `true` | Selects all currently filtered items |
-| Item Name | Text | Read-only | Min 3 chars | `Margherita Pizza` | Master food item name |
-| Item Category | Text | Read-only | Valid category tag | `Pizza` | Master category classification |
-| Item Price | Currency | Read-only | Positive decimal | `₹299` | Item selling price |
-| Category Filter | Dropdown | No | Must match active master category | `Pizza` | Filters list |
-| Search Bar | Text | No | Max 50 characters | `Pizza` | Filters list by food name |
-
-### 4. Validations
-- Saving an empty menu selection must trigger a warning confirmation before execution.
-
-### 5. Dependencies
-- **Module Dependencies**: Relies directly on Module 5 (Food Management) master catalog to query the list of active food items available to assign.
-
----
-
-## Screen 2.6: Deactivate Branch Confirmation Modal
-
-### 1. Overview
-Confirmation dialog when an Admin deactivates a branch. Halts online checkout operations at that specific branch immediately.
+Confirmation dialog when an Admin deactivates a branch. Halts online checkout operations at that specific branch immediately. This modal is triggered from the `[Inactivate]` action in the Branch Dashboard table (Screen 2.1).
 
 ### 2. Screen Preview
 ```text
@@ -670,9 +748,9 @@ Registration form to onboard system operators and managers, mapping them to expl
 ## Screen 3.3: Update Employee Screen
 
 ### 1. Overview
-Interface to update staff profiles. Password entry is hidden by default and can be bypassed unless explicitly resetting credentials.
+Interface to update staff profiles. The form is divided into two sections: **Personal & Employment Details** (always visible) and **Reset Password** (collapsed by default, expandable on demand). Password entry is entirely optional — the admin can save profile changes without touching the password section.
 
-### 2. Screen Preview
+### 2. Screen Preview (Default State — Password Section Collapsed)
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  Update Employee — John Doe (E101)                          │
@@ -684,28 +762,135 @@ Interface to update staff profiles. Password entry is hidden by default and can 
 │  [Role: Manager       ▼]      [Assign Branch: MG Road   ▼]  │
 │  [Date of Joining: 2026-05-01]                              │
 │                                                             │
-│  [ Reset Password (Optional) ]                              │
+│  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│  🔒 Reset Password                                    [▶ Expand]│
 │                                                             │
 │                                      [Cancel] [Save Changes]│
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 3. Screen Fields Table
+### 3. Screen Preview (Expanded State — Password Fields Visible)
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Update Employee — John Doe (E101)                          │
+├─────────────────────────────────────────────────────────────┤
+│  Personal & Employment Details                              │
+│  Employee ID: E101 (Locked)                                 │
+│  [First Name: John     ]      [Last Name: Doe           ]   │
+│  [Email: john@roms.com (Locked)] [Phone Number: 9811223344]  │
+│  [Role: Manager       ▼]      [Assign Branch: MG Road   ▼]  │
+│  [Date of Joining: 2026-05-01]                              │
+│                                                             │
+│  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│  🔓 Reset Password                                  [▼ Collapse]│
+│                                                             │
+│  ⚠️ Setting a new password will immediately invalidate the    │
+│  employee's current sessions and require re-login.          │
+│                                                             │
+│  [New Password: ********** ]  [Confirm Password: **********] │
+│                                                             │
+│  Password Requirements:                                     │
+│  ✓ Minimum 8 characters                                     │
+│  ✓ At least 1 uppercase letter                              │
+│  ✓ At least 1 lowercase letter                              │
+│  ✓ At least 1 digit                                         │
+│  ✓ At least 1 special character (!@#$%^&*)                  │
+│                                                             │
+│                                      [Cancel] [Save Changes]│
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 4. Screen Fields Table
+
+#### Personal & Employment Details Fields
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
+| Employee ID | Label | — | Locked read-only display element | `E101` | Non-editable |
 | First Name | Text | Yes | Min 2, max 50 characters | `John` | Given name |
 | Last Name | Text | Yes | Min 2, max 50 characters | `Doe` | Surname |
 | Email Address | Label | — | Locked read-only | `john@roms.com` | Cannot modify username |
 | Phone Number | Phone | Yes | Numeric, exactly 10 digits | `9811223344` | Contact number |
 | Role Selection | Dropdown | Yes | Valid system role | `Manager` | System permission |
-| Assign Branch | Dropdown | Yes* | Mapped branch ID | `MG Road` | Mapped location |
-| Date of Joining| Date | Yes | Cannot be future date | `2026-05-01` | Start date |
+| Assign Branch | Dropdown | Yes* | Mapped branch ID | `MG Road` | Required if role is Manager, Kitchen, or Delivery |
+| Date of Joining | Date | Yes | Cannot be future date | `2026-05-01` | Start date |
 
-### 4. Validations
+#### Reset Password Section Fields
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Reset Password Toggle | Toggle / Accordion | No | Collapsed by default; click to expand | `[▶ Expand]` / `[▼ Collapse]` | Toggles visibility of password fields |
+| New Password | Password | Yes* | Min 8 characters; 1 upper, 1 lower, 1 digit, 1 special character | `**********` | *Required only when Reset Password section is expanded. Hashed securely before storage |
+| Confirm Password | Password | Yes* | Must exactly match New Password | `**********` | *Required only when Reset Password section is expanded. Verification check |
+
+### 5. Reset Password Flow
+
+The reset password functionality follows a **progressive disclosure pattern** — password fields are hidden by default and only shown when the admin explicitly opts to reset:
+
+#### Flow Steps
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  1. Admin opens Update Employee screen                      │
+│     → Password section is COLLAPSED (default)               │
+│     → Admin can save profile changes without touching       │
+│       passwords                                             │
+├─────────────────────────────────────────────────────────────┤
+│  2. Admin clicks [▶ Expand] on "Reset Password"            │
+│     → Section expands with animation (slide-down)           │
+│     → Warning banner is displayed:                          │
+│       "Setting a new password will immediately invalidate   │
+│        the employee's current sessions and require re-login"│
+│     → New Password and Confirm Password fields appear       │
+│     → Password requirements checklist appears (live updates)│
+├─────────────────────────────────────────────────────────────┤
+│  3. Admin fills in New Password                             │
+│     → Requirements checklist updates in real-time:          │
+│       ✓ Green check when requirement is met                 │
+│       ✗ Red cross when requirement is not met               │
+├─────────────────────────────────────────────────────────────┤
+│  4. Admin fills in Confirm Password                         │
+│     → Inline validation: shows match/mismatch indicator     │
+│       ✓ "Passwords match" (green text)                      │
+│       ✗ "Passwords do not match" (red text)                 │
+├─────────────────────────────────────────────────────────────┤
+│  5. Admin clicks [Save Changes]                             │
+│     → Profile fields are validated first                    │
+│     → If password section is expanded AND has values:       │
+│       • Password rules are validated                        │
+│       • Confirm Password match is validated                 │
+│       • On success: password is hashed and updated          │
+│       • All active JWT sessions for this employee are       │
+│         immediately revoked (forced re-login)               │
+│     → If password section is collapsed OR empty:            │
+│       • Password is NOT changed                             │
+│       • Only profile fields are updated                     │
+├─────────────────────────────────────────────────────────────┤
+│  6. Admin clicks [▼ Collapse] (optional)                    │
+│     → Section collapses, any entered password values        │
+│       are cleared (security measure)                        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Password Requirements (Real-Time Checklist)
+| Requirement | Rule | Live Indicator |
+|---|---|---|
+| Minimum Length | At least 8 characters | ✓ / ✗ updates as user types |
+| Uppercase Letter | At least 1 uppercase letter (A-Z) | ✓ / ✗ updates as user types |
+| Lowercase Letter | At least 1 lowercase letter (a-z) | ✓ / ✗ updates as user types |
+| Digit | At least 1 numeric digit (0-9) | ✓ / ✗ updates as user types |
+| Special Character | At least 1 special character (!@#$%^&*) | ✓ / ✗ updates as user types |
+| Password Match | Confirm Password must exactly match New Password | ✓ / ✗ shown below Confirm Password field |
+
+### 6. Validations
 - Email and Employee ID fields are locked and non-editable.
-- If password reset is toggled, new password validation rules are enforced.
+- If the Reset Password section is **collapsed** (default), the admin can save profile changes without any password validation — password is not modified.
+- If the Reset Password section is **expanded** and contains values, full password validation is enforced:
+  - New Password must meet all requirements (min 8 chars, 1 upper, 1 lower, 1 digit, 1 special).
+  - Confirm Password must exactly match New Password.
+  - Both fields become required when the section is expanded.
+- If the admin **collapses** the Reset Password section after entering values, the entered password data is immediately cleared from the form (security measure to prevent accidental submission).
+- On successful password reset, all active JWT tokens for the employee are **immediately revoked**, forcing a re-login on all devices.
 
-### 5. Dependencies
+### 7. Dependencies
 - **Module Dependencies**: Relies on Module 2 (Branch Management) to populate the active branch selection choices.
 
 ---
