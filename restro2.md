@@ -23,9 +23,7 @@
    - [Screen 3.1: Order Queue Screen (Live Pending Queue)](#screen-31-order-queue-screen-live-pending-queue)
    - [Screen 3.2: Rejection Reason Dialog (Reject Flow Modal)](#screen-32-rejection-reason-dialog-reject-flow-modal)
    - [Screen 3.3: Accepted Orders Queue Screen (Active Steppers)](#screen-33-accepted-orders-queue-screen-active-steppers)
-   - [Screen 3.4: Rejected Orders Screen](#screen-34-rejected-orders-screen)
-   - [Screen 3.5: Delivered Orders Screen](#screen-35-delivered-orders-screen)
-   - [Screen 3.6: Returned Orders Screen](#screen-36-returned-orders-screen)
+   - [Screen 3.4: Order List Screen (Tabs: Accept, Reject, Delivered, Return)](#screen-34-order-list-screen-tabs-accept-reject-delivered-return)
 5. [Module 4 — Order Review Module](#module-4--order-review-module)
    - [Screen 4.1: Reviews & Ratings Dashboard](#screen-41-reviews--ratings-dashboard)
 6. [Module 5 — Profile Module](#module-5--profile-module)
@@ -575,157 +573,74 @@ CREATE TABLE order_status_history (
 
 ---
 
-### Screen 3.4: Rejected Orders Screen
+### Screen 3.4: Order List Screen (Tabs: Accept, Reject, Delivered, Return)
 
 #### 1. Overview
-*   **Screen Purpose**: List historical records of cancelled and rejected orders for the current branch.
-*   **Business Objective**: Auditing, dispute management, and tracking details of initiated customer refunds.
-*   **User Workflow**: Open Order List ➔ Select "Rejected" tab ➔ Browse list ➔ Click row item to view drawer.
-*   **Main Functionality**: Search filters, tabular columns showing reasons, refund status pill status details.
+*   **Screen Purpose**: A single repository page for all orders (active and historical) processed at the branch level, categorized by tab selection.
+*   **Business Objective**: Enable operators to audit financials, verify cash transactions, track stripe/razorpay refunds, and review customer return reasons in a consolidated workspace.
+*   **User Workflow**: Select `- List` from sidebar ➔ Click target Tab (Accept / Reject / Delivered / Return) ➔ Use filters/search ➔ Select row to inspect details via drawer.
+*   **Main Functionality**: Tabbed queue selector, CSV report exporter, alphanumeric search bar, payment mode dropdown filter, detailed order drawer widget.
 
 #### 2. Screen Preview (Text Wireframe)
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│ [🍽 DineOs]   Rejected Orders Audit Ledger                             │
+│ [🍽 DineOs]   Order List Ledger                                        │
 ├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  🔍 [ Search Order ID...   ]   Export Selected: [ CSV ] │
+│ ○ Dashboard  │  [ Accept ]  [ Reject ]  [ Delivered ]  [ Return ]      │
 │ ○ Menu       ├─────────────────────────────────────────────────────────┤
-│ ▶ Orders     │ Order ID  │ Rejected At  │ Reason          │ Refund Status │ Status   │
-│   - Queue    ├──────────┼──────────────┼─────────────────┼───────────────┼─────────┤
-│   - List     │ #99018    │ 12:46 PM     │ Out of Stock    │ ● Success     │ Rejected │
-│ ○ Reviews    │ #99014    │ 11:20 AM     │ Closing Soon    │ ● Pending     │ Rejected │
-│ ○ Profile    │ └──────────┴──────────────┴─────────────────┴───────────────┴─────────┘ │
-│              │ Showing 1-20 of 42 entries            [<] [1] [2] [>]   │
-└──────────────┴─────────────────────────────────────────────────────────┘
-```
-
-#### 3. UI/UX Layout Description
-*   **Audit Table Layout**: Compact grid styling to fit complex columns. Rejected reasons are truncated and expand on hover.
-*   **Status Badges**:
-    *   *Refund Success*: Green background chip.
-    *   *Refund Pending*: Yellow background chip.
-    *   *COD - Refund Not Required*: Grey background chip.
-
-#### 4. Screen Fields Table
-
-##### Search & Filter Fields
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
-| Search Box | Input Text | No | Alphanumeric validation limits | `99018` | Filters table records by matching Order ID. |
-| Export Selected | Button | No | Requires selected table row keys | `[CSV]` | Exports the selected records to a downloadable CSV report. |
-
-##### Rejected Orders List Table
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
-| Table Column: Order ID | Text (Read-only) | Yes | Unique order reference code format | `#99018` | Unique ID of the order; row click opens details drawer. |
-| Table Column: Rejected At | DateTime (Read-only) | Yes | Valid timestamp | `12:46 PM` | Date and time when the order rejection occurred. |
-| Table Column: Reason | Text (Read-only) | Yes | Rejection reason string | `Out of Stock` | Cancellation reason selected during reject flow. |
-| Table Column: Refund Status | Badge (Read-only) | Yes | 'Success', 'Pending', or 'Refund Not Required' | `Success` | Reflects status of payment refund. |
-| Table Column: Status | Badge (Read-only) | Yes | Value must be `Rejected` | `Rejected` | Reflects that the order was rejected. |
-
-#### 5. Validations
-*   **Export Range Limit**: Block CSV generation requests that capture more than 30 consecutive calendar days of records.
-
-#### 6. Dependencies
-*   **Stripe/Razorpay Webhooks API**: Directly triggers the state transition updates on `Refund Status` column indexes.
-
-#### 7. API Requirement Suggestions
-*   **GET** `/api/v1/restaurant/orders/rejected?branch_id=br_mg_road&page=1`
-    *   *Response*: `{"status": "success", "rejected_list": [{"id": "ord_99018", "rejected_at": "2026-05-27T12:46:00Z", "reason": "Out of Stock", "refund_status": "Success"}]}`
-
-#### 8. Database Table Suggestions
-Extends properties from `rejected_orders` mapping schema.
-
-#### 9. Backend Development Notes
-*   **Webhook Listener Registration**: Expose path endpoint `/api/v1/webhooks/refunds` to receive Stripe notification packets and update database parameters asynchronously.
-
-#### 10. Role & Permission Logic
-*   Read-only views for all branch accounts. Employees cannot export CSV files (restricted block).
-
-#### 11. UI Components Required
-*   Paginated Data Grid, Status Label Badge, Search Bar.
-
-#### 12. Edge Cases
-*   **Stripe Refund Reversal**: Payment provider rejects refund due to customer card account expiration. Webhook marks status as `Failed`, sending alert email notifications to managers.
-
-#### 13. Notifications & Toast Messages
-*   *Toast Success*: "CSV report download initialized."
-*   *Warning Alert*: "Refund status change processed by payment gateway provider."
-
-#### 14. Real-Time Event Flow
-*   Webhook changes broadcast data modifications via `/admin` status channels using socket wrappers.
-
-#### 15. Status Management System
-| Status | Color | Description | Next Allowed Status |
-|---|---|---|---|
-| `Refund Pending` | Yellow | Gateway API processing | `Refund Success` or `Refund Failed` |
-| `Refund Success` | Green | Credits sent back to client | None |
-| `Refund Failed` | Red | Manual processing required | None |
-
-#### 16. Analytics Logic
-*   Sums aggregate refund figures to offset net sales values on monthly tax worksheets.
-
-#### 17. Suggested Tech Notes
-*   Store webhook payload logs in unstructured JSON columns inside database mapping schemas to enable historical logs inspection during audits.
-
----
-
-### Screen 3.5: Delivered Orders Screen
-
-#### 1. Overview
-*   **Screen Purpose**: Catalog all completed branch order transactions.
-*   **Business Objective**: Shift auditing, cashier checks, and processing re-runs.
-*   **User Workflow**: Click "Delivered" tab ➔ Browse list ➔ Click row to open slide-out detail panel.
-*   **Main Functionality**: Search filters, row summary views, detail view sliders.
-
-#### 2. Screen Preview (Text Wireframe)
-```text
-┌────────────────────────────────────────────────────────────────────────┐
-│ [🍽 DineOs]   Delivered Orders Archive                                 │
-├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  🔍 [ Search Order ID...   ]   Filter: [ Payment Mode ▼ ] │
-│ ○ Menu       ├─────────────────────────────────────────────────────────┤
-│ ▶ Orders     │ Order ID  │ Delivered At  │ Total Value  │ Payment Status  │ Status     │
-│   - Queue    ├──────────┼──────────────┼──────────────┼────────────────┼───────────┤
-│   - List     │ #99016    │ 12:30 PM     │ ₹420.00      │ Paid (Online)  │ Delivered  │
-│ ○ Reviews    │ #99015    │ 11:55 AM     │ ₹1,299.00    │ Paid (COD)      │ Delivered  │
-│ ○ Profile    │ └──────────┴──────────────┴──────────────┴────────────────┴───────────┘ │
+│ ▶ Orders     │  🔍 [ Search Order ID...   ]   Filter: [ Payment Mode ▼ ] │
+│   - Queue    ├──────────┬──────────────┬──────────────┬────────────────┤
+│   - List     │ Order ID │ Timestamp    │ Total Value  │ Status/Payment │
+│ ○ Reviews    ├──────────┼──────────────┼──────────────┼────────────────┤
+│ ○ Profile    │ #99018   │ 12:46 PM     │ ₹299.00      │ Reject (Onl)   │
+│              │ #99016   │ 12:30 PM     │ ₹420.00      │ Delivered (Onl)│
+│              │ └────────┴──────────────┴──────────────┴────────────────┘ │
 │              │ Showing 1-20 of 1,240 entries         [<] [1] [2] [>]   │
 └──────────────┴─────────────────────────────────────────────────────────┘
 ```
 
 #### 3. UI/UX Layout Description
-*   **Grid Style**: Clean, high-contrast rows. Payment modes are clearly marked using circular icon indicators next to price listings.
-*   **Order Detail Slide-out Drawer**: Dynamic sidebar layout that slides from the right side of the screen on row selection. Displays items checklist, customer metadata, and transaction signature keys.
+*   **Tabbed Navigation**: Horizontal tab block at the top allowing the operator to toggle views between `Accept`, `Reject`, `Delivered`, and `Return` order lists.
+*   **Search & Filters**: Persistent top panel containing a search query input and a dropdown menu to filter rows by payment method (Online vs. COD).
+*   **Consolidated Grid**: Grid layout presenting:
+    *   *Accept Tab*: Orders currently in kitchen preparation, ready queue, or transit stages (Statuses: Accepted, Preparing, Ready For Pickup, Out For Delivery, Arrived).
+    *   *Reject Tab*: Cancelled orders displaying Stripe refund success/pending states.
+    *   *Delivered Tab*: Complete transaction logs of successfully completed deliveries.
+    *   *Return Tab*: Customer rejected returns with complaint detail links and refund status.
+*   **Slide-out Drawer**: Row selection triggers a slide-out drawer from the right containing customer metadata, bill breakdown (subtotal + tax = total bill), and delivery partner tracking.
 
 #### 4. Screen Fields Table
 
 ##### Search & Filter Fields
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Search Query | Input Text | No | Alphanumeric limits | `99016` | Filter parameter to locate specific orders. |
+| Tab Switcher | Buttons | Yes | Must navigate to Accept, Reject, Delivered, or Return | `Reject` | Changes the active list database query scope. |
+| Search Box | Input Text | No | Alphanumeric validation limits | `99018` | Filters the selected tab rows by matching Order ID. |
 | Payment Mode Filter | Selector | No | Must match 'COD', 'Online', or 'All' | `Online` | Filters records by payment method. |
+| Export Button | Button | No | Requires active list scope | `[CSV]` | Exports the currently filtered order records to a CSV file. |
 
-##### Delivered Orders List Table
+##### Order List Table Columns
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Table Column: Order ID | Text (Read-only) | Yes | Unique order reference code format | `#99016` | Clickable row to open detail slide-out drawer. |
-| Table Column: Delivered At | DateTime (Read-only) | Yes | Valid timestamp | `12:30 PM` | Date and time when the order delivery was logged. |
-| Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹420.00` | Grand total bill of the delivered transaction. |
-| Table Column: Payment Status | Badge (Read-only) | Yes | Paid (Online) or Paid (COD) | `Paid (Online)` | Payment gateway reconciliation state. |
-| Table Column: Status | Badge (Read-only) | Yes | Value must be `Delivered` | `Delivered` | Current terminal operational state. |
+| Table Column: Order ID | Text (Read-only) | Yes | Unique reference code format | `#99018` | Unique ID of the order; row click opens details drawer. |
+| Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `12:46 PM` | Date and time when the order checkout occurred. |
+| Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Grand total bill of the transaction (inclusive of tax). |
+| Table Column: Status/Payment | Badge (Read-only) | Yes | Valid state + method badge | `Delivered (Online)` | Combined badge displaying operational status and payment method. |
 
 #### 5. Validations
-*   **Write Restriction**: Delivered orders are terminal entries. Interface blocks editing, status modifications, or deletion attempts.
+*   **Export Range Limit**: Block CSV generation requests that capture more than 30 consecutive calendar days of records.
+*   **Read-Only Integrity**: Completed terminal entries (Reject, Delivered, Return) are write-locked; modifications or editing are disabled.
 
 #### 6. Dependencies
-*   **Delivery Partner App Completion Event**: Telemetry triggers mapping transaction state transitions.
+*   **Payment Gateway Webhooks**: Stripe/Razorpay notifications drive the refund status changes on the Reject/Return tabs.
+*   **Delivery Partner Telemetry**: Courier handover, navigation, and location coordinates trigger state transitions.
 
 #### 7. API Requirement Suggestions
-*   **GET** `/api/v1/restaurant/orders/delivered?branch_id=br_mg_road&page=1`
-    *   *Response*: `{"status": "success", "delivered_list": [{"id": "ord_99016", "delivered_at": "2026-05-27T12:30:00Z", "total": 420.00, "payment": "Online"}]}`
+*   **GET** `/api/v1/restaurant/orders/list?branch_id=br_mg_road&tab=reject&page=1`
+    *   *Response*: `{"status": "success", "orders": [{"id": "ord_99018", "created_at": "2026-05-27T12:46:00Z", "total": 299.00, "status": "Rejected", "payment_status": "Refunded"}]}`
 
 #### 8. Database Table Suggestions
+Suggests creating/maintaining these schemas for archival order statistics:
 ```sql
 CREATE TABLE delivered_orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -734,98 +649,7 @@ CREATE TABLE delivered_orders (
     delivery_rating INT CHECK (delivery_rating BETWEEN 1 AND 5),
     notes TEXT
 );
-```
 
-#### 9. Backend Development Notes
-*   **Table Partitioning**: Implement database partitions by month on the `delivered_orders` table to preserve search performance indices as record archives grow over time.
-
-#### 10. Role & Permission Logic
-*   Read-only dashboard permissions are granted to both Branch Managers and Restaurant Staff.
-
-#### 11. UI Components Required
-*   Slide-out Drawer Widget, Data Table, Paginated Footer.
-
-#### 12. Edge Cases
-*   **Late Status Sync**: Courier confirms delivery offline. The system reconciles the missing status log asynchronously once the courier's device reconnects, sliding the ticket into this queue.
-
-#### 13. Notifications & Toast Messages
-*   *Toast Success*: "Order list records verified."
-
-#### 14. Real-Time Event Flow
-*   WebSocket channel broadcasts order completion triggers to keep the active kitchen dashboard queue state updated.
-
-#### 15. Status Management System
-| Status | Color | Description | Next Allowed Status |
-|---|---|---|---|
-| `Delivered` | Green | Order completed successfully | None |
-
-#### 16. Analytics Logic
-*   Aggregates total gross checkout pricing fields to update daily branch revenue totals.
-
-#### 17. Suggested Tech Notes
-*   Render detailed view layouts on client side using server data payloads fetched dynamically on list element clicks.
-
----
-
-### Screen 3.6: Returned Orders Screen
-
-#### 1. Overview
-*   **Screen Purpose**: List orders rejected by the customer during delivery and returned to the kitchen.
-*   **Business Objective**: Identify food waste patterns, document returned product details, and manage customer dispute refund tasks.
-*   **User Workflow**: Click "Returned" tab ➔ Browse list ➔ Open drawer to view return reason and courier notes.
-*   **Main Functionality**: Table row list, return reason mapping, billing detail logs.
-
-#### 2. Screen Preview (Text Wireframe)
-```text
-┌────────────────────────────────────────────────────────────────────────┐
-│ [🍽 DineOs]   Returned Orders Ledger                                   │
-├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  🔍 [ Search Order ID...   ]   Filter: [ Return Code ▼ ] │
-│ ○ Menu       ├─────────────────────────────────────────────────────────┤
-│ ▶ Orders     │ Order ID  │ Returned At  │ Return Reason    │ Return Refund │ Status   │
-│   - Queue    ├──────────┼──────────────┼─────────────────┼───────────────┼─────────┤
-│   - List     │ #99012    │ 10:30 AM     │ Food Cold       │ Refund Sent   │ Returned │
-│ ○ Reviews    │ #99008    │ 09:15 AM     │ Delayed Delivery │ Reject COD    │ Returned │
-│ ○ Profile    │ └──────────┴──────────────┴─────────────────┴───────────────┴─────────┘ │
-│              │ Showing 1-5 of 5 entries              [<] [1] [>]       │
-└──────────────┴─────────────────────────────────────────────────────────┘
-```
-
-#### 3. UI/UX Layout Description
-*   **Interface Layout**: Grid style. Highlighted borders dynamically emphasize critical items where a refund was sent for a food cold complaint.
-*   **Payment Action Badge**:
-    *   *Refund Sent*: Green outlined label.
-    *   *Reject COD (No Refund)*: Grey outline badge.
-
-#### 4. Screen Fields Table
-
-##### Search & Filter Fields
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
-| Search Query | Input Text | No | Character limits | `99012` | Filters search by matching Order ID. |
-| Return Code Filter | Selector | No | Must exist in return codes catalog | `Food Cold` | Filters rows by return reason code. |
-
-##### Returned Orders List Table
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
-| Table Column: Order ID | Text (Read-only) | Yes | Unique order reference code format | `#99012` | Clickable row selector to open order details drawer. |
-| Table Column: Returned At | DateTime (Read-only) | Yes | Valid timestamp | `10:30 AM` | Date and time when the return transaction was processed. |
-| Table Column: Return Reason | Text (Read-only) | Yes | Complaint description | `Food Cold` | Customer reason for rejection during delivery. |
-| Table Column: Return Refund | Badge (Read-only) | Yes | 'Refund Sent' or 'Reject COD' | `Refund Sent` | Refund tracking indicator. |
-| Table Column: Status | Badge (Read-only) | Yes | Value must be `Returned` | `Returned` | Current terminal operational state. |
-
-#### 5. Validations
-*   **Audit Lock**: Returned orders cannot be edited or modified. Row elements can only be viewed in read-only mode.
-
-#### 6. Dependencies
-*   **Delivery Partner App Return trigger**: The delivery partner selects the return action in their app, which logs return reasons and sends webhook updates.
-
-#### 7. API Requirement Suggestions
-*   **GET** `/api/v1/restaurant/orders/returned?branch_id=br_mg_road`
-    *   *Response*: `{"status": "success", "returned_list": [{"id": "ord_99012", "returned_at": "2026-05-27T10:30:00Z", "reason": "Food Cold", "refund": "Refund Sent"}]}`
-
-#### 8. Database Table Suggestions
-```sql
 CREATE TABLE returned_orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id UUID UNIQUE REFERENCES branch_orders(id) ON DELETE CASCADE,
@@ -837,32 +661,44 @@ CREATE TABLE returned_orders (
 ```
 
 #### 9. Backend Development Notes
-*   **Inventory Reconciliation Task**: Program background actions to log return details and adjust kitchen ingredient stocks if items are restocked (e.g. packaged drinks).
+*   **Inventory Reconciliation**: For returned orders, program background actions to adjust kitchen ingredient stocks if non-perishable packaged items are restocked (e.g. packaged drinks).
+*   **Database Transaction Locking**: Wrap database execution of order status updates and rejection/return insertions in single Transaction logic blocks to prevent orphaned status states.
 
 #### 10. Role & Permission Logic
-*   Read-only views for all branch accounts. Refund validations are controlled via Admin actions.
+*   **Branch Manager**: Allowed to view all logs, initiate custom refund escalations, and trigger CSV exports.
+*   **Restaurant Staff**: Allowed only to view lists; CSV exports and refund actions are blocked.
 
 #### 11. UI Components Required
-*   Return Detail Card, Status Badge.
+*   Slide-out Drawer Widget, Data Table, Paginated Footer, Status Badge.
 
 #### 12. Edge Cases
+*   **Late Status Sync**: Courier confirms delivery offline. The system reconciles the missing status log asynchronously once the courier's device reconnects, sliding the ticket into this queue.
 *   **False Return Declarations**: Dispute resolution channels are initialized by the manager if the customer disputes a driver's return declaration.
 
 #### 13. Notifications & Toast Messages
+*   *Toast Success*: "Order list records verified."
 *   *Error Push Notification*: "Delivery Partner marked order #ORD-99012 as Returned."
 
 #### 14. Real-Time Event Flow
-*   Rider return submissions instantly update the active order status to `Returned` in the restaurant queue map.
+*   WebSocket channel broadcasts order completion triggers to keep the active kitchen dashboard queue state updated.
 
 #### 15. Status Management System
 | Status | Color | Description | Next Allowed Status |
 |---|---|---|---|
-| `Returned` | Orange-Red | Customer rejected package | None |
+| `Accepted` | Light Blue | Initialized order state | `Preparing` |
+| `Preparing` | Amber | Active kitchen processing | `Ready For Pickup` |
+| `Ready For Pickup`| Purple | Awaiting courier handover | `Out For Delivery` |
+| `Out For Delivery`| Dark Blue | Rider carrying package to customer | `Arrived` |
+| `Arrived` | Teal | Rider has arrived at delivery destination | `Delivered` or `Returned` |
+| `Delivered` | Green | Order completed successfully | None |
+| `Returned` | Orange-Red | Order returned by customer | None |
 
 #### 16. Analytics Logic
+*   Aggregates total gross checkout pricing fields to update daily branch revenue totals.
 *   Return metrics are aggregated monthly to measure branch losses and assess quality control of delivery routing.
 
 #### 17. Suggested Tech Notes
+*   Render detailed view layouts on client side using server data payloads fetched dynamically on list element clicks.
 *   Implement database triggers to notify managers if more than 3 returned order statuses are logged within a single shift.
 
 ---
