@@ -748,9 +748,9 @@ Registration form to onboard system operators and managers, mapping them to expl
 ## Screen 3.3: Update Employee Screen
 
 ### 1. Overview
-Interface to update staff profiles. Password entry is hidden by default and can be bypassed unless explicitly resetting credentials.
+Interface to update staff profiles. The form is divided into two sections: **Personal & Employment Details** (always visible) and **Reset Password** (collapsed by default, expandable on demand). Password entry is entirely optional — the admin can save profile changes without touching the password section.
 
-### 2. Screen Preview
+### 2. Screen Preview (Default State — Password Section Collapsed)
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  Update Employee — John Doe (E101)                          │
@@ -762,28 +762,135 @@ Interface to update staff profiles. Password entry is hidden by default and can 
 │  [Role: Manager       ▼]      [Assign Branch: MG Road   ▼]  │
 │  [Date of Joining: 2026-05-01]                              │
 │                                                             │
-│  [ Reset Password (Optional) ]                              │
+│  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│  🔒 Reset Password                                    [▶ Expand]│
 │                                                             │
 │                                      [Cancel] [Save Changes]│
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 3. Screen Fields Table
+### 3. Screen Preview (Expanded State — Password Fields Visible)
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Update Employee — John Doe (E101)                          │
+├─────────────────────────────────────────────────────────────┤
+│  Personal & Employment Details                              │
+│  Employee ID: E101 (Locked)                                 │
+│  [First Name: John     ]      [Last Name: Doe           ]   │
+│  [Email: john@roms.com (Locked)] [Phone Number: 9811223344]  │
+│  [Role: Manager       ▼]      [Assign Branch: MG Road   ▼]  │
+│  [Date of Joining: 2026-05-01]                              │
+│                                                             │
+│  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│  🔓 Reset Password                                  [▼ Collapse]│
+│                                                             │
+│  ⚠️ Setting a new password will immediately invalidate the    │
+│  employee's current sessions and require re-login.          │
+│                                                             │
+│  [New Password: ********** ]  [Confirm Password: **********] │
+│                                                             │
+│  Password Requirements:                                     │
+│  ✓ Minimum 8 characters                                     │
+│  ✓ At least 1 uppercase letter                              │
+│  ✓ At least 1 lowercase letter                              │
+│  ✓ At least 1 digit                                         │
+│  ✓ At least 1 special character (!@#$%^&*)                  │
+│                                                             │
+│                                      [Cancel] [Save Changes]│
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 4. Screen Fields Table
+
+#### Personal & Employment Details Fields
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
+| Employee ID | Label | — | Locked read-only display element | `E101` | Non-editable |
 | First Name | Text | Yes | Min 2, max 50 characters | `John` | Given name |
 | Last Name | Text | Yes | Min 2, max 50 characters | `Doe` | Surname |
 | Email Address | Label | — | Locked read-only | `john@roms.com` | Cannot modify username |
 | Phone Number | Phone | Yes | Numeric, exactly 10 digits | `9811223344` | Contact number |
 | Role Selection | Dropdown | Yes | Valid system role | `Manager` | System permission |
-| Assign Branch | Dropdown | Yes* | Mapped branch ID | `MG Road` | Mapped location |
-| Date of Joining| Date | Yes | Cannot be future date | `2026-05-01` | Start date |
+| Assign Branch | Dropdown | Yes* | Mapped branch ID | `MG Road` | Required if role is Manager, Kitchen, or Delivery |
+| Date of Joining | Date | Yes | Cannot be future date | `2026-05-01` | Start date |
 
-### 4. Validations
+#### Reset Password Section Fields
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Reset Password Toggle | Toggle / Accordion | No | Collapsed by default; click to expand | `[▶ Expand]` / `[▼ Collapse]` | Toggles visibility of password fields |
+| New Password | Password | Yes* | Min 8 characters; 1 upper, 1 lower, 1 digit, 1 special character | `**********` | *Required only when Reset Password section is expanded. Hashed securely before storage |
+| Confirm Password | Password | Yes* | Must exactly match New Password | `**********` | *Required only when Reset Password section is expanded. Verification check |
+
+### 5. Reset Password Flow
+
+The reset password functionality follows a **progressive disclosure pattern** — password fields are hidden by default and only shown when the admin explicitly opts to reset:
+
+#### Flow Steps
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  1. Admin opens Update Employee screen                      │
+│     → Password section is COLLAPSED (default)               │
+│     → Admin can save profile changes without touching       │
+│       passwords                                             │
+├─────────────────────────────────────────────────────────────┤
+│  2. Admin clicks [▶ Expand] on "Reset Password"            │
+│     → Section expands with animation (slide-down)           │
+│     → Warning banner is displayed:                          │
+│       "Setting a new password will immediately invalidate   │
+│        the employee's current sessions and require re-login"│
+│     → New Password and Confirm Password fields appear       │
+│     → Password requirements checklist appears (live updates)│
+├─────────────────────────────────────────────────────────────┤
+│  3. Admin fills in New Password                             │
+│     → Requirements checklist updates in real-time:          │
+│       ✓ Green check when requirement is met                 │
+│       ✗ Red cross when requirement is not met               │
+├─────────────────────────────────────────────────────────────┤
+│  4. Admin fills in Confirm Password                         │
+│     → Inline validation: shows match/mismatch indicator     │
+│       ✓ "Passwords match" (green text)                      │
+│       ✗ "Passwords do not match" (red text)                 │
+├─────────────────────────────────────────────────────────────┤
+│  5. Admin clicks [Save Changes]                             │
+│     → Profile fields are validated first                    │
+│     → If password section is expanded AND has values:       │
+│       • Password rules are validated                        │
+│       • Confirm Password match is validated                 │
+│       • On success: password is hashed and updated          │
+│       • All active JWT sessions for this employee are       │
+│         immediately revoked (forced re-login)               │
+│     → If password section is collapsed OR empty:            │
+│       • Password is NOT changed                             │
+│       • Only profile fields are updated                     │
+├─────────────────────────────────────────────────────────────┤
+│  6. Admin clicks [▼ Collapse] (optional)                    │
+│     → Section collapses, any entered password values        │
+│       are cleared (security measure)                        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Password Requirements (Real-Time Checklist)
+| Requirement | Rule | Live Indicator |
+|---|---|---|
+| Minimum Length | At least 8 characters | ✓ / ✗ updates as user types |
+| Uppercase Letter | At least 1 uppercase letter (A-Z) | ✓ / ✗ updates as user types |
+| Lowercase Letter | At least 1 lowercase letter (a-z) | ✓ / ✗ updates as user types |
+| Digit | At least 1 numeric digit (0-9) | ✓ / ✗ updates as user types |
+| Special Character | At least 1 special character (!@#$%^&*) | ✓ / ✗ updates as user types |
+| Password Match | Confirm Password must exactly match New Password | ✓ / ✗ shown below Confirm Password field |
+
+### 6. Validations
 - Email and Employee ID fields are locked and non-editable.
-- If password reset is toggled, new password validation rules are enforced.
+- If the Reset Password section is **collapsed** (default), the admin can save profile changes without any password validation — password is not modified.
+- If the Reset Password section is **expanded** and contains values, full password validation is enforced:
+  - New Password must meet all requirements (min 8 chars, 1 upper, 1 lower, 1 digit, 1 special).
+  - Confirm Password must exactly match New Password.
+  - Both fields become required when the section is expanded.
+- If the admin **collapses** the Reset Password section after entering values, the entered password data is immediately cleared from the form (security measure to prevent accidental submission).
+- On successful password reset, all active JWT tokens for the employee are **immediately revoked**, forcing a re-login on all devices.
 
-### 5. Dependencies
+### 7. Dependencies
 - **Module Dependencies**: Relies on Module 2 (Branch Management) to populate the active branch selection choices.
 
 ---
