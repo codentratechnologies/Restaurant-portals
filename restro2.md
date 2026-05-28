@@ -1003,11 +1003,30 @@ CREATE TABLE order_reviews (
 *   **Password Reset Modal**: Center overlay window with secure password fields (current, new, and confirm).
 
 #### 4. Screen Fields Table
+
+##### Profile Detail Card Fields
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Current Password| Password | Yes | Min 8 chars, checked on submit | `********` | Checked before reset |
-| New Password | Password | Yes | Min 8 chars, strong security pattern check | `********` | Cannot match current |
-| Confirm Pass | Password | Yes | Must match New Password exactly | `********` | Input validation |
+| Profile Photo | Image | No | Standard image upload validation (PNG, JPG, max 2MB) | `profile.jpg` | Thumbnail image representing employee avatar. |
+| Manager Name | Text (Read-only) | Yes | Combined first and last name | `Amit Kumar` | Display name of the manager. |
+| Contact Email | Text (Read-only) | Yes | Valid unique email format | `amit@dineos.com` | Email used for authentication credentials. |
+| Mobile Number | Input Text | Yes | Exactly 10 digits | `+91 9876543210` | Registered contact mobile phone number. |
+| Assigned Branch | Text (Read-only) | Yes | Valid branch location | `MG Road Branch` | Mapped physical restaurant branch name. |
+| Mapped Role | Text (Read-only) | Yes | Value must be 'Branch Manager' | `Branch Manager` | Assigned authorization system role. |
+| Action: Upload Photo | Button | No | Triggers file picker overlay | `[Upload New Image]` | Uploads a new avatar file. |
+
+##### Profile Update Actions
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Action: Change Password | Button | Yes | Opens password reset modal | `[CHANGE SYSTEM PASSWORD]` | Opens dialog to update authentication credentials. |
+| Action: Update Phone | Button | Yes | Saves profile mobile number | `[UPDATE PHONE NUMBER]` | Dispatches update request to profile API endpoint. |
+
+##### Password Reset Modal Fields
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Current Password | Password | Yes | Min 8 chars, verified on submission | `********` | Checked against existing database password hash. |
+| New Password | Password | Yes | Min 8 chars, strong complexity validation | `********` | Cannot match current password. |
+| Confirm Password | Password | Yes | Must match New Password exactly | `********` | Confirms spelling of the target new password. |
 
 #### 5. Validations
 *   **Password Complexity Rules**: New passwords require a minimum of 8 characters, including 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.
