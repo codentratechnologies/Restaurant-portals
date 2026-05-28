@@ -430,9 +430,24 @@ After branch details are saved in Step 1, this step displays the current menu as
 ## Screen 2.4: View Branch Details Screen
 
 ### 1. Overview
-A read-only detail page for viewing all information related to a specific branch. The screen displays the branch's core identity (name, code, email, status) in a header card followed by a detailed information card showing address, contact details, operating hours, and audit trail. This is a pure view-only screen — the only action available is navigating back to the Branch Dashboard.
+A read-only detail screen for viewing all information related to a specific branch. The screen is divided into two zones: a **persistent header card** displaying the branch's core identity (name, code, email, status) with only a Back button, and an **internal tabbed panel** below it with two read-only tabs. This is a pure view-only screen — no edit, delete, or deactivate actions are available.
 
-### 2. Screen Preview
+### 2. Screen Layout
+
+The screen is composed of two visual zones stacked vertically:
+
+**Zone 1 — Branch Identity Header Card (Always Visible)**
+A non-scrollable summary card pinned at the top of the screen. Displays core branch identity fields and a Back navigation link. This zone never changes when switching tabs.
+
+**Zone 2 — Internal Tabbed Content Panel**
+A tab bar immediately below the header card with two read-only tabs:
+
+| Tab Label | Badge Count | Description |
+|---|---|---|
+| Branch Information | — | Detailed branch configuration and audit trail |
+| Branch Menu | Dynamic (e.g. `25`) | Food items currently assigned to this branch |
+
+### 3. Screen Preview (Full Composite View — Branch Information Tab Active)
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  ‹ Back to Branches                                         │
@@ -444,9 +459,11 @@ A read-only detail page for viewing all information related to a specific branch
 │  Email:        mgroad@roms.com                              │
 │  Status:       ● Active                                     │
 │                                                             │
+│  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│  [Branch Information]    Branch Menu (25)                    │
+│  ─────────────────────                                      │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  Branch Details                                             │
 │  ┌───────────────────┬─────────────────────────────────────┐│
 │  │ Branch Code       │ B001                                ││
 │  ├───────────────────┼─────────────────────────────────────┤│
@@ -472,9 +489,13 @@ A read-only detail page for viewing all information related to a specific branch
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 3. Screen Fields Table
+---
 
-#### Header Card Fields
+### SECTION A: Branch Identity Header Card (Persistent — Always Visible)
+
+This zone remains fixed at the top regardless of which tab is active. It displays branch identity and a Back navigation link only — no management actions.
+
+#### 1. Header Card Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Back Button | Link | Yes | Navigates back to Branch Dashboard (Screen 2.1) | `‹ Back to Branches` | Top-left navigation link. Preserves previously applied dashboard filters |
@@ -484,7 +505,67 @@ A read-only detail page for viewing all information related to a specific branch
 | Email | Label | Read-only | Valid email format | `mgroad@roms.com` | Branch contact email |
 | Status Indicator | Badge | Read-only | Green pill for `Active`, Red pill for `Inactive` | `● Active` | Color-coded status pill next to identity |
 
-#### Branch Detail Card Fields
+---
+
+### SECTION B: Internal Tab Bar Controller
+
+The tab bar sits directly below the header card, acting as the switcher for the content panel. Only one tab is active at a time. The active tab displays an **underline highlight** (primary color `#2563EB`) beneath its label.
+
+#### 1. Tab Bar Behavior
+| Property | Specification |
+|---|---|
+| Default Active Tab | `Branch Information` (first tab) |
+| Active Tab Indicator | Bottom border underline, `2px solid #2563EB` |
+| Inactive Tab Style | Neutral gray text, no underline |
+| Badge Counts | Dynamic numeric count shown in parentheses for `Branch Menu` tab |
+| URL State Persistence | Active tab selection must be reflected in the URL query parameter (e.g. `?tab=menu`) so that page refresh preserves the selected tab |
+| Keyboard Navigation | Supports `←` / `→` arrow key navigation between tabs, `Enter` to activate |
+
+---
+
+### SECTION C: Tab Content Viewports
+
+Each tab renders its own dedicated content area below the tab bar. When a tab is selected, only the content viewport area swaps — the header card and tab bar remain static. Both tabs are **read-only** with no editable fields or action buttons.
+
+---
+
+#### Tab 1: Branch Information
+
+Displays the full operational configuration of the branch in a **vertical key-value detail card** format (label on left, value on right). Includes address details, contact information, operating hours, and system audit trail.
+
+##### 1. Branch Information Tab Preview
+```text
+├─────────────────────────────────────────────────────────────┤
+│  [Branch Information]    Branch Menu (25)                    │
+│  ─────────────────────                                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌───────────────────┬─────────────────────────────────────┐│
+│  │ Branch Code       │ B001                                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Address Details   │ 123, Main Street, MG Road           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ City              │ Bangalore                           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ State             │ Karnataka                           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Pincode           │ 560001                              ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Contact Phone     │ +91 9811223344                      ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Contact Email     │ mgroad@roms.com                     ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Operating Hours   │ 10:00 AM to 11:00 PM                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Created By        │ admin_user on 2026-05-01 10:00 AM   ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Edited By         │ admin_user on 2026-05-20 03:30 PM   ││
+│  └───────────────────┴─────────────────────────────────────┘│
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+##### 2. Branch Information Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Branch Code | Text | Read-only | Unique alphanumeric code | `B001` | Unique branch identifier |
@@ -498,10 +579,53 @@ A read-only detail page for viewing all information related to a specific branch
 | Created By | Text | Read-only | Format: `{user} on {timestamp}` | `admin_user on 2026-05-01 10:00 AM` | Audit trail — creator identity and timestamp combined |
 | Edited By | Text | Read-only | Format: `{user} on {timestamp}` | `admin_user on 2026-05-20 03:30 PM` | Audit trail — last editor identity and timestamp combined |
 
-### 4. Business Rules
+---
+
+#### Tab 2: Branch Menu
+
+Displays the list of food items currently assigned to this branch in a **read-only tabular format**. This tab provides visibility into the branch's menu without any edit or assignment capabilities — menu management is handled through the Edit flow (Screen 2.3, Step 2).
+
+##### 1. Branch Menu Tab Preview
+```text
+├─────────────────────────────────────────────────────────────┤
+│   Branch Information    [Branch Menu (25)]                   │
+│                         ─────────────────                    │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Assigned Menu Items                                        │
+│  ┌─────────────┬───────────────────────────────┬────────────┐│
+│  │ Item Code   │ Food Item Name                │ Price      ││
+│  ├─────────────┼───────────────────────────────┼────────────┤│
+│  │ F012        │ Chicken Biryani               │ ₹299       ││
+│  │ F045        │ Margherita Pizza              │ ₹199       ││
+│  │ F023        │ Garlic Bread                  │ ₹149       ││
+│  └─────────────┴───────────────────────────────┴────────────┘│
+│  Showing 1-10 of 25                       [<] [1] [2] [>]   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+##### 2. Branch Menu Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Menu Table: Item Code | Text | Read-only | Alphanumeric unique code | `F012` | Linked food item code |
+| Menu Table: Food Item Name | Text | Read-only | Minimum 3 characters | `Chicken Biryani` | Master food item title |
+| Menu Table: Price | Currency | Read-only | Positive decimal format | `₹299` | Branch selling price |
+| Pagination | Control | Yes | Standard page navigation | `Showing 1-10 of 25` | Paginated at 10 items per page |
+
+---
+
+### SECTION D: Business Validations & Rules
+
 1. **Audit Trail Integrity**: Audit tracking fields (Created By, Edited By) are system-managed and cannot be edited by any user.
-2. **Back Navigation**: The `‹ Back to Branches` link must return the user to the Branch Dashboard (Screen 2.1), preserving any previously applied filters.
-3. **Read-Only Screen**: This screen has no edit, delete, or deactivate actions. All management actions are accessible from the Branch Dashboard table (Screen 2.1) or through the Edit flow (Screen 2.3).
+2. **Dynamic Badge Count**: The numeric count displayed in the `Branch Menu` tab label (e.g. `Branch Menu (25)`) must automatically recalculate whenever items are added or removed via the Edit flow.
+3. **Tab State Persistence**: The currently active tab must be preserved in the URL query string (e.g. `?tab=menu`) so that browser refresh or shared links restore the correct tab view.
+4. **Back Navigation**: The `‹ Back to Branches` link must return the user to the Branch Dashboard (Screen 2.1), preserving any previously applied filters.
+5. **Read-Only Screen**: This screen has no edit, delete, deactivate, or assign actions. All management actions are accessible from the Branch Dashboard table (Screen 2.1) or through the Edit flow (Screen 2.3).
+
+### SECTION E: Dependencies
+
+- **Module Dependencies**: Depends directly on Module 5 (Food Management) to query master menu catalog items mapped to this branch.
 
 ---
 
