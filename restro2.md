@@ -297,7 +297,14 @@ CREATE TABLE branch_food_mapping (
 #### 4. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Order Ticket | Card | Yes | Read-only verification | `#ORD-99018` | Displays customer details, items, bill totals |
+| Order Ticket: ID | Text (Read-only) | Yes | Unique order identifier format (`#ORD-XXXXX`) | `#ORD-99018` | Database key used to uniquely map the transaction. |
+| Order Ticket: Time Received | DateTime (Read-only) | Yes | Valid timestamp | `12:44 PM` | Timestamp when order checkout was completed. |
+| Order Ticket: Timer Remaining | Number (Countdown) | Yes | Computed dynamically: `(created_at + 5 mins) - current_time` | `01:45` | Time remaining in MM:SS before order triggers auto-rejection. |
+| Order Ticket: Items List | Array of Objects | Yes | Must contain at least 1 food item | `1x Veg Margherita Pizza` | List of items, quantities, and user modifier choices. |
+| Order Ticket: Total Amount | Currency (Read-only) | Yes | Positive decimal | `₹299` | Grand total value of the customer order checkout. |
+| Order Ticket: Payment Method | Badge (Read-only) | Yes | Value must be 'COD' or 'Online' | `Prepaid` (Online) | Specifies payment channel. |
+| Action: Accept | Button | Yes | Requires active auth token | `[Accept]` | Sends POST to `/accept` endpoint; transitions status to `Accepted`. |
+| Action: Reject | Button | Yes | Requires active auth token | `[Reject]` | Opens the Rejection Reason dialog modal to log cancellation. |
 
 #### 5. Validations
 *   **Shift Operation Lock**: Rejects/Accepts cannot be submitted if branch manager has marked the overall branch state as offline.
