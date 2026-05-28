@@ -999,11 +999,51 @@ CREATE TABLE cancelled_orders (
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Table Column: Rating Stars | Star Rating Indicator | Yes | 1 to 5 stars | `⭐⭐⭐⭐☆` | Displays the score given by the customer. |
-| Table Column: Order Reference | Text Link (Read-only) | Yes | Valid Order ID reference key | `#ORD-99016` | Displays linked order number. |
+| Table Column: Order Reference | Text Link (Read-only) | Yes | Valid Order ID reference key | `#ORD-99016` | Clickable link that opens the Detailed Order Slide-out Drawer |
 | Table Column: Date | Date (Read-only) | Yes | Valid date format | `2026-05-27` | Date when the customer submitted the review. |
 | Table Column: Customer Name | Text (Read-only) | Yes | Alphabetical characters or 'Anonymous' | `Amit Kumar` | Customer name (masked as Anonymous if customer opted so). |
 | Table Column: Comment Text | Text (Read-only) | No | Max 500 characters, sanitizes inputs | `The Margherita pizza was fresh and delicious` | Detailed feedback text written by the customer. |
-| Row Action: View Linked Order | Button | Yes | Requires active auth token | `[View Linked Order]` | Opens details drawer showing order itemization. |
+| Row Action: View | Button | Yes | Requires active auth token | `[View]` | Opens the Detailed Review Slide-out Drawer |
+
+#### Detailed Review Slide-out Drawer (Activated on Row Click or View Action)
+
+Row selection or click on the `[View]` button on the reviews table triggers a slide-out drawer containing detailed review information.
+
+##### 1. Screen Preview (Text Wireframe)
+```text
+┌────────────────────────────────────────┐
+│  Review Details                    [X] │
+├────────────────────────────────────────┤
+│  Customer: Amit Kumar                  │
+│  Date: 2026-05-27                      │
+│  Linked Order: #ORD-99016 [View Order] │
+│                                        │
+│  Rating: ⭐⭐⭐⭐☆ (4.0 / 5.0)           │
+│                                        │
+│  Full Customer Comment:                │
+│  "The Veg Margherita Pizza was fresh    │
+│  and piping hot! Excellent quality,    │
+│  but delivery was slightly delayed."   │
+│                                        │
+│  Ordered Items:                        │
+│  • 1x Veg Margherita Pizza (₹284.76)   │
+│  • 1x Cheesy Garlic Bread (₹149.00)    │
+└────────────────────────────────────────┘
+```
+
+##### 2. Slide-out Drawer Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Drawer Title | Text (Read-only) | Yes | Format: `Review Details` | `Review Details` | Header title of the drawer |
+| Customer Name | Text (Read-only) | Yes | Alphabetical or 'Anonymous Customer' | `Amit Kumar` | Customer name (masked if review is anonymous) |
+| Submission Date | Date (Read-only) | Yes | Valid date format | `2026-05-27` | Date when review was posted |
+| Linked Order ID | Text Link (Read-only) | Yes | Valid Order ID reference key | `#ORD-99016` | Clickable link opening the linked order details drawer |
+| Review Stars | Star Rating Indicator | Yes | 1 to 5 stars | `⭐⭐⭐⭐☆` | Graphic star rating representation |
+| Rating Score | Number (Read-only) | Yes | Positive decimal between 1.0 and 5.0 | `4.0 / 5.0` | Numerical rating representation |
+| Full Comment Text | Text (Read-only) | No | Max 500 characters | `The Veg Margherita Pizza was fresh...` | Complete customer comment text |
+| Item List: Name | Text (Read-only) | Yes | Min 3 characters | `Veg Margherita Pizza` | Names of food items ordered in the linked transaction |
+| Item List: Price | Currency (Read-only) | Yes | Positive decimal | `₹284.76` | Price of ordered item |
+| Close Drawer Button | Button | Yes | Dismisses drawer overlay | `[X]` | Pinned to top-right to close detailed view |
 
 #### 5. Validations
 *   **Review Length Limits**: Customer app comment strings are truncated to 500 characters on screen to prevent layout breakage.
