@@ -23,7 +23,7 @@
    - [Screen 3.1: Order Queue Screen (Live Pending Queue)](#screen-31-order-queue-screen-live-pending-queue)
    - [Screen 3.2: Rejection Reason Dialog (Reject Flow Modal)](#screen-32-rejection-reason-dialog-reject-flow-modal)
    - [Screen 3.3: Accepted Orders Queue Screen (Active Steppers)](#screen-33-accepted-orders-queue-screen-active-steppers)
-   - [Screen 3.4: Order List Screen (Tabs: Accept, Reject, Delivered, Return)](#screen-34-order-list-screen-tabs-accept-reject-delivered-return)
+   - [Screen 3.4: Order List Screen (Tabs: Accept, Reject, Delivered, Cancel)](#screen-34-order-list-screen-tabs-accept-reject-delivered-cancel)
 5. [Module 4 — Order Review Module](#module-4--order-review-module)
    - [Screen 4.1: Reviews & Ratings Dashboard](#screen-41-reviews--ratings-dashboard)
 6. [Module 5 — Profile Module](#module-5--profile-module)
@@ -107,7 +107,7 @@ The **DineOs Restaurant Portal** is a web-based operational system designed spec
 | Top Items Column: Units | Number | Read-only | Integer >= 0 | `124 units` | Number of units sold at this branch |
 | Recent Orders Column: Order ID | Text Link | Read-only | Format `#ORD-XXXXX` | `#ORD-9801` | Clickable link opens order details drawer |
 | Recent Orders Column: Total Value | Currency | Read-only | Positive decimal | `₹420` | Grand billing total of order |
-| Recent Orders Column: Status | Badge | Read-only | Delivered, Rejected, Returned | `Del` | Order lifecycle status badge |
+| Recent Orders Column: Status | Badge | Read-only | Delivered, Rejected, Cancelled | `Del` | Order lifecycle status badge |
 
 #### 5. Validations
 *   **Date Threshold**: Range queries cannot exceed 90 calendar days on branch level to maintain UI caching speeds.
@@ -119,7 +119,7 @@ The **DineOs Restaurant Portal** is a web-based operational system designed spec
 
 #### 7. API Requirement Suggestions
 *   **GET** `/api/v1/restaurant/analytics/kpis?branch_id=br_mg_road&start_date=2026-05-01&end_date=2026-05-27`
-    *   *Response*: `{"status": "success", "data": {"revenue": 145200.00, "total_orders": 342, "rejected": 8, "returned": 2}}`
+    *   *Response*: `{"status": "success", "data": {"revenue": 145200.00, "total_orders": 342, "rejected": 8, "cancelled": 2}}`
 *   **GET** `/api/v1/restaurant/analytics/charts?branch_id=br_mg_road&granularity=D`
     *   *Response*: `{"status": "success", "chart_points": [{"label": "May 26", "revenue": 8200, "orders": 24}]}`
 
@@ -138,7 +138,7 @@ No new analytics tables are created. Runs optimized aggregate queries over the o
 *   Date Picker, KPI Card, Reusable Chart Widget (Chart.js/Recharts integration), Sidebar Navigation, Table Row.
 
 #### 12. Edge Cases
-*   **Zero Sales Metrics**: Ensure divisions in calculations (e.g. return ratios) handle division-by-zero check variables to prevent frontend page crash.
+*   **Zero Sales Metrics**: Ensure divisions in calculations (e.g. cancellation ratios) handle division-by-zero check variables to prevent frontend page crash.
 *   **Network Loss**: Socket disconnect freezes metrics and changes header status indicator to a Red "Reconnecting" icon.
 
 #### 13. Notifications & Toast Messages
@@ -152,7 +152,7 @@ No new analytics tables are created. Runs optimized aggregate queries over the o
 
 #### 16. Analytics Logic
 $$\text{Rejection Rate \%} = \left( \frac{\text{Total Rejected Orders}}{\text{Total Orders Received}} \right) \times 100$$
-$$\text{Return Rate \%} = \left( \frac{\text{Total Returned Orders}}{\text{Total Orders Received}} \right) \times 100$$
+$$\text{Cancellation Rate \%} = \left( \frac{\text{Total Cancelled Orders}}{\text{Total Orders Received}} \right) \times 100$$
 
 #### 17. Suggested Tech Notes
 *   Use Next.js SSR for page landing framework. Implement swr/React Query caching libraries for REST endpoint metrics.
@@ -571,13 +571,13 @@ CREATE TABLE order_status_history (
 #### 15. Status Management System
 | Status | Color | Description | Next Allowed Status |
 |---|---|---|---|
-| `Accepted` | Light Blue | Initialized order state | `Preparing` |
-| `Preparing` | Amber | Active kitchen processing | `Ready For Pickup` |
-| `Ready For Pickup`| Purple | Awaiting courier handover | `Out For Delivery` |
+| `Accepted` | Light Blue | Initialized order state | `Preparing` or `Cancelled` |
+| `Preparing` | Amber | Active kitchen processing | `Ready For Pickup` or `Cancelled` |
+| `Ready For Pickup`| Purple | Awaiting courier handover | `Out For Delivery` (Cancellation locked) |
 | `Out For Delivery`| Dark Blue | Rider carrying package to customer | `Arrived` |
-| `Arrived` | Teal | Rider has arrived at delivery destination | `Delivered` or `Returned` |
+| `Arrived` | Teal | Rider has arrived at delivery destination | `Delivered` |
 | `Delivered` | Green | Order completed successfully | None |
-| `Returned` | Orange-Red | Order returned by customer | None |
+| `Cancelled` | Rose-Red | Order cancelled by customer or kitchen | None |
 
 #### 16. Analytics Logic
 *   Kitchen performance analytics calculate differences between `Accepted` and `Ready For Pickup` milestones.
@@ -587,12 +587,12 @@ CREATE TABLE order_status_history (
 
 ---
 
-### Screen 3.4: Order List Screen (Tabs: Accept, Reject, Delivered, Return)
+### Screen 3.4: Order List Screen (Tabs: Accept, Reject, Delivered, Cancel)
 
 #### 1. Overview
 *   **Screen Purpose**: A single repository page for all orders (active and historical) processed at the branch level, categorized by tab selection.
-*   **Business Objective**: Enable operators to audit financials, verify cash transactions, track stripe/razorpay refunds, and review customer return reasons in a consolidated workspace.
-*   **User Workflow**: Select `- List` from sidebar ➔ Click target Tab (Accept / Reject / Delivered / Return) ➔ Use filters/search ➔ Select row to inspect details via drawer.
+*   **Business Objective**: Enable operators to audit financials, verify cash transactions, track stripe/razorpay refunds, and review order cancellation reasons in a consolidated workspace.
+*   **User Workflow**: Select `- List` from sidebar ➔ Click target Tab (Accept / Reject / Delivered / Cancel) ➔ Use filters/search ➔ Select row to inspect details via drawer.
 *   **Main Functionality**: Tabbed queue selector, CSV report exporter, alphanumeric search bar, payment mode dropdown filter, detailed order drawer widget.
 
 #### 2. Screen Layout
@@ -603,7 +603,7 @@ The screen is composed of two visual zones stacked vertically:
     *   *Accept*: Lists active orders currently in Accepted, Preparing, Ready For Pickup, Out For Delivery, or Arrived status.
     *   *Reject*: Lists cancelled orders with refund details.
     *   *Delivered*: Lists successfully completed deliveries.
-    *   *Return*: Lists orders rejected/returned by the customer.
+    *   *Cancel*: Lists orders cancelled by the customer or kitchen during preparation stages.
 
 Each tab renders its own dedicated data table grid layout.
 
@@ -612,7 +612,7 @@ Each tab renders its own dedicated data table grid layout.
 ┌────────────────────────────────────────────────────────────────────────┐
 │ [🍽 DineOs]   Order List Ledger                                        │
 ├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  [ Accept (5) ]  [ Reject (2) ]  [ Delivered ]  [ Return ]│
+│ ○ Dashboard  │  [ Accept (5) ]  [ Reject (2) ]  [ Delivered ]  [ Cancel ]│
 │ ○ Menu       ├─────────────────────────────────────────────────────────┤
 │ ▶ Orders     │  🔍 [ Search Order ID...   ]   Filter: [ Payment Mode ▼ ] │
 │   - Queue    ├──────────┬──────────────┬──────────────┬───────────┬────────────────┬────────┐
@@ -738,27 +738,27 @@ Displays completed historical orders.
 
 ---
 
-#### Tab 4: Return
-Displays customer returned/rejected orders.
+#### Tab 4: Cancel
+Displays customer or kitchen cancelled orders.
 
-##### 1. Return Tab Preview
+##### 1. Cancel Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬─────────────────┬───────────────┬───────────┬────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Return Reason   │ Refund Status │ Status    │ Action │
-├──────────┼──────────────┼──────────────┼─────────────────┼───────────────┼───────────┼────────┤
-│ #99013   │ 10:45 AM     │ ₹299.00      │ damaged_items   │ Refunded      │ Returned  │ [View] │
-└──────────┴──────────────┴──────────────┴─────────────────┴───────────────┴───────────┴────────┘
+┌──────────┬──────────────┬──────────────┬────────────────────┬───────────────┬───────────┬────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Cancel Reason      │ Refund Status │ Status    │ Action │
+├──────────┼──────────────┼──────────────┼────────────────────┼───────────────┼───────────┼────────┤
+│ #99013   │ 10:45 AM     │ ₹299.00      │ customer_cancelled │ Refunded      │ Cancelled │ [View] │
+└──────────┴──────────────┴──────────────┴────────────────────┴───────────────┴───────────┴────────┘
 ```
 
-##### 2. Return Tab Fields Table
+##### 2. Cancel Tab Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Table Column: Order ID | Text Link | Yes | Unique reference format | `#99013` | Clickable link opens details drawer |
 | Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `10:45 AM` | Checkout timestamp |
 | Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Order total |
-| Table Column: Return Reason | Text (Read-only) | Yes | Reason given by customer | `damaged_items` | Customer return code |
-| Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Pending, Refunded, Refund Failed |
-| Table Column: Status | Badge (Read-only) | Yes | Value must be 'Returned' | `Returned` | Order return status |
+| Table Column: Cancel Reason | Text (Read-only) | Yes | Reason given by customer or system | `customer_cancelled` | Cancellation code |
+| Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Pending, Refunded, Refund Failed, Not Required |
+| Table Column: Status | Badge (Read-only) | Yes | Value must be 'Cancelled' | `Cancelled` | Order cancellation status |
 | Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
 
 ---
@@ -792,10 +792,11 @@ Row selection or click on the `[View]` button on any tab triggers a slide-out dr
 
 #### 5. Validations
 *   **Export Range Limit**: Block CSV generation requests that capture more than 30 consecutive calendar days of records.
-*   **Read-Only Integrity**: Completed terminal entries (Reject, Delivered, Return) are write-locked; modifications or editing are disabled.
+*   **Read-Only Integrity**: Completed terminal entries (Reject, Delivered, Cancel) are write-locked; modifications or editing are disabled.
+*   **Order Cancellation Constraint**: Orders can only be cancelled while their status is `Accepted` or `Preparing`. Once the order is prepared and its status transitions to `Ready For Pickup` or any later status, the order cannot be cancelled (the cancel action is locked and disabled).
 
 #### 6. Dependencies
-*   **Payment Gateway Webhooks**: Stripe/Razorpay notifications drive the refund status changes on the Reject/Return tabs.
+*   **Payment Gateway Webhooks**: Stripe/Razorpay notifications drive the refund status changes on the Reject/Cancel tabs.
 *   **Delivery Partner Telemetry**: Courier handover, navigation, and location coordinates trigger state transitions.
 
 #### 7. API Requirement Suggestions
@@ -812,19 +813,19 @@ CREATE TABLE delivered_orders (
     notes TEXT
 );
 
-CREATE TABLE returned_orders (
+CREATE TABLE cancelled_orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id UUID UNIQUE REFERENCES branch_orders(id) ON DELETE CASCADE,
-    return_reason VARCHAR(100) NOT NULL,
-    return_description TEXT,
-    returned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    cancellation_reason VARCHAR(100) NOT NULL,
+    cancellation_description TEXT,
+    cancelled_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     refund_status VARCHAR(50) DEFAULT 'Pending'
 );
 ```
 
 #### 9. Backend Development Notes
-*   **Inventory Reconciliation**: For returned orders, program background actions to adjust kitchen ingredient stocks if non-perishable packaged items are restocked (e.g. packaged drinks).
-*   **Database Transaction Locking**: Wrap database execution of order status updates and rejection/return insertions in single Transaction logic blocks to prevent orphaned status states.
+*   **Inventory Reconciliation**: For cancelled orders, program background actions to return reserved food ingredients back to branch stock counts since the kitchen preparation is aborted or completed items cannot be dispatched.
+*   **Database Transaction Locking**: Wrap database execution of order status updates and rejection/cancellation insertions in single Transaction logic blocks to prevent orphaned status states.
 
 #### 10. Role & Permission Logic
 *   **Branch Manager**: Allowed to view all logs, initiate custom refund escalations, and trigger CSV exports.
@@ -835,11 +836,11 @@ CREATE TABLE returned_orders (
 
 #### 12. Edge Cases
 *   **Late Status Sync**: Courier confirms delivery offline. The system reconciles the missing status log asynchronously once the courier's device reconnects, sliding the ticket into this queue.
-*   **False Return Declarations**: Dispute resolution channels are initialized by the manager if the customer disputes a driver's return declaration.
+*   **Cancellation Sync Dispute**: If a customer requests cancellation while the status is in `Preparing` but the kitchen marks it `Ready For Pickup` simultaneously, the system uses optimistic locking on the order status to resolve the conflict based on server timestamp precedence.
 
 #### 13. Notifications & Toast Messages
 *   *Toast Success*: "Order list records verified."
-*   *Error Push Notification*: "Delivery Partner marked order #ORD-99012 as Returned."
+*   *Cancellation Notification*: "Order #ORD-99012 has been cancelled by the customer."
 
 #### 14. Real-Time Event Flow
 *   WebSocket channel broadcasts order completion triggers to keep the active kitchen dashboard queue state updated.
@@ -847,21 +848,21 @@ CREATE TABLE returned_orders (
 #### 15. Status Management System
 | Status | Color | Description | Next Allowed Status |
 |---|---|---|---|
-| `Accepted` | Light Blue | Initialized order state | `Preparing` |
-| `Preparing` | Amber | Active kitchen processing | `Ready For Pickup` |
-| `Ready For Pickup`| Purple | Awaiting courier handover | `Out For Delivery` |
+| `Accepted` | Light Blue | Initialized order state | `Preparing` or `Cancelled` |
+| `Preparing` | Amber | Active kitchen processing | `Ready For Pickup` or `Cancelled` |
+| `Ready For Pickup`| Purple | Awaiting courier handover | `Out For Delivery` (Cancellation locked) |
 | `Out For Delivery`| Dark Blue | Rider carrying package to customer | `Arrived` |
-| `Arrived` | Teal | Rider has arrived at delivery destination | `Delivered` or `Returned` |
+| `Arrived` | Teal | Rider has arrived at delivery destination | `Delivered` |
 | `Delivered` | Green | Order completed successfully | None |
-| `Returned` | Orange-Red | Order returned by customer | None |
+| `Cancelled` | Rose-Red | Order cancelled by customer or kitchen | None |
 
 #### 16. Analytics Logic
 *   Aggregates total gross checkout pricing fields to update daily branch revenue totals.
-*   Return metrics are aggregated monthly to measure branch losses and assess quality control of delivery routing.
+*   Cancellation metrics are aggregated monthly to measure customer friction and kitchen preparation efficiency.
 
 #### 17. Suggested Tech Notes
 *   Render detailed view layouts on client side using server data payloads fetched dynamically on list element clicks.
-*   Implement database triggers to notify managers if more than 3 returned order statuses are logged within a single shift.
+*   Implement database triggers to notify managers if more than 5 cancelled order statuses are logged within a single shift.
 
 ---
 
@@ -1169,9 +1170,9 @@ CREATE TABLE employee_details (
 
 ## 18. Order Lifecycle & Operations Flowchart
 
-Below is the complete state-machine diagram mapping the customer order lifecycle from checkout to terminal delivery or return status:
+Below is the complete state-machine diagram mapping the customer order lifecycle from checkout to terminal delivery or cancelled status:
 
-![Order Lifecycle Flowchart](file:///C:/Users/romit/.gemini/antigravity-ide/brain/e8535134-99cb-4cfa-a8ef-1bfe01250521/order_lifecycle_flowchart_1779952022622.png)
+![Order Lifecycle Flowchart](file:///C:/Users/romit/.gemini/antigravity-ide/brain/fe1a52c4-aa16-47cc-a1a0-1ec8b2108a87/order_lifecycle_flowchart_1779975248792.png)
 
 ```mermaid
 graph TD
@@ -1195,6 +1196,11 @@ graph TD
     M -->|Kitchen Cook Done| N[Action: Mark as Ready CTA]
     N -->|API POST: /orders/mark-ready| O[Status: Ready For Pickup]
 
+    %% Cancellation Paths (Allowed during Accepted or Preparing)
+    K -->|Cancellation Trigger| Y[Status: Cancelled]
+    M -->|Cancellation Trigger| Y[Status: Cancelled]
+    Y -->|Stripe Refund Initiated| G{Refund Status}
+    
     %% Delivery Dispatch Matching
     O -->|Delivery Matcher Engine| P{Rider Assigned?}
     P -->|No - 10 Min Timeout| Q[Toast Alert: Fallback manual assign]
@@ -1206,11 +1212,10 @@ graph TD
     
     %% Handover Resolution
     T -->|Customer Accepts Package| U[Status: Delivered]
-    T -->|Customer Rejects Package| V[Status: Returned]
     
     %% Auditing Ledger
     U -->|Terminal State| W[(Table: delivered_orders)]
-    V -->|Terminal State| X[(Table: returned_orders)]
+    Y -->|Terminal State| Z[(Table: cancelled_orders)]
     
     %% Style formatting
     style B fill:#FEF3C7,stroke:#D97706,stroke-width:2px
@@ -1220,7 +1225,7 @@ graph TD
     style S fill:#DBEAFE,stroke:#2563EB,stroke-width:2px
     style T fill:#E0F2FE,stroke:#0284C7,stroke-width:2px
     style U fill:#DCFCE7,stroke:#16A34A,stroke-width:2px
-    style V fill:#FEE2E2,stroke:#DC2626,stroke-width:2px
+    style Y fill:#FEE2E2,stroke:#DC2626,stroke-width:2px
 ```
 
 ***End of Handover Document***
