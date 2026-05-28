@@ -27,8 +27,8 @@
 5. [Module 4 — Order Review Module](#module-4--order-review-module)
    - [Screen 4.1: Reviews & Ratings Dashboard](#screen-41-reviews--ratings-dashboard)
 6. [Module 5 — Profile Module](#module-5--profile-module)
-   - [Screen 5.1: Branch Manager Profile Screen](#screen-51-branch-manager-profile-screen)
-   - [Screen 5.2: Employee Details & Roster Screen](#screen-52-employee-details--roster-screen)
+   - [Screen 5.1: Branch Profile Screen (Tabbed)](#screen-51-branch-profile-screen-tabbed)
+   - [Screen 5.2: View Employee Detail Screen](#screen-52-view-employee-detail-screen)
 
 ---
 
@@ -1009,18 +1009,33 @@ CREATE TABLE order_reviews (
 
 ## Module 5 — Profile Module
 
-### Screen 5.1: Branch Manager Profile Screen
+### Screen 5.1: Branch Profile Screen (Tabbed)
 
 #### 1. Overview
-*   **Screen Purpose**: Display profile data, mapped roles, and operational configurations for the Branch Manager.
-*   **Business Objective**: Ensure access accountability, manage security settings, and confirm branch association details.
-*   **User Workflow**: Click "Profile" ➔ Select "Branch Manager Details" tab ➔ View properties or initiate password updates.
-*   **Main Functionality**: Read-only profile overview grid, profile image upload, credential reset triggers.
+*   **Screen Purpose**: Unified profile screen for the branch, combining manager identity, branch operational details, and employee roster into a single tabbed interface.
+*   **Business Objective**: Provide a centralized workspace for branch managers to view branch information, manage their credentials, and oversee the staff assigned to their branch.
+*   **User Workflow**: Click "Profile" ➔ View manager card (persistent header) ➔ Switch between "Branch Information" and "Employees" tabs.
+*   **Main Functionality**: Persistent manager profile header with password/photo management, Tab 1 for branch details, Tab 2 for employee roster with [View] action per row.
 
-#### 2. Screen Preview (Text Wireframe)
+#### 2. Screen Layout
+
+The screen is composed of two visual zones stacked vertically:
+
+**Zone 1 — Manager Profile Header Card (Always Visible)**
+A non-scrollable summary card pinned at the top of the screen. Displays the logged-in branch manager's identity, profile photo, and quick actions (change password, update phone). This zone never changes when switching tabs.
+
+**Zone 2 — Internal Tabbed Content Panel**
+A tab bar immediately below the header card with two tabs:
+
+| Tab Label | Badge Count | Description |
+|---|---|---|
+| Branch Information | — | Detailed branch configuration (name, address, hours, contact) |
+| Employees | Dynamic (e.g. `8`) | Staff members assigned to this branch with view action |
+
+#### 3. Screen Preview (Full Composite View — Branch Information Tab Active)
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│ [🍽 DineOs]   Branch Manager Profile Profile                           │
+│ [🍽 DineOs]   Branch Profile                                           │
 ├──────────────┬─────────────────────────────────────────────────────────┤
 │ ○ Dashboard  │  ┌───────────────────────┐                              │
 │ ○ Menu       │  │ Mapped Profile Photo  │   Name: Amit Kumar           │
@@ -1030,17 +1045,42 @@ CREATE TABLE order_reviews (
 │              │  └───────────────────────┘   Role: Branch Manager       │
 │              │                                                         │
 │              │  [ CHANGE SYSTEM PASSWORD ]      [ UPDATE PHONE NUMBER ]│
+│              │                                                         │
+│              │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│              │  [Branch Information]    Employees (8)                   │
+│              │  ─────────────────────                                   │
+│              ├─────────────────────────────────────────────────────────┤
+│              │                                                         │
+│              │  ┌───────────────────┬─────────────────────────────────┐│
+│              │  │ Branch Name       │ MG Road Branch                  ││
+│              │  ├───────────────────┼─────────────────────────────────┤│
+│              │  │ Branch Code       │ B001                            ││
+│              │  ├───────────────────┼─────────────────────────────────┤│
+│              │  │ Address           │ 123, Main Street, MG Road       ││
+│              │  ├───────────────────┼─────────────────────────────────┤│
+│              │  │ City              │ Bangalore                       ││
+│              │  ├───────────────────┼─────────────────────────────────┤│
+│              │  │ State             │ Karnataka                       ││
+│              │  ├───────────────────┼─────────────────────────────────┤│
+│              │  │ Pincode           │ 560001                          ││
+│              │  ├───────────────────┼─────────────────────────────────┤│
+│              │  │ Contact Phone     │ +91 9811223344                  ││
+│              │  ├───────────────────┼─────────────────────────────────┤│
+│              │  │ Contact Email     │ mgroad@dineos.com               ││
+│              │  ├───────────────────┼─────────────────────────────────┤│
+│              │  │ Operating Hours   │ 10:00 AM to 11:00 PM            ││
+│              │  └───────────────────┴─────────────────────────────────┘│
+│              │                                                         │
 └──────────────┴─────────────────────────────────────────────────────────┘
 ```
 
-#### 3. UI/UX Layout Description
-*   **Profile Detail Card**: Balanced grid block. Left: Avatar placeholder with upload button trigger. Right: Contact details list.
-*   **Actions Row**: Multi-button footer layout featuring `[Change Password]` and `[Update Profile]` actions.
-*   **Password Reset Modal**: Center overlay window with secure password fields (current, new, and confirm).
+---
 
-#### 4. Screen Fields Table
+#### SECTION A: Manager Profile Header Card (Persistent — Always Visible)
 
-##### Profile Detail Card Fields
+This zone remains fixed at the top regardless of which tab is active. It provides the branch manager's identity and quick profile actions.
+
+##### 1. Header Card Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Profile Photo | Image | No | Standard image upload validation (PNG, JPG, max 2MB) | `profile.jpg` | Thumbnail image representing employee avatar. |
@@ -1050,160 +1090,301 @@ CREATE TABLE order_reviews (
 | Assigned Branch | Text (Read-only) | Yes | Valid branch location | `MG Road Branch` | Mapped physical restaurant branch name. |
 | Mapped Role | Text (Read-only) | Yes | Value must be 'Branch Manager' | `Branch Manager` | Assigned authorization system role. |
 | Action: Upload Photo | Button | No | Triggers file picker overlay | `[Upload New Image]` | Uploads a new avatar file. |
-
-##### Profile Update Actions
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
 | Action: Change Password | Button | Yes | Opens password reset modal | `[CHANGE SYSTEM PASSWORD]` | Opens dialog to update authentication credentials. |
 | Action: Update Phone | Button | Yes | Saves profile mobile number | `[UPDATE PHONE NUMBER]` | Dispatches update request to profile API endpoint. |
 
-##### Password Reset Modal Fields
+##### 2. Password Reset Modal Fields
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Current Password | Password | Yes | Min 8 chars, verified on submission | `********` | Checked against existing database password hash. |
 | New Password | Password | Yes | Min 8 chars, strong complexity validation | `********` | Cannot match current password. |
 | Confirm Password | Password | Yes | Must match New Password exactly | `********` | Confirms spelling of the target new password. |
 
-#### 5. Validations
-*   **Password Complexity Rules**: New passwords require a minimum of 8 characters, including 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.
+---
 
-#### 6. Dependencies
+#### SECTION B: Internal Tab Bar Controller
+
+The tab bar sits directly below the manager profile header card, acting as the switcher for the content panel. Only one tab is active at a time.
+
+##### 1. Tab Bar Behavior
+| Property | Specification |
+|---|---|
+| Default Active Tab | `Branch Information` (first tab) |
+| Active Tab Indicator | Bottom border underline, `2px solid #2563EB` |
+| Inactive Tab Style | Neutral gray text, no underline |
+| Badge Counts | Dynamic numeric count shown in parentheses for `Employees` tab |
+| URL State Persistence | Active tab selection must be reflected in the URL query parameter (e.g. `?tab=employees`) so that page refresh preserves the selected tab |
+
+---
+
+#### SECTION C: Tab Content Viewports
+
+Each tab renders its own dedicated content area below the tab bar. When a tab is selected, only the content viewport area swaps — the manager header card and tab bar remain static.
+
+---
+
+##### Tab 1: Branch Information
+
+Displays the full operational configuration of the branch in a **vertical key-value detail card** format (label on left, value on right). All fields are read-only — branch details are managed by the Admin Portal.
+
+###### 1. Branch Information Tab Preview
+```text
+├─────────────────────────────────────────────────────────────┤
+│  [Branch Information]    Employees (8)                       │
+│  ─────────────────────                                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌───────────────────┬─────────────────────────────────────┐│
+│  │ Branch Name       │ MG Road Branch                      ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Branch Code       │ B001                                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Address           │ 123, Main Street, MG Road           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ City              │ Bangalore                           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ State             │ Karnataka                           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Pincode           │ 560001                              ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Contact Phone     │ +91 9811223344                      ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Contact Email     │ mgroad@dineos.com                   ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Operating Hours   │ 10:00 AM to 11:00 PM                ││
+│  └───────────────────┴─────────────────────────────────────┘│
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+###### 2. Branch Information Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Branch Name | Text | Read-only | Min 3 characters | `MG Road Branch` | Branch display name |
+| Branch Code | Text | Read-only | Unique alphanumeric code | `B001` | Unique branch identifier |
+| Address | Text | Read-only | Minimum 10 characters | `123, Main Street, MG Road` | Full street address |
+| City | Text | Read-only | Valid city name | `Bangalore` | Branch city |
+| State | Text | Read-only | Valid state name | `Karnataka` | Branch state |
+| Pincode | Text | Read-only | Exactly 6 digits | `560001` | Postal code |
+| Contact Phone | Phone | Read-only | Exactly 10 digits, displayed with `+91` prefix | `+91 9811223344` | Branch contact number |
+| Contact Email | Email | Read-only | Valid email format | `mgroad@dineos.com` | Branch notification email |
+| Operating Hours | Text | Read-only | Format: `{Open Time} to {Close Time}` | `10:00 AM to 11:00 PM` | Daily operational window |
+
+---
+
+##### Tab 2: Employees
+
+Displays the list of staff members currently assigned to this branch in a tabular format with search functionality. Each employee row has a `[View]` action that navigates to the dedicated View Employee Detail screen (Screen 5.2).
+
+###### 1. Employees Tab Preview
+```text
+├─────────────────────────────────────────────────────────────┤
+│   Branch Information    [Employees (8)]                      │
+│                         ───────────────                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Branch Employees                                           │
+│  🔍 [ Search by name...    ]                                 │
+│  ┌───────────┬──────────────┬────────────┬─────────┬────────┐│
+│  │ Emp ID    │ Full Name    │ Role       │ Status  │ Action ││
+│  ├───────────┼──────────────┼────────────┼─────────┼────────┤│
+│  │ E101      │ Jane Smith   │ Chef       │ ● Active│ [View] ││
+│  │ E102      │ Bob Martin   │ Helper     │ ● Active│ [View] ││
+│  │ E103      │ Ravi Patel   │ Delivery   │ ● Active│ [View] ││
+│  └───────────┴──────────────┴────────────┴─────────┴────────┘│
+│  Showing 1-8 of 8                                           │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+###### 2. Employees Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Search Bar | Text | No | Max 50 characters | `Jane` | Filters employee list by name |
+| Table Column: Emp ID | Text | Read-only | Unique alphanumeric staff code | `E101` | Unique employee identifier |
+| Table Column: Full Name | Text | Read-only | Minimum 2 characters | `Jane Smith` | Combined first and last name |
+| Table Column: Role | Text | Read-only | Valid operational system role | `Chef` | Role description |
+| Table Column: Status | Badge | Read-only | `Active` or `Inactive` state | `● Active` | Color-coded status badge |
+| Row Action: View | Link | Yes | Navigates to View Employee Detail (Screen 5.2) | `[View]` | Opens the employee detail screen |
+| Pagination | Control | Yes | Standard page navigation | `Showing 1-8 of 8` | Paginated at 10 items per page |
+
+---
+
+#### SECTION D: Business Validations & Rules
+
+1. **Password Complexity Rules**: New passwords require a minimum of 8 characters, including 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.
+2. **Dynamic Badge Count**: The numeric count displayed in the `Employees` tab label (e.g. `Employees (8)`) must automatically recalculate based on the current staff count.
+3. **Tab State Persistence**: The currently active tab must be preserved in the URL query string (e.g. `?tab=employees`) so that browser refresh or shared links restore the correct tab view.
+4. **Branch Information Read-Only**: All branch detail fields are managed by the Admin Portal. The restaurant portal displays them in read-only mode.
+5. **Profile Update Scope**: Only the logged-in Branch Manager can update their own photo and phone number.
+
+#### 5. Dependencies
 *   **System Authentication Service**: Handles session verification, password resets, and JWT validation.
+*   **Admin Portal Branch Management**: Provides branch configuration data (name, address, hours).
+*   **Admin Portal Employee Management**: Provides employee roster data for the branch.
 
-#### 7. API Requirement Suggestions
+#### 6. API Requirement Suggestions
 *   **GET** `/api/v1/restaurant/profile/manager`
     *   *Response*: `{"name": "Amit Kumar", "email": "amit@dineos.com", "branch": "MG Road"}`
 *   **POST** `/api/v1/restaurant/profile/change-password`
     *   *Payload*: `{"current_pass": "old_pass", "new_pass": "new_pass"}`
     *   *Response*: `{"status": "success", "message": "Password updated"}`
+*   **GET** `/api/v1/restaurant/branch/details?branch_id=br_mg_road`
+    *   *Response*: `{"status": "success", "data": {"name": "MG Road Branch", "code": "B001", "address": "123, Main Street", "city": "Bangalore", "state": "Karnataka", "pincode": "560001", "phone": "9811223344", "email": "mgroad@dineos.com", "opening_time": "10:00 AM", "closing_time": "11:00 PM"}}`
+*   **GET** `/api/v1/restaurant/employees?branch_id=br_mg_road&page=1&search=Jane`
+    *   *Response*: `{"status": "success", "employees": [{"id": "E101", "name": "Jane Smith", "role": "Chef", "status": "Active"}], "total": 8}`
 
-#### 8. Database Table Suggestions
-Re-uses records from employee credentials schemas managed in the main database tables.
+#### 7. Database Table Suggestions
+Re-uses records from employee credentials schemas and branch management tables managed in the main database.
 
-#### 9. Backend Development Notes
+#### 8. Backend Development Notes
 *   **Token Expirations**: When a manager resets their password, invalidate all active JSON Web Tokens associated with their account to force re-authentication across active devices.
 
-#### 10. Role & Permission Logic
-*   Only the logged-in **Branch Manager** is authorized to view or edit their profile details.
+#### 9. Role & Permission Logic
+*   **Branch Manager**: Allowed to view all tab content, update their own profile photo and phone, and change their password.
+*   **Restaurant Staff**: Allowed only to view the Branch Information tab. Employees tab is hidden for non-manager roles.
 
-#### 11. UI Components Required
-*   Profile Overview Block, Secure Input Dialog, Image Cropper Modal.
+#### 10. UI Components Required
+*   Profile Overview Block, Secure Input Dialog, Image Cropper Modal, Tab Controller, Data Table, Search Bar.
 
-#### 12. Edge Cases
+#### 11. Edge Cases
 *   **Session Expiration**: Token expires during profile update. Redirect user to login and display message: "Session expired. Please log in to complete your changes."
 
-#### 13. Notifications & Toast Messages
+#### 12. Notifications & Toast Messages
 *   *Success Toast*: "Password updated successfully."
 *   *Error Alert*: "Incorrect current password. Please try again."
+*   *Success Toast*: "Phone number updated successfully."
 
-#### 14. Real-Time Event Flow
+#### 13. Real-Time Event Flow
 *   *Not applicable to profile updates.*
 
-#### 15. Status Management System
+#### 14. Status Management System
 *   *Not applicable to profile screen.*
 
-#### 16. Analytics Logic
+#### 15. Analytics Logic
 *   *Not applicable to profile screen.*
 
-#### 17. Suggested Tech Notes
+#### 16. Suggested Tech Notes
 *   Hash passwords using bcrypt with a work factor of 12 before writing changes to the database.
 
 ---
 
-### Screen 5.2: Employee Details & Roster Screen
+### Screen 5.2: View Employee Detail Screen
 
 #### 1. Overview
-*   **Screen Purpose**: List staff members assigned to the branch and manage their operational details.
-*   **Business Objective**: Maintain branch staff rosters, verify contact details, and coordinate shift timings.
-*   **User Workflow**: Navigate to Profile ➔ Select "Employee Roster" tab ➔ Browse list ➔ Edit or add new entries.
-*   **Main Functionality**: Alphanumeric search bar, interactive roster listing table, inline profile edit controls.
+*   **Screen Purpose**: A dedicated read-only detail screen displaying the full profile of a specific employee assigned to the branch.
+*   **Business Objective**: Enable branch managers to quickly access employee details (contact, role, shift, joining date) without navigating to the Admin Portal.
+*   **User Workflow**: From Screen 5.1 Employees tab ➔ Click `[View]` on employee row ➔ View full employee detail page ➔ Click `‹ Back` to return.
+*   **Main Functionality**: Read-only employee profile card, back navigation, status badge display.
 
 #### 2. Screen Preview (Text Wireframe)
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│ [🍽 DineOs]   Branch Employee Roster & Shifts                          │
+│ [🍽 DineOs]   Employee Details                                         │
 ├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  🔍 [ Search by name...    ]             [+ Onboard Staff]│
+│ ○ Dashboard  │  ‹ Back to Profile                                      │
 │ ○ Menu       ├─────────────────────────────────────────────────────────┤
-│ ○ Orders     │ Staff Name    │ Mobile Number  │ Role        │ Shift    │
-│ ○ Reviews    ├───────────────┼────────────────┼─────────────┼──────────┤
-│ ▶ Profile    │ Jane Smith    │ +91 9988776655 │ Chef        │ Morning  │
-│              │ Bob Martin    │ +91 9988776644 │ Helper      │ Evening  │
-│              │ └─────────────┴────────────────┴─────────────┴──────────┘ │
-│              │ Showing 1-2 of 2 staff members                          │
+│ ○ Orders     │                                                         │
+│ ○ Reviews    │  Jane Smith (E101)                                      │
+│ ▶ Profile    │  Role: Chef                    Status: ● Active         │
+│              │                                                         │
+│              ├─────────────────────────────────────────────────────────┤
+│              │                                                         │
+│              │  Employee Details                                       │
+│              │  ┌─────────────────────┬───────────────────────────────┐│
+│              │  │ Employee ID         │ E101                          ││
+│              │  ├─────────────────────┼───────────────────────────────┤│
+│              │  │ Full Name           │ Jane Smith                    ││
+│              │  ├─────────────────────┼───────────────────────────────┤│
+│              │  │ Email               │ jane@dineos.com               ││
+│              │  ├─────────────────────┼───────────────────────────────┤│
+│              │  │ Phone Number        │ +91 9988776655                ││
+│              │  ├─────────────────────┼───────────────────────────────┤│
+│              │  │ Role                │ Chef                          ││
+│              │  ├─────────────────────┼───────────────────────────────┤│
+│              │  │ Assigned Branch     │ MG Road Branch                ││
+│              │  ├─────────────────────┼───────────────────────────────┤│
+│              │  │ Shift Timing        │ Morning                       ││
+│              │  ├─────────────────────┼───────────────────────────────┤│
+│              │  │ Date of Joining     │ 2026-01-15                    ││
+│              │  ├─────────────────────┼───────────────────────────────┤│
+│              │  │ Status              │ ● Active                      ││
+│              │  └─────────────────────┴───────────────────────────────┘│
+│              │                                                         │
 └──────────────┴─────────────────────────────────────────────────────────┘
 ```
 
 #### 3. UI/UX Layout Description
-*   **Roster Grid**: Clean table layout listing employee profiles with columns for Name, Phone, Role, and Shift.
-*   **Form Drawer**: Slide-out panel containing fields to edit or onboard staff members.
-*   **Active Shift Indicators**: Badge displays indicating which shift is currently active based on real-time server hours.
+*   **Back Navigation**: A `‹ Back to Profile` link at the top left returns the user to Screen 5.1 with the Employees tab active.
+*   **Employee Identity Header**: Prominent display of the employee's name, ID, role, and status badge at the top of the content area.
+*   **Detail Card**: Vertical key-value table layout with all employee profile fields in read-only mode. Clean borders, alternating row backgrounds for legibility.
+*   **Status Badge**: Green pill for `Active`, Red pill for `Inactive` — consistent with the application's global badge styling.
 
 #### 4. Screen Fields Table
+
+##### Employee Identity Header Fields
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Employee Name | Input Text | Yes | Min 3, max 100 characters | `Jane Smith` | Alphabetic only |
-| Phone Number | Phone Input| Yes | E.164 standard formatting (10 digits) | `9988776655` | Unique index key |
-| Role Title | Dropdown | Yes | Must match one of system enum roles | `Chef` | Permissions check |
-| Shift Timing | Dropdown | Yes | Morning, Evening, or Night | `Morning` | Coordinates rosters |
+| Back Button | Link | Yes | Navigates back to Screen 5.1 (Employees tab active) | `‹ Back to Profile` | Top-left navigation link. Returns to `?tab=employees` |
+| Employee Title | Label | Read-only | Format: `{Name} ({ID})` | `Jane Smith (E101)` | Main page heading, prominent display |
+| Role | Label | Read-only | Valid system role | `Chef` | Displayed next to title |
+| Status Indicator | Badge | Read-only | Green pill for `Active`, Red pill for `Inactive` | `● Active` | Color-coded status pill |
+
+##### Employee Detail Card Fields
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Employee ID | Text | Read-only | Unique alphanumeric code | `E101` | Unique employee identifier |
+| Full Name | Text | Read-only | Minimum 2 characters | `Jane Smith` | Combined first and last name |
+| Email | Email | Read-only | Valid email format | `jane@dineos.com` | Employee email address |
+| Phone Number | Phone | Read-only | Exactly 10 digits, displayed with `+91` prefix | `+91 9988776655` | Contact phone number |
+| Role | Text | Read-only | Valid operational system role | `Chef` | Role assigned by Admin Portal |
+| Assigned Branch | Text | Read-only | Valid branch name | `MG Road Branch` | Branch the employee is mapped to |
+| Shift Timing | Text | Read-only | Morning, Evening, or Night | `Morning` | Assigned shift schedule |
+| Date of Joining | Date | Read-only | Valid date format | `2026-01-15` | Employee start date |
+| Status | Badge | Read-only | `Active` or `Inactive` state | `● Active` | Current employment status |
 
 #### 5. Validations
-*   **Duplicate Numbers check**: Onboarding forms block submissions and display inline alerts if the inputted mobile number already exists in system records.
+*   **Read-Only Screen**: This screen has no edit, delete, or deactivate actions. All employee management is handled through the Admin Portal.
+*   **Back Navigation**: The `‹ Back to Profile` link must return the user to Screen 5.1 with the Employees tab active (`?tab=employees`).
 
 #### 6. Dependencies
-*   **Employee Database mapping**: Coordinates logins and validates branch permissions.
+*   **Admin Portal Employee Management**: All employee data is managed in the Admin Portal (Module 3). This screen only consumes read-only data.
 
 #### 7. API Requirement Suggestions
-*   **GET** `/api/v1/restaurant/employees?branch_id=br_mg_road`
-    *   *Response*: `{"status": "success", "employees": [{"name": "Jane Smith", "phone": "9988776655", "role": "Chef"}]}`
-*   **POST** `/api/v1/restaurant/employees/create`
-    *   *Payload*: `{"branch_id": "br_mg_road", "name": "Jane Smith", "phone": "9988776655", "role": "Chef", "shift": "Morning"}`
-    *   *Response*: `{"status": "success", "employee_id": "emp_0129"}`
+*   **GET** `/api/v1/restaurant/employees/{employee_id}?branch_id=br_mg_road`
+    *   *Response*: `{"status": "success", "data": {"id": "E101", "name": "Jane Smith", "email": "jane@dineos.com", "phone": "9988776655", "role": "Chef", "branch": "MG Road Branch", "shift": "Morning", "date_of_joining": "2026-01-15", "status": "Active"}}`
 
 #### 8. Database Table Suggestions
-```sql
-CREATE TABLE employee_details (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    branch_id UUID REFERENCES branches(id) ON DELETE CASCADE,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    phone VARCHAR(20) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(50) CHECK (role IN ('Manager', 'Chef', 'Helper', 'Delivery')),
-    shift_timing VARCHAR(20) CHECK (shift_timing IN ('Morning', 'Evening', 'Night')),
-    status VARCHAR(20) DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive')),
-    date_of_joining DATE DEFAULT CURRENT_DATE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-```
+Re-uses the `employee_details` table. No new tables required.
 
 #### 9. Backend Development Notes
-*   **Access Token Management**: Staff updates push notifications to authentication loops to ensure credentials match assigned branches.
+*   **Branch Scope Validation**: The API must verify that the requested employee is actually assigned to the branch associated with the logged-in manager's token. Return `403 Forbidden` if the employee belongs to a different branch.
 
 #### 10. Role & Permission Logic
-*   Only **Branch Managers** can create, edit, or delete staff records. Staff accounts have read-only view permissions.
+*   **Branch Manager**: Allowed to view details of employees mapped to their own branch only.
+*   **Restaurant Staff**: Access denied. Returns `403 Unauthorized`.
 
 #### 11. UI Components Required
-*   Roster Table, Onboarding Slide-out Form, Shift Tag.
+*   Back Navigation Link, Identity Header Block, Key-Value Detail Card, Status Badge.
 
 #### 12. Edge Cases
-*   **Role Transitions**: Staff member is reassigned to a different branch. Backend deletes mapping rows for the current branch and initializes a new mapping row under the target branch ID.
+*   **Employee Not Found**: If the employee ID is invalid or the employee has been removed from the branch, display an error state: "Employee not found or no longer assigned to this branch."
+*   **Inactive Employee**: Inactive employees are still viewable but the status badge renders in Red with `Inactive` text.
 
 #### 13. Notifications & Toast Messages
-*   *Success Toast*: "Employee record saved successfully."
-*   *Error Warning*: "Mobile number already mapped to an active account."
+*   *Error Alert*: "Unable to load employee details. Please try again."
 
 #### 14. Real-Time Event Flow
-*   Updates to staff rosters trigger an immediate cache invalidation for the branch roster query key.
+*   *Not applicable to employee detail view.*
 
 #### 15. Status Management System
-*   *Not applicable to employee roster management.*
+*   *Not applicable to employee detail screen.*
 
 #### 16. Analytics Logic
-*   Logs cumulative shift allocations to coordinate labor capacity with transaction volumes on peak hourly schedules.
+*   *Not applicable to employee detail screen.*
 
 #### 17. Suggested Tech Notes
-*   Store roster queries in index caches to keep screen loads fast during busy shift handovers.
+*   Render the detail layout on client side using server data payloads fetched dynamically on `[View]` click. Cache the response for 5 minutes to reduce redundant API calls.
 
 ## 18. Order Lifecycle & Operations Flowchart
 
