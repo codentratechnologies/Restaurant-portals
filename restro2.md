@@ -525,24 +525,22 @@ CREATE TABLE rejected_orders (
 ┌────────────────────────────────────────────────────────────────────────┐
 │ [🍽 DineOs]   Active Orders Workspace                                  │
 ├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  [ Accepted Queue (1) ]  [ Preparing (2) ]  [ Ready (1) ]│
+│ ○ Dashboard  │  Active Orders Queue Ledger (3 Active)                  │
 │ ○ Menu       ├─────────────────────────────────────────────────────────┤
-│ ▶ Orders     │ ┌────────────────────────┐ ┌──────────────────────────┐ │
-│   - Queue    │ │ #ORD-99018 (Preparing) │ │ #ORD-99017 (Ready)       │ │
-│   - List     │ │ Time Elapsed: 04:20    │ │ Courier: Assigned        │ │
-│ ○ Reviews    │ │ 1x Veg Pizza           │ │ Name: Mike (+91 999888)  │ │
-│ ○ Profile    │ │ [ Mark as Ready ]      │ │ [ Waiting Courier... ]   │ │
-│              │ └────────────────────────┘ └──────────────────────────┘ │
+│ ▶ Orders     │  Queue: [ All Queues ▼ ]   Search: [ Search Order ID... ] │
+│   - Queue    ├──────────┬───────────┬──────────────────┬─────────────────┬───────────┤
+│   - List     │ Order ID │ Status    │ Food Items       │ Tracking/Timer  │ Action    │
+│ ○ Reviews    ├──────────┼───────────┼──────────────────┼─────────────────┼───────────┤
+│ ○ Profile    │ #99018   │ Preparing │ 1x Veg Pizza     │ Elapsed: 04:20  │ [Ready]   │
+│              │ #99017   │ Ready     │ 2x Spicy Burger  │ Mike (Assigned) │ [Waiting] │
+│              │ └────────┴───────────┴──────────────────┴─────────────────┴───────────┘ │
 └──────────────┴─────────────────────────────────────────────────────────┘
 ```
 
 #### 3. UI/UX Layout Description
-*   **Columns Grid**: Three visual columns mapping order stages:
-    *   *Accepted*: Immediate approvals waiting execution.
-    *   *Preparing*: Active cooking, displaying elapsed time badge counts.
-    *   *Ready*: Awaiting package handover to courier partners.
-*   **Action CTAs**: Rose color borderless button changing state on preparer actions ("Mark as Ready").
-*   **Courier Details Card**: Integrated detail drawer rendering delivery agent details (avatar picture, name, registration plate, phone, live tracking connection link).
+*   **Active Orders List Table**: A unified tabular data list displaying active branch orders with columns for Order ID, Status, Food Items, Tracking details (timers and assigned couriers), and Actions.
+*   **Action CTAs**: Action buttons inline on each row, such as `[Ready]` for preparing orders or status messages like `[Waiting Courier]` for ready items.
+*   **Dynamic Filters**: Filter dropdown to group records by status queue (Accepted, Preparing, Ready) and a search box to instantly search by Order ID.
 
 #### 4. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
@@ -569,24 +567,24 @@ CREATE TABLE rejected_orders (
 ```mermaid
 graph TD
     %% Order Flow States
-    Pending[Pending] -->|Merchant: Accept| Accepted[Accepted]
-    Pending -->|Merchant: Reject| Rejected([Rejected])
+    Pending[Pending] -->|"Merchant: Accept"| Accepted[Accepted]
+    Pending -->|"Merchant: Reject"| Rejected([Rejected])
     
-    Accepted -->|Wait 1 Min (Auto-Transition)| Preparing[Preparing]
+    Accepted -->|"Wait 1 Min (Auto-Transition)"| Preparing[Preparing]
     
-    Preparing -->|Backend Dispatches Delivery Request| Matching{Delivery Matcher}
-    Matching -->|Courier Accepts Match| Assigned[Assigned]
+    Preparing -->|"Backend Dispatches Delivery Request"| Matching{Delivery Matcher}
+    Matching -->|"Courier Accepts Match"| Assigned[Assigned]
     
-    Assigned -->|Wait 10 Mins (Lock Period)| LockEnded[Ready to Pick Up CTA Unlocked]
-    LockEnded -->|Merchant Click: Mark Ready| Ready[Ready For Pickup]
+    Assigned -->|"Wait 10 Mins (Lock Period)"| LockEnded[Ready to Pick Up CTA Unlocked]
+    LockEnded -->|"Merchant Click: Mark Ready"| Ready[Ready For Pickup]
     
-    Preparing -->|Customer Cancels (Allowed ONLY in Preparing)| Cancelled([Cancelled])
+    Preparing -->|"Customer Cancels (Allowed ONLY in Preparing)"| Cancelled([Cancelled])
     
-    Ready -->|Rider Confirms Pickup on Mobile App| OutForDelivery[Out For Delivery]
+    Ready -->|"Rider Confirms Pickup on Mobile App"| OutForDelivery[Out For Delivery]
     
-    OutForDelivery -->|Rider enters 250m Geofence of Address| Arrived[Arrived]
+    OutForDelivery -->|"Rider enters 250m Geofence of Address"| Arrived[Arrived]
     
-    Arrived -->|Rider Confirms Customer Handover| Delivered([Delivered])
+    Arrived -->|"Rider Confirms Customer Handover"| Delivered([Delivered])
     
     %% Style formatting
     style Pending fill:#FEF3C7,stroke:#D97706,stroke-width:2px
