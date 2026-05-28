@@ -437,8 +437,10 @@ CREATE TABLE branch_orders (
 CREATE TABLE rejected_orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id UUID UNIQUE REFERENCES branch_orders(id) ON DELETE CASCADE,
-    reason_code VARCHAR(50) NOT NULL,
+    reason_code VARCHAR(50) NOT NULL, -- e.g. 'system_timeout' if auto-rejected
     notes TEXT,
+    is_auto_rejected BOOLEAN DEFAULT FALSE,
+    auto_reject_reason VARCHAR(100), -- e.g. 'timeout_5_mins' if auto-rejected
     refund_status VARCHAR(50) DEFAULT 'Not Required', -- 'Pending', 'Success', 'Failed'
     refund_txn_id VARCHAR(100),
     rejected_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -688,12 +690,12 @@ Displays cancelled orders with refund statuses.
 
 ##### 1. Reject Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬─────────────────┬───────────────┬───────────┬────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Rejection Code  │ Refund Status │ Status    │ Action │
-├──────────┼──────────────┼──────────────┼─────────────────┼───────────────┼───────────┼────────┤
-│ #99015   │ 11:20 AM     │ ₹180.00      │ out_of_stock    │ Refunded      │ Rejected  │ [View] │
-│ #99011   │ 10:15 AM     │ ₹320.00      │ customer_cancel │ Refund Pending│ Rejected  │ [View] │
-└──────────┴──────────────┴──────────────┴─────────────────┴───────────────┴───────────┴────────┘
+┌──────────┬──────────────┬──────────────┬─────────────────┬────────────────────┬───────────────┬───────────┬────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Rejection Code  │ Auto Reject Reason │ Refund Status │ Status    │ Action │
+├──────────┼──────────────┼──────────────┼─────────────────┼────────────────────┼───────────────┼───────────┼────────┤
+│ #99015   │ 11:20 AM     │ ₹180.00      │ out_of_stock    │ —                  │ Refunded      │ Rejected  │ [View] │
+│ #99011   │ 10:15 AM     │ ₹320.00      │ system_timeout  │ timeout_5_mins     │ Refund Pending│ Rejected  │ [View] │
+└──────────┴──────────────┴──────────────┴─────────────────┴────────────────────┴───────────────┴───────────┴────────┘
 ```
 
 ##### 2. Reject Tab Fields Table
@@ -703,6 +705,7 @@ Displays cancelled orders with refund statuses.
 | Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `11:20 AM` | Order checkout timestamp |
 | Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹180.00` | Order total |
 | Table Column: Rejection Code | Badge (Read-only) | Yes | Valid system reason enum | `out_of_stock` | Reason code selected in Screen 3.2 |
+| Table Column: Auto Reject Reason | Text (Read-only) | No | Reason code for automated rejection | `timeout_5_mins` | Only populated if order was auto-rejected by the system scheduler |
 | Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Not Required (for COD), Refund Pending, Refunded, Refund Failed |
 | Table Column: Status | Badge (Read-only) | Yes | Value must be 'Rejected' | `Rejected` | Order cancellation status |
 | Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
@@ -767,6 +770,7 @@ Row selection or click on the `[View]` button on any tab triggers a slide-out dr
 |---|---|---|---|---|---|
 | Drawer Title | Text (Read-only) | Yes | Format: `Order #{ID} Details` | `Order #99018 Details` | Header title of the drawer |
 | Order Status | Badge (Read-only) | Yes | Color-coded status badge | `Preparing` | Displays current active stage state |
+| Auto Reject Reason | Text (Read-only) | No | Reason code for automated system rejection | `timeout_5_mins` | Only populated/displayed if order was auto-rejected by the system scheduler |
 | Customer Name | Text (Read-only) | Yes | Min 2 characters | `Amit Kumar` | Customer display name |
 | Customer Phone | Phone (Read-only) | Yes | Valid E.164 phone standard | `+91 9876543210` | Customer contact mobile number |
 | Customer Address | Text (Read-only) | Yes* | Min 10 characters | `123, Main Street, Bangalore` | Pinned delivery location (hidden for Takeaway/Dine-in orders) |
