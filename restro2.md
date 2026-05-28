@@ -781,11 +781,11 @@ CREATE TABLE delivered_orders (
 ├──────────────┬─────────────────────────────────────────────────────────┤
 │ ○ Dashboard  │  🔍 [ Search Order ID...   ]   Filter: [ Return Code ▼ ] │
 │ ○ Menu       ├─────────────────────────────────────────────────────────┤
-│ ▶ Orders     │ Order ID │ Returned At │ Return Reason   │ Return Refund│
-│   - Queue    ├──────────┼─────────────┼─────────────────┼──────────────┤
-│   - List     │ #99012   │ 10:30 AM    │ Food Cold       │ Refund Sent  │
-│ ○ Reviews    │ #99008   │ 09:15 AM    │ Delayed Delivery│ Reject COD   │
-│ ○ Profile    │ └────────┴─────────────┴─────────────────┴──────────────┘ │
+│ ▶ Orders     │ Order ID  │ Returned At  │ Return Reason    │ Return Refund │ Status   │
+│   - Queue    ├──────────┼──────────────┼─────────────────┼───────────────┼─────────┤
+│   - List     │ #99012    │ 10:30 AM     │ Food Cold       │ Refund Sent   │ Returned │
+│ ○ Reviews    │ #99008    │ 09:15 AM     │ Delayed Delivery │ Reject COD    │ Returned │
+│ ○ Profile    │ └──────────┴──────────────┴─────────────────┴───────────────┴─────────┘ │
 │              │ Showing 1-5 of 5 entries              [<] [1] [>]       │
 └──────────────┴─────────────────────────────────────────────────────────┘
 ```
@@ -797,9 +797,21 @@ CREATE TABLE delivered_orders (
     *   *Reject COD (No Refund)*: Grey outline badge.
 
 #### 4. Screen Fields Table
+
+##### Search & Filter Fields
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Search Query | Input Text | No | Character limits | `99012` | Filters search |
+| Search Query | Input Text | No | Character limits | `99012` | Filters search by matching Order ID. |
+| Return Code Filter | Selector | No | Must exist in return codes catalog | `Food Cold` | Filters rows by return reason code. |
+
+##### Returned Orders List Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Table Column: Order ID | Text (Read-only) | Yes | Unique order reference code format | `#99012` | Clickable row selector to open order details drawer. |
+| Table Column: Returned At | DateTime (Read-only) | Yes | Valid timestamp | `10:30 AM` | Date and time when the return transaction was processed. |
+| Table Column: Return Reason | Text (Read-only) | Yes | Complaint description | `Food Cold` | Customer reason for rejection during delivery. |
+| Table Column: Return Refund | Badge (Read-only) | Yes | 'Refund Sent' or 'Reject COD' | `Refund Sent` | Refund tracking indicator. |
+| Table Column: Status | Badge (Read-only) | Yes | Value must be `Returned` | `Returned` | Current terminal operational state. |
 
 #### 5. Validations
 *   **Audit Lock**: Returned orders cannot be edited or modified. Row elements can only be viewed in read-only mode.
