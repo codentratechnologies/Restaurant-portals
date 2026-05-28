@@ -965,23 +965,19 @@ CREATE TABLE cancelled_orders (
 ├──────────────┬─────────────────────────────────────────────────────────┤
 │ ○ Dashboard  │  Average Rating: ⭐ 4.6 / 5.0 (120 total reviews)        │
 │ ○ Menu       │  Filter Ratings: [ All Ratings ▼ ]  Sort: [ Newest ▼ ]  │
-│ ○ Orders     │─────────────────────────────────────────────────────────┤
-│ ▶ Reviews    │ ┌─────────────────────────────────────────────────────┐ │
-│ ○ Profile    │ │ ⭐⭐⭐⭐☆  | Order Reference: #ORD-99016                │ │
-│              │ │ Date: 2026-05-27 | Customer: Amit Kumar             │ │
-│              │ │ Comments: The Margherita pizza was fresh and delicious│ │
-│              │ │ but the delivery was slightly delayed.              │ │
-│              │ │ [ View Linked Order ]                               │ │
-│              │ └─────────────────────────────────────────────────────┘ │
+│ ○ Orders     ├─────────┬────────────┬────────────┬──────────────────┬───────────┬────────┤
+│ ▶ Reviews    │ Rating  │ Date       │ Customer   │ Comment snippet  │ Order Ref │ Action │
+│ ○ Profile    ├─────────┼────────────┼────────────┼──────────────────┼───────────┼────────┤
+│              │ ⭐⭐⭐⭐☆ │ 2026-05-27 │ Amit Kumar │ Fresh Margherita │ #ORD-99016│ [View] │
+│              │ ⭐⭐⭐⭐⭐ │ 2026-05-26 │ Priya S.   │ Amazing biryani! │ #ORD-99014│ [View] │
+│              │ └─────────┴────────────┴────────────┴──────────────────┴───────────┴────────┘ │
 └──────────────┴─────────────────────────────────────────────────────────┘
 ```
 
 #### 3. UI/UX Layout Description
-*   **Summary Block**: Top bar displaying average rating numbers with dynamic yellow star graphics.
-*   **Card Layout Feed**: Individual review listings with:
-    *   Left side: Star count display and review date.
-    *   Right side: Customer name, linked order ID link button, and comment text.
-*   **Order Details Drawer**: Clicking the "View Linked Order" button opens a slide-out drawer detailing the order items (e.g., Margherita Pizza, Coke).
+*   **Summary Block**: Pinned card at the top displaying overall average score numbers and review count.
+*   **Reviews List Table**: A structured tabular interface showing reviews with columns: Rating, Date, Customer, Comment snippet, Order Ref, and Action.
+*   **Order Details Drawer**: Clicking the `[View]` button in the Action column (or clicking the Order Reference link) opens a detailed side drawer displaying the full comments and the itemized customer order.
 
 #### 4. Screen Fields Table
 
