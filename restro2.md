@@ -282,7 +282,9 @@ CREATE TABLE branch_food_mapping (
 │   - List     │ │ Time Received: 12:44 PM  │ │ Time Received: 12:45 PM  │ │
 │ ○ Reviews    │ │ Timer Remaining: 01:45   │ │ Timer Remaining: 02:00   │ │
 │ ○ Profile    │ │ 1x Veg Margherita Pizza  │ │ 2x Spicy Chicken Burgers │ │
-│              │ │ Total: ₹299 | Prepaid    │ │ Total: ₹378 | COD        │ │
+│              │ │ Subtotal: ₹284.76        │ │ Subtotal: ₹360.00        │ │
+│              │ │ Tax: ₹14.24              │ │ Tax: ₹18.00              │ │
+│              │ │ Total Bill: ₹299 | Prep. │ │ Total Bill: ₹378 | COD   │ │
 │              │ ├──────────────────────────┤ ├────────────────────────┤ │
 │              │ │ [❌ Reject]  [✅ Accept] │ │ [❌ Reject]  [✅ Accept] │ │
 │              │ └──────────────────────────┘ └────────────────────────┘ │
@@ -301,8 +303,9 @@ CREATE TABLE branch_food_mapping (
 | Order Ticket: Time Received | DateTime (Read-only) | Yes | Valid timestamp | `12:44 PM` | Timestamp when order checkout was completed. |
 | Order Ticket: Timer Remaining | Number (Countdown) | Yes | Computed dynamically: `(created_at + 5 mins) - current_time` | `01:45` | Time remaining in MM:SS before order triggers auto-rejection. |
 | Order Ticket: Items List | Array of Objects | Yes | Must contain at least 1 food item | `1x Veg Margherita Pizza` | List of items, quantities, and user modifier choices. |
-| Order Ticket: Tax Amount | Currency (Read-only) | Yes | Positive decimal | `₹14.24` | Computed tax amount applied to the order total. |
-| Order Ticket: Total Amount | Currency (Read-only) | Yes | Positive decimal | `₹299` | Grand total value of the customer order checkout (inclusive of tax). |
+| Order Ticket: Subtotal | Currency (Read-only) | Yes | Positive decimal | `₹284.76` | Total price of all food items before tax. |
+| Order Ticket: Tax Amount | Currency (Read-only) | Yes | Positive decimal | `₹14.24` | Computed tax amount applied to the order. |
+| Order Ticket: Total Bill | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Final payable amount (Subtotal + Tax Amount). |
 | Order Ticket: Payment Method | Badge (Read-only) | Yes | Value must be 'COD' or 'Online' | `Prepaid` (Online) | Specifies payment channel. |
 | Action: Accept | Button | Yes | Requires active auth token | `[Accept]` | Sends POST to `/accept` endpoint; transitions status to `Accepted`. |
 | Action: Reject | Button | Yes | Requires active auth token | `[Reject]` | Opens the Rejection Reason dialog modal to log cancellation. |
@@ -331,6 +334,7 @@ CREATE TABLE branch_orders (
     status VARCHAR(50) DEFAULT 'Pending',
     payment_method VARCHAR(20) CHECK (payment_method IN ('COD', 'Online')),
     payment_status VARCHAR(20) DEFAULT 'Pending',
+    subtotal_amount DECIMAL(10,2) NOT NULL,
     tax_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     total_amount DECIMAL(10,2) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
