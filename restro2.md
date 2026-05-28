@@ -93,21 +93,52 @@ The **DineOs Restaurant Portal** is a web-based operational system designed spec
 *   **Charts**: Interlocking line-chart representing revenue overlaying total orders count. Rendered via responsive canvas containers.
 *   **Loading & Empty States**: Metric blocks display grey skeleton card sweep animations during fetch actions. Charts show "No data found for selected range" overlay if returns are empty.
 
-#### 4. Screen Fields Table
+#### 4. Screen Fields & Components Specification
+
+##### A. Global Dashboard Filters & Controls
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Date Filter Start | Date Selector | Yes | Must be <= today; Cannot exceed End Date | `2026-05-01` | Defaults to today |
 | Date Filter End | Date Selector | Yes | Must be >= Start Date; Cannot exceed today | `2026-05-27` | Defaults to today |
-| Chart Granularity | Radio Toggle | Yes | Value must be 'D' (Daily), 'W', or 'M' | `D` | Aggregates line chart ticks |
-| Metric: Revenue | Currency | Read-only | Positive decimal | `₹1,45,200` | Displays total revenue of delivered orders for the branch |
-| Metric: Orders | Number | Read-only | Integer >= 0 | `342` | Total orders count for selected filters |
+| Period Granularity | Radio Toggle | Yes | Value must be 'D' (Daily), 'W' (Weekly), or 'M' (Monthly) | `D` | Controls data aggregation ticks for line chart |
+
+##### B. Key Performance Indicators (KPI Cards)
+| KPI Card | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Metric: Revenue | Currency | Read-only | Positive decimal | `₹1,45,200` | Total revenue of completed orders with dynamic trend indicator percentage |
+| Metric: Orders | Number | Read-only | Integer >= 0 | `342` | Total orders count for selected period with dynamic trend indicator percentage |
 | Metric: Rejections | Number & Perc. | Read-only | String format `{count} ({perc}%)` | `8 (2.3%)` | Count of rejected orders with rejection percentage rate |
-| Top Items Column: Rank | Number | Read-only | Integer >= 1 | `1` | Ranking of item by order volume |
-| Top Items Column: Name | Text | Read-only | Min 3 characters | `Veg Pizza` | Mapped food item title |
-| Top Items Column: Units | Number | Read-only | Integer >= 0 | `124 units` | Number of units sold at this branch |
-| Recent Orders Column: Order ID | Text Link | Read-only | Format `#ORD-XXXXX` | `#ORD-9801` | Clickable link opens order details drawer |
-| Recent Orders Column: Total Value | Currency | Read-only | Positive decimal | `₹420` | Grand billing total of order |
-| Recent Orders Column: Status | Badge | Read-only | Delivered, Rejected, Cancelled | `Del` | Order lifecycle status badge |
+| Metric: Cancellations | Number & Perc. | Read-only | String format `{count} ({perc}%)` | `2 (0.6%)` | Count of cancelled orders with cancellation percentage rate |
+
+##### C. Hourly Revenue & Order Volume Trends Chart
+| Chart Element | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Chart Container | Line Chart Widget | Yes | Double Y-Axis (Left: Revenue, Right: Orders Count) | - | Rendered via Chart.js or Recharts |
+| X-Axis (Timeline Ticks) | Date Category Axis | Yes | Matches granularity period | `May 26` | Timeline ticks showing dates or times |
+| Y-Axis Left (Revenue scale) | Numeric Axis | Yes | Scale defaults to max data point | `₹10,000` | Currency scale indicators |
+| Y-Axis Right (Orders scale) | Numeric Axis | Yes | Scale defaults to max count point | `30` | Integer scale indicators |
+| Data Series 1: Revenue Line | Decimal Array | Yes | Non-negative decimal points | `[8200, 4500, ...]` | Points plotted along Left Y-Axis scale |
+| Data Series 2: Volume Line | Integer Array | Yes | Non-negative integer points | `[24, 12, ...]` | Points plotted along Right Y-Axis scale |
+
+##### D. Top Selling Items Grid Table
+| Table Column | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Rank | Number | Read-only | Integer >= 1 | `1` | Ranking of item by order volume |
+| Food Name | Text | Read-only | Min 3 characters | `Veg Pizza` | Mapped food item title |
+| Category | Badge | Read-only | Must exist in categories catalog | `Pizza` | Food item category classification |
+| Units Sold | Number | Read-only | Integer >= 0 | `124 units` | Number of units sold at this branch |
+| Revenue Contribution | Currency | Read-only | Positive decimal | `₹37,076.00` | Sum of revenue contributed by the food item |
+
+##### E. Recent Orders Grid Table
+| Table Column | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Order ID | Text Link | Read-only | Format `#ORD-XXXXX` | `#ORD-9801` | Clickable link opens order details drawer |
+| Timestamp | DateTime | Read-only | Valid timestamp | `12:44 PM` | Order creation timestamp |
+| Food Items | Text | Read-only | List of food items and quantities | `1x Veg Pizza` | String summary of items ordered |
+| Total Value | Currency | Read-only | Positive decimal | `₹420` | Grand billing total of order |
+| Payment Method | Badge | Read-only | COD or Online | `Online` | Mode of payment |
+| Status | Badge | Read-only | Delivered, Rejected, Cancelled | `Delivered` | Order lifecycle status badge |
+
 
 #### 5. Validations
 *   **Date Threshold**: Range queries cannot exceed 90 calendar days on branch level to maintain UI caching speeds.
@@ -405,7 +436,7 @@ CREATE TABLE branch_orders (
 │  [ Kitchen has run out of mozzarella cheese block.                   ] │
 │                                                                        │
 │  ⚠️ Prepaid Order: Confirming rejection triggers an instant refund to   │
-│  the customer payment method via Stripe (estimated 3-5 working days).  │
+│  the customer payment method via Stripe (refunded in 2-3 working days).│
 ├────────────────────────────────────────────────────────────────────────┤
 │                                          [ Cancel ]  [ CONFIRM REJECT ]│
 └────────────────────────────────────────────────────────────────────────┘
@@ -424,6 +455,7 @@ CREATE TABLE branch_orders (
 
 #### 5. Validations
 *   **Note Requirement**: If 'Other' option selected, the confirmation submit button remains inactive until at least 10 letters are entered in additional notes block.
+*   **Refund Flow on Rejection**: If the rejected order is Cash on Delivery (COD), no refund process is initiated. If the rejected order is Prepaid (Online), a refund payload is automatically dispatched to Stripe, and the refund is settled/credited to the customer's account within 2-3 working days.
 
 #### 6. Dependencies
 *   **Payment Gateway API Integration**: Rejection submissions automatically dispatch refund payloads to the gateway provider.
@@ -666,12 +698,12 @@ Displays active orders currently in progress.
 
 ##### 1. Accept Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬──────────────────┬────────────────┬────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Status           │ Payment Method │ Action │
-├──────────┼──────────────┼──────────────┼──────────────────┼────────────────┼────────┤
-│ #99018   │ 12:46 PM     │ ₹299.00      │ Preparing        │ Online         │ [View] │
-│ #99016   │ 12:30 PM     │ ₹420.00      │ Accepted         │ COD            │ [View] │
-└──────────┴──────────────┴──────────────┴──────────────────┴────────────────┴────────┘
+┌──────────┬──────────────┬──────────────┬───────────────────────────────┬───────────┬────────────────┬────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Food Items                    │ Status    │ Payment Method │ Action │
+├──────────┼──────────────┼──────────────┼───────────────────────────────┼───────────┼────────────────┼────────┤
+│ #99018   │ 12:46 PM     │ ₹299.00      │ 1x Veg Margherita Pizza       │ Preparing │ Online         │ [View] │
+│ #99016   │ 12:30 PM     │ ₹420.00      │ 2x Spicy Chicken Burgers      │ Accepted  │ COD            │ [View] │
+└──────────┴──────────────┴──────────────┴───────────────────────────────┴───────────┴────────────────┴────────┘
 ```
 
 ##### 2. Accept Tab Fields Table
@@ -680,6 +712,7 @@ Displays active orders currently in progress.
 | Table Column: Order ID | Text Link | Yes | Unique reference format | `#99018` | Clickable link opens details drawer |
 | Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `12:46 PM` | Order creation timestamp |
 | Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Inclusive of tax |
+| Table Column: Food Items | Text (Read-only) | Yes | List of food items and quantities | `1x Veg Margherita Pizza` | String summary of items ordered |
 | Table Column: Status | Badge (Read-only) | Yes | Active order status | `Preparing` | Valid states: Accepted, Preparing, Ready For Pickup, Out For Delivery, Arrived |
 | Table Column: Payment Method | Badge (Read-only) | Yes | Value must be 'COD' or 'Online' | `Online` | Mode of payment chosen |
 | Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
@@ -691,12 +724,12 @@ Displays cancelled orders with refund statuses.
 
 ##### 1. Reject Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬─────────────────┬────────────────────┬───────────────┬───────────┬────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Rejection Code  │ Auto Reject Reason │ Refund Status │ Status    │ Action │
-├──────────┼──────────────┼──────────────┼─────────────────┼────────────────────┼───────────────┼───────────┼────────┤
-│ #99015   │ 11:20 AM     │ ₹180.00      │ out_of_stock    │ —                  │ Refunded      │ Rejected  │ [View] │
-│ #99011   │ 10:15 AM     │ ₹320.00      │ system_timeout  │ timeout_5_mins     │ Refund Pending│ Rejected  │ [View] │
-└──────────┴──────────────┴──────────────┴─────────────────┴────────────────────┴───────────────┴───────────┴────────┘
+┌──────────┬──────────────┬──────────────┬───────────────────────────┬─────────────────┬────────────────────┬───────────────┬───────────┬────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Food Items                │ Rejection Code  │ Auto Reject Reason │ Refund Status │ Status    │ Action │
+├──────────┼──────────────┼──────────────┼───────────────────────────┼─────────────────┼────────────────────┼───────────────┼───────────┼────────┤
+│ #99015   │ 11:20 AM     │ ₹180.00      │ 1x Garlic Bread           │ out_of_stock    │ —                  │ Refunded      │ Rejected  │ [View] │
+│ #99011   │ 10:15 AM     │ ₹320.00      │ 2x Choco Lava Cake        │ system_timeout  │ timeout_5_mins     │ Refund Pending│ Rejected  │ [View] │
+└──────────┴──────────────┴──────────────┴───────────────────────────┴─────────────────┴────────────────────┴───────────────┴───────────┴────────┘
 ```
 
 ##### 2. Reject Tab Fields Table
@@ -705,9 +738,10 @@ Displays cancelled orders with refund statuses.
 | Table Column: Order ID | Text Link | Yes | Unique reference format | `#99015` | Clickable link opens details drawer |
 | Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `11:20 AM` | Order checkout timestamp |
 | Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹180.00` | Order total |
+| Table Column: Food Items | Text (Read-only) | Yes | List of food items and quantities | `1x Garlic Bread` | String summary of items ordered |
 | Table Column: Rejection Code | Badge (Read-only) | Yes | Valid system reason enum | `out_of_stock` | Reason code selected in Screen 3.2 |
 | Table Column: Auto Reject Reason | Text (Read-only) | No | Reason code for automated rejection | `timeout_5_mins` | Only populated if order was auto-rejected by the system scheduler |
-| Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Not Required (for COD), Refund Pending, Refunded, Refund Failed |
+| Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Not Required (for COD), Refund Pending (refunded in 2-3 working days), Refunded, Refund Failed |
 | Table Column: Status | Badge (Read-only) | Yes | Value must be 'Rejected' | `Rejected` | Order cancellation status |
 | Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
 
@@ -718,12 +752,12 @@ Displays completed historical orders.
 
 ##### 1. Delivered Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬─────────────────┬──────────────┬────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Delivered Time  │ Status       │ Action │
-├──────────┼──────────────┼──────────────┼─────────────────┼──────────────┼────────┤
-│ #99014   │ 11:05 AM     │ ₹450.00      │ 11:35 AM        │ Delivered    │ [View] │
-│ #99012   │ 10:00 AM     │ ₹220.00      │ 10:30 AM        │ Delivered    │ [View] │
-└──────────┴──────────────┴──────────────┴─────────────────┴──────────────┴────────┘
+┌──────────┬──────────────┬──────────────┬───────────────────────────────┬─────────────────┬──────────────┬────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Food Items                    │ Delivered Time  │ Status       │ Action │
+├──────────┼──────────────┼──────────────┼───────────────────────────────┼─────────────────┼──────────────┼────────┤
+│ #99014   │ 11:05 AM     │ ₹450.00      │ 1x Veg Pizza, 1x Garlic Bread │ 11:35 AM        │ Delivered    │ [View] │
+│ #99012   │ 10:00 AM     │ ₹220.00      │ 2x Spicy Chicken Burgers      │ 10:30 AM        │ Delivered    │ [View] │
+└──────────┴──────────────┴──────────────┴───────────────────────────────┴─────────────────┴──────────────┴────────┘
 ```
 
 ##### 2. Delivered Tab Fields Table
@@ -732,6 +766,7 @@ Displays completed historical orders.
 | Table Column: Order ID | Text Link | Yes | Unique reference format | `#99014` | Clickable link opens details drawer |
 | Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `11:05 AM` | Checkout timestamp |
 | Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹450.00` | Order total |
+| Table Column: Food Items | Text (Read-only) | Yes | List of food items and quantities | `1x Veg Pizza, 1x Garlic Bread` | String summary of items ordered |
 | Table Column: Delivered Time | DateTime (Read-only) | Yes | Valid timestamp | `11:35 AM` | Time when delivered to customer |
 | Table Column: Status | Badge (Read-only) | Yes | Value must be 'Delivered' | `Delivered` | Order completion status |
 | Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
@@ -743,11 +778,11 @@ Displays customer or kitchen cancelled orders.
 
 ##### 1. Cancel Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬────────────────────┬───────────────┬───────────┬────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Cancel Reason      │ Refund Status │ Status    │ Action │
-├──────────┼──────────────┼──────────────┼────────────────────┼───────────────┼───────────┼────────┤
-│ #99013   │ 10:45 AM     │ ₹299.00      │ customer_cancelled │ Refunded      │ Cancelled │ [View] │
-└──────────┴──────────────┴──────────────┴────────────────────┴───────────────┴───────────┴────────┘
+┌──────────┬──────────────┬──────────────┬───────────────────────────┬────────────────────┬───────────────┬───────────┬────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Food Items                │ Cancel Reason      │ Refund Status │ Status    │ Action │
+├──────────┼──────────────┼──────────────┼───────────────────────────┼────────────────────┼───────────────┼───────────┼────────┤
+│ #99013   │ 10:45 AM     │ ₹299.00      │ 1x Veg Margherita Pizza   │ customer_cancelled │ Refunded      │ Cancelled │ [View] │
+└──────────┴──────────────┴──────────────┴───────────────────────────┴────────────────────┴───────────────┴───────────┴────────┘
 ```
 
 ##### 2. Cancel Tab Fields Table
@@ -756,8 +791,9 @@ Displays customer or kitchen cancelled orders.
 | Table Column: Order ID | Text Link | Yes | Unique reference format | `#99013` | Clickable link opens details drawer |
 | Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `10:45 AM` | Checkout timestamp |
 | Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Order total |
+| Table Column: Food Items | Text (Read-only) | Yes | List of food items and quantities | `1x Veg Margherita Pizza` | String summary of items ordered |
 | Table Column: Cancel Reason | Text (Read-only) | Yes | Reason given by customer or system | `customer_cancelled` | Cancellation code |
-| Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Pending, Refunded, Refund Failed, Not Required |
+| Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Not Required (for COD), Refund Pending (refunded in 2-3 working days), Refunded, Refund Failed |
 | Table Column: Status | Badge (Read-only) | Yes | Value must be 'Cancelled' | `Cancelled` | Order cancellation status |
 | Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
 
@@ -794,6 +830,7 @@ Row selection or click on the `[View]` button on any tab triggers a slide-out dr
 *   **Export Range Limit**: Block CSV generation requests that capture more than 30 consecutive calendar days of records.
 *   **Read-Only Integrity**: Completed terminal entries (Reject, Delivered, Cancel) are write-locked; modifications or editing are disabled.
 *   **Order Cancellation Constraint**: Orders can only be cancelled while their status is `Accepted` or `Preparing`. Once the order is prepared and its status transitions to `Ready For Pickup` or any later status, the order cannot be cancelled (the cancel action is locked and disabled).
+*   **Refund Flow on Cancellation**: If a cancelled order is Cash on Delivery (COD), no refund process is initiated. If a cancelled order is Prepaid (Online), a refund payload is automatically dispatched to Stripe, and the refund is settled/credited to the customer's account within 2-3 working days.
 
 #### 6. Dependencies
 *   **Payment Gateway Webhooks**: Stripe/Razorpay notifications drive the refund status changes on the Reject/Cancel tabs.
@@ -1172,7 +1209,7 @@ CREATE TABLE employee_details (
 
 Below is the complete state-machine diagram mapping the customer order lifecycle from checkout to terminal delivery or cancelled status:
 
-![Order Lifecycle Flowchart](file:///C:/Users/romit/.gemini/antigravity-ide/brain/fe1a52c4-aa16-47cc-a1a0-1ec8b2108a87/order_lifecycle_flowchart_1779975248792.png)
+![Order Lifecycle Flowchart](file:///C:/Users/romit/.gemini/antigravity-ide/brain/fe1a52c4-aa16-47cc-a1a0-1ec8b2108a87/updated_lifecycle_flowchart_1779975864005.png)
 
 ```mermaid
 graph TD
@@ -1183,7 +1220,8 @@ graph TD
     %% Rejection Path
     C -->|Reject| D[Screen 3.2: Rejection Reason Modal]
     D -->|Select Reason Dropdown| E[API POST: /orders/reject]
-    E -->|Stripe Refund Initiated| F[Status: Rejected]
+    E -->|Prepaid: Refund in 2-3 Working Days| F[Status: Rejected]
+    E -->|COD: No Refund Required| F[Status: Rejected]
     F -->|Webhook /api/v1/webhooks/refunds| G{Refund Status}
     G -->|Success| H([Refund Success])
     G -->|Pending| I([Refund Pending])
@@ -1199,7 +1237,8 @@ graph TD
     %% Cancellation Paths (Allowed during Accepted or Preparing)
     K -->|Cancellation Trigger| Y[Status: Cancelled]
     M -->|Cancellation Trigger| Y[Status: Cancelled]
-    Y -->|Stripe Refund Initiated| G{Refund Status}
+    Y -->|Prepaid: Refund in 2-3 Working Days| G{Refund Status}
+    Y -->|COD: No Refund Required| Z[(Table: cancelled_orders)]
     
     %% Delivery Dispatch Matching
     O -->|Delivery Matcher Engine| P{Rider Assigned?}
