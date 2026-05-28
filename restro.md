@@ -861,7 +861,6 @@ Row selection or click on the `[View]` button on any tab triggers a slide-out dr
 | Restaurant Rejection Reason | Text (Read-only) | No | Must match system enum key | `out_of_stock` | Only populated/displayed if order was rejected by the branch manager |
 | Restaurant Rejection Notes | Text (Read-only) | No | Alphanumeric up to 250 chars | `Kitchen has run out of mozzarella cheese block.` | Only populated/displayed if order was rejected by the branch manager |
 | Customer Cancellation Reason | Text (Read-only) | No | Alphanumeric up to 100 chars | `Changed Mind` | Only populated/displayed if order was cancelled by the customer |
-| Customer Cancellation Description | Text (Read-only) | No | Alphanumeric details | `Forgot to add beverage, re-ordering` | Only populated/displayed if order was cancelled by the customer |
 | Customer Name | Text (Read-only) | Yes | Min 2 characters | `Amit Kumar` | Customer display name |
 | Customer Phone | Phone (Read-only) | Yes | Valid E.164 phone standard | `+91 9876543210` | Customer contact mobile number |
 | Customer Address | Text (Read-only) | Yes* | Min 10 characters | `123, Main Street, Bangalore` | Pinned delivery location (hidden for Takeaway/Dine-in orders) |
