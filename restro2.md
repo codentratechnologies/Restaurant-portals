@@ -517,7 +517,7 @@ CREATE TABLE rejected_orders (
 #### 1. Overview
 *   **Screen Purpose**: Displays order workflows through kitchen preparation, packaging, courier matching, and handover.
 *   **Business Objective**: Optimize order lifecycle pacing. Highlight delays and manage courier handovers efficiently.
-*   **User Workflow**: Accept order ➔ Kitchen starts cooking (Auto-Preparing) ➔ Mark order as "Ready for Pickup" ➔ Courier picks up order.
+*   **User Workflow**: Accept order ➔ Kitchen starts cooking (Auto-Preparing after 1 min, firing driver dispatch request) ➔ Mark order as "Ready for Pickup" (Button appears/enabled after 10 min preparing) ➔ Courier picks up order (marks pickup changing status to Out For Delivery).
 *   **Main Functionality**: Queue columns (Accepted, Preparing, Ready), Courier details card, "Mark Ready" trigger button.
 
 #### 2. Screen Preview (Text Wireframe)
@@ -555,10 +555,16 @@ CREATE TABLE rejected_orders (
 | Order Card: Courier Match | Badge (Read-only) | Yes | 'Unassigned', 'Assigned', or 'Arrived' | `Assigned` | Live status tracking of matched dispatch riders. |
 | Courier Card: Name | Text (Read-only) | Yes* | Alphabetical characters, only when matched | `Mike` | Assigned courier dispatch partner name. |
 | Courier Card: Phone | Phone (Read-only) | Yes* | E.164 standard phone format | `+91 9998887776` | Courier phone details for quick customer contact. |
-| Action: Mark as Ready | Button | Yes | Requires active authorization token | `[Mark as Ready]` | Sends POST to `/mark-ready` endpoint; transitions state to `Ready For Pickup`. |
+| Action: Mark as Ready | Button | Yes | Visible and enabled only after order status is Preparing for 10 minutes | `[Mark as Ready]` | Sends POST to `/mark-ready` endpoint; transitions state to `Ready For Pickup`. |
 
 #### 5. Validations
-*   **Pre-Pickup Lock**: Manual status cannot be pushed past `Ready` status by restaurant. The handover status transition to `Out For Delivery` is controlled by the Delivery Partner app coordinates scan action.
+*   **Order Progression & Automation Rules**:
+    *   *Auto-Transition to Preparing*: When an order is accepted, it remains in the `Accepted` state for exactly 1 minute. The backend automatically transitions it to `Preparing` and simultaneously dispatches the delivery matching request to the courier network.
+    *   *Ready for Pickup Delay*: The `[Mark as Ready]` button is locked. It only becomes visible and executable after the order is in `Preparing` status for 10 minutes.
+    *   *Rider Pickup to Out For Delivery*: Once the order is prepared and the manager clicks `[Mark as Ready]`, the delivery partner collects the order and confirms pickup on the Delivery Partner app, which changes the status to `Out For Delivery`.
+    *   *Geofence Arrival (250m)*: The transition to `Arrived` is triggered automatically when the delivery partner's GPS coordinate tracking enters a 250-meter radius boundary from the customer's delivery address.
+    *   *Customer Delivery*: Handing the physical package to the customer and completing the transaction on the rider app changes status to `Delivered`.
+    *   *Cancellation Constraint*: Orders can only be cancelled while in the `Preparing` status. Cancellations are blocked in all other states (including `Accepted` and `Ready For Pickup`).
 
 #### 6. Dependencies
 *   **Delivery Partner matching algorithm**: Feeds rider assignments, profile values, and connection markers to screen.
@@ -582,7 +588,10 @@ CREATE TABLE order_status_history (
 ```
 
 #### 9. Backend Development Notes
-*   **Cron-based Automations**: 1 minute after status moves to `Accepted`, background cron task automatically updates status to `Preparing` and schedules delivery request broadcast events.
+*   **Order Workflow Automation Workers**:
+    *   *Accepted to Preparing Timer*: 1 minute after status moves to `Accepted`, a background queue task automatically updates status to `Preparing` and schedules delivery request broadcast events.
+    *   *Ready for Pickup Lock*: Tracks kitchen prep elapsed time; exposes the manual `[Mark as Ready]` button to clients only after 10 minutes in `Preparing` status.
+    *   *Geofencing Telemetry Worker*: A geofencing worker listens to rider telemetry coordinates and automatically updates the order status to `Arrived` when the rider is within a 250-meter radius of the customer's pinned destination.
 
 #### 10. Role & Permission Logic
 *   Both **Branch Managers** and **Restaurant Staff** possess permissions to transition orders along the preparation pipeline and mark packages ready.
@@ -603,13 +612,13 @@ CREATE TABLE order_status_history (
 #### 15. Status Management System
 | Status | Color | Description | Next Allowed Status |
 |---|---|---|---|
-| `Accepted` | Light Blue | Initialized order state | `Preparing` or `Cancelled` |
-| `Preparing` | Amber | Active kitchen processing | `Ready For Pickup` or `Cancelled` |
-| `Ready For Pickup`| Purple | Awaiting courier handover | `Out For Delivery` (Cancellation locked) |
+| `Accepted` | Light Blue | Initialized order state; auto-transitions to Preparing after 1 minute | `Preparing` |
+| `Preparing` | Amber | Active kitchen processing; initiates rider matching; customer can cancel | `Ready For Pickup` (Allowed after 10 min) or `Cancelled` |
+| `Ready For Pickup`| Purple | Prepared & awaiting rider collection | `Out For Delivery` (Cancellation locked) |
 | `Out For Delivery`| Dark Blue | Rider carrying package to customer | `Arrived` |
-| `Arrived` | Teal | Rider has arrived at delivery destination | `Delivered` |
+| `Arrived` | Teal | Rider within 250m of customer address | `Delivered` |
 | `Delivered` | Green | Order completed successfully | None |
-| `Cancelled` | Rose-Red | Order cancelled by customer or kitchen | None |
+| `Cancelled` | Rose-Red | Order cancelled by customer during Preparing | None |
 
 #### 16. Analytics Logic
 *   Kitchen performance analytics calculate differences between `Accepted` and `Ready For Pickup` milestones.
@@ -829,7 +838,7 @@ Row selection or click on the `[View]` button on any tab triggers a slide-out dr
 #### 5. Validations
 *   **Export Range Limit**: Block CSV generation requests that capture more than 30 consecutive calendar days of records.
 *   **Read-Only Integrity**: Completed terminal entries (Reject, Delivered, Cancel) are write-locked; modifications or editing are disabled.
-*   **Order Cancellation Constraint**: Orders can only be cancelled while their status is `Accepted` or `Preparing`. Once the order is prepared and its status transitions to `Ready For Pickup` or any later status, the order cannot be cancelled (the cancel action is locked and disabled).
+*   **Order Cancellation Constraint**: Orders can only be cancelled while their status is `Preparing`. Once the order is prepared (transitions to `Ready For Pickup`) or is in any other status (including `Accepted` and `Out For Delivery`), the order cannot be cancelled (the cancellation capability is locked/disabled).
 *   **Refund Flow on Cancellation**: If a cancelled order is Cash on Delivery (COD), no refund process is initiated. If a cancelled order is Prepaid (Online), a refund payload is automatically dispatched to Stripe, and the refund is settled/credited to the customer's account within 2-3 working days.
 
 #### 6. Dependencies
@@ -885,13 +894,13 @@ CREATE TABLE cancelled_orders (
 #### 15. Status Management System
 | Status | Color | Description | Next Allowed Status |
 |---|---|---|---|
-| `Accepted` | Light Blue | Initialized order state | `Preparing` or `Cancelled` |
-| `Preparing` | Amber | Active kitchen processing | `Ready For Pickup` or `Cancelled` |
-| `Ready For Pickup`| Purple | Awaiting courier handover | `Out For Delivery` (Cancellation locked) |
+| `Accepted` | Light Blue | Initialized order state; auto-transitions to Preparing after 1 minute | `Preparing` |
+| `Preparing` | Amber | Active kitchen processing; initiates rider matching; customer can cancel | `Ready For Pickup` (Allowed after 10 min) or `Cancelled` |
+| `Ready For Pickup`| Purple | Prepared & awaiting rider collection | `Out For Delivery` (Cancellation locked) |
 | `Out For Delivery`| Dark Blue | Rider carrying package to customer | `Arrived` |
-| `Arrived` | Teal | Rider has arrived at delivery destination | `Delivered` |
+| `Arrived` | Teal | Rider within 250m of customer address | `Delivered` |
 | `Delivered` | Green | Order completed successfully | None |
-| `Cancelled` | Rose-Red | Order cancelled by customer or kitchen | None |
+| `Cancelled` | Rose-Red | Order cancelled by customer during Preparing | None |
 
 #### 16. Analytics Logic
 *   Aggregates total gross checkout pricing fields to update daily branch revenue totals.
@@ -1390,13 +1399,13 @@ Re-uses the `employee_details` table. No new tables required.
 
 Below is the complete state-machine diagram mapping the customer order lifecycle from checkout to terminal delivery or cancelled status:
 
-![Order Lifecycle Flowchart](file:///C:/Users/romit/.gemini/antigravity-ide/brain/fe1a52c4-aa16-47cc-a1a0-1ec8b2108a87/updated_lifecycle_flowchart_1779975864005.png)
+![Order Lifecycle Flowchart](file:///C:/Users/romit/.gemini/antigravity-ide/brain/fe1a52c4-aa16-47cc-a1a0-1ec8b2108a87/final_lifecycle_flowchart_1779977134932.png)
 
 ```mermaid
 graph TD
     %% Order Creation & Intake
-    A[Customer Checkout] -->|Socket IO: new_incoming_order| B(Screen 3.1: Live Pending Queue)
-    B -->|WebSocket loop| C{Manager Decision}
+    A[Customer Checkout] -->|Status: Pending| B(Screen 3.1: Live Pending Queue)
+    B -->|Manager Decision| C{Accept or Reject?}
     
     %% Rejection Path
     C -->|Reject| D[Screen 3.2: Rejection Reason Modal]
@@ -1409,29 +1418,29 @@ graph TD
     G -->|Failed| J([Refund Failed - Admin Alert])
 
     %% Acceptance & Preparation Path
-    C -->|Accept| K[API POST: /orders/accept]
-    K -->|Status: Accepted| L(Kitchen Preparation)
-    L -->|Cron Automation: 1 min| M[Status: Preparing]
-    M -->|Kitchen Cook Done| N[Action: Mark as Ready CTA]
+    C -->|Accept| K[Status: Accepted]
+    K -->|Auto-transition after 1 min / Dispatch Delivery Request| M[Status: Preparing]
+    
+    %% Rider Assignment (Under Preparing)
+    M -->|Delivery Matcher Engine: Rider Accepts| R[Rider Assigned]
+    
+    %% Ready for Pickup (10 min cook time delay)
+    R -->|Kitchen Cook Timer: 10 mins elapsed| N[Ready for Pickup CTA appears]
     N -->|API POST: /orders/mark-ready| O[Status: Ready For Pickup]
 
-    %% Cancellation Paths (Allowed during Accepted or Preparing)
-    K -->|Cancellation Trigger| Y[Status: Cancelled]
-    M -->|Cancellation Trigger| Y[Status: Cancelled]
+    %% Cancellation Path (Only allowed during Preparing)
+    M -->|Customer Cancels during Preparing| Y[Status: Cancelled]
     Y -->|Prepaid: Refund in 2-3 Working Days| G{Refund Status}
     Y -->|COD: No Refund Required| Z[(Table: cancelled_orders)]
+
+    %% Rider Handover & Pickup
+    O -->|Rider scans package & clicks Pickup| S[Status: Out For Delivery]
     
-    %% Delivery Dispatch Matching
-    O -->|Delivery Matcher Engine| P{Rider Assigned?}
-    P -->|No - 10 Min Timeout| Q[Toast Alert: Fallback manual assign]
-    P -->|Yes - Rider Match| R[Status: Ready For Pickup - Mike Assigned]
-    
-    %% Handover & Transit
-    R -->|Rider arrives & scans barcode| S[Status: Out For Delivery]
-    S -->|Rider navigates to destination| T[Status: Arrived]
+    %% Transit & Geofence
+    S -->|Rider GPS enters 250m radius of address| T[Status: Arrived]
     
     %% Handover Resolution
-    T -->|Customer Accepts Package| U[Status: Delivered]
+    T -->|Rider hands package & completes order| U[Status: Delivered]
     
     %% Auditing Ledger
     U -->|Terminal State| W[(Table: delivered_orders)]
