@@ -684,11 +684,11 @@ Extends properties from `rejected_orders` mapping schema.
 ├──────────────┬─────────────────────────────────────────────────────────┤
 │ ○ Dashboard  │  🔍 [ Search Order ID...   ]   Filter: [ Payment Mode ▼ ] │
 │ ○ Menu       ├─────────────────────────────────────────────────────────┤
-│ ▶ Orders     │ Order ID │ Delivered At │ Total Value  │ Payment Status │
-│   - Queue    ├──────────┼──────────────┼──────────────┼────────────────┤
-│   - List     │ #99016   │ 12:30 PM     │ ₹420.00      │ Paid (Online)  │
-│ ○ Reviews    │ #99015   │ 11:55 AM     │ ₹1,299.00    │ Paid (COD)     │
-│ ○ Profile    │ └────────┴──────────────┴──────────────┴────────────────┘ │
+│ ▶ Orders     │ Order ID  │ Delivered At  │ Total Value  │ Payment Status  │ Status     │
+│   - Queue    ├──────────┼──────────────┼──────────────┼────────────────┼───────────┤
+│   - List     │ #99016    │ 12:30 PM     │ ₹420.00      │ Paid (Online)  │ Delivered  │
+│ ○ Reviews    │ #99015    │ 11:55 AM     │ ₹1,299.00    │ Paid (COD)      │ Delivered  │
+│ ○ Profile    │ └──────────┴──────────────┴──────────────┴────────────────┴───────────┘ │
 │              │ Showing 1-20 of 1,240 entries         [<] [1] [2] [>]   │
 └──────────────┴─────────────────────────────────────────────────────────┘
 ```
@@ -698,9 +698,21 @@ Extends properties from `rejected_orders` mapping schema.
 *   **Order Detail Slide-out Drawer**: Dynamic sidebar layout that slides from the right side of the screen on row selection. Displays items checklist, customer metadata, and transaction signature keys.
 
 #### 4. Screen Fields Table
+
+##### Search & Filter Fields
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Search Query | Input Text | No | Alphanumeric limits | `99016` | Filter parameter |
+| Search Query | Input Text | No | Alphanumeric limits | `99016` | Filter parameter to locate specific orders. |
+| Payment Mode Filter | Selector | No | Must match 'COD', 'Online', or 'All' | `Online` | Filters records by payment method. |
+
+##### Delivered Orders List Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Table Column: Order ID | Text (Read-only) | Yes | Unique order reference code format | `#99016` | Clickable row to open detail slide-out drawer. |
+| Table Column: Delivered At | DateTime (Read-only) | Yes | Valid timestamp | `12:30 PM` | Date and time when the order delivery was logged. |
+| Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹420.00` | Grand total bill of the delivered transaction. |
+| Table Column: Payment Status | Badge (Read-only) | Yes | Paid (Online) or Paid (COD) | `Paid (Online)` | Payment gateway reconciliation state. |
+| Table Column: Status | Badge (Read-only) | Yes | Value must be `Delivered` | `Delivered` | Current terminal operational state. |
 
 #### 5. Validations
 *   **Write Restriction**: Delivered orders are terminal entries. Interface blocks editing, status modifications, or deletion attempts.
