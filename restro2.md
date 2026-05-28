@@ -566,6 +566,44 @@ CREATE TABLE rejected_orders (
     *   *Customer Delivery*: Handing the physical package to the customer and completing the transaction on the rider app changes status to `Delivered`.
     *   *Cancellation Constraint*: Orders can only be cancelled while in the `Preparing` status. Cancellations are blocked in all other states (including `Accepted` and `Ready For Pickup`).
 
+```mermaid
+graph TD
+    %% Order Flow States
+    Pending[Pending] -->|Merchant: Accept| Accepted[Accepted]
+    Pending -->|Merchant: Reject| Rejected([Rejected])
+    
+    Accepted -->|Wait 1 Min (Auto-Transition)| Preparing[Preparing]
+    
+    Preparing -->|Backend Dispatches Delivery Request| Matching{Delivery Matcher}
+    Matching -->|Courier Accepts Match| Assigned[Assigned]
+    
+    Assigned -->|Wait 10 Mins (Lock Period)| LockEnded[Ready to Pick Up CTA Unlocked]
+    LockEnded -->|Merchant Click: Mark Ready| Ready[Ready For Pickup]
+    
+    Preparing -->|Customer Cancels (Allowed ONLY in Preparing)| Cancelled([Cancelled])
+    
+    Ready -->|Rider Confirms Pickup on Mobile App| OutForDelivery[Out For Delivery]
+    
+    OutForDelivery -->|Rider enters 250m Geofence of Address| Arrived[Arrived]
+    
+    Arrived -->|Rider Confirms Customer Handover| Delivered([Delivered])
+    
+    %% Style formatting
+    style Pending fill:#FEF3C7,stroke:#D97706,stroke-width:2px
+    style Accepted fill:#DBEAFE,stroke:#2563EB,stroke-width:2px
+    style Preparing fill:#FEF3C7,stroke:#D97706,stroke-width:2px
+    style Ready fill:#F5F3FF,stroke:#7C3AED,stroke-width:2px
+    style OutForDelivery fill:#DBEAFE,stroke:#2563EB,stroke-width:2px
+    style Arrived fill:#E0F2FE,stroke:#0284C7,stroke-width:2px
+    style Delivered fill:#DCFCE7,stroke:#16A34A,stroke-width:2px
+    style Cancelled fill:#FEE2E2,stroke:#DC2626,stroke-width:2px
+    style Rejected fill:#FEE2E2,stroke:#DC2626,stroke-width:2px
+```
+
+> [!TIP]
+> **Interactive Workflow Simulator**: You can visually simulate and test this entire state machine in the local environment using [order_workflow_simulator.html](file:///e:/Dine%20os/order_workflow_simulator.html). The simulator includes speed-up (60x) and fast-forward controls to test the 1-minute and 10-minute rules quickly.
+
+
 #### 6. Dependencies
 *   **Delivery Partner matching algorithm**: Feeds rider assignments, profile values, and connection markers to screen.
 
