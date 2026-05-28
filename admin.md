@@ -29,7 +29,8 @@
    - [Screen 3.1: Employee Dashboard (List View)](#screen-31-employee-dashboard-list-view)
    - [Screen 3.2: Create Employee Screen](#screen-32-create-employee-screen)
    - [Screen 3.3: Update Employee Screen](#screen-33-update-employee-screen)
-   - [Screen 3.4: Deactivate Employee Confirmation Modal](#screen-34-deactivate-employee-confirmation-modal)
+   - [Screen 3.4: View Employee Details Screen](#screen-34-view-employee-details-screen)
+   - [Screen 3.5: Deactivate Employee Confirmation Modal](#screen-35-deactivate-employee-confirmation-modal)
 6. [Module 4 — Order Report](#6-module-4--order-report)
    - [Screen 4.1: Order Calendar View (Default)](#screen-41-order-calendar-view-default)
    - [Screen 4.2: Order List Screen](#screen-42-order-list-screen)
@@ -664,19 +665,19 @@ Tabular display containing the profile records of all system workers. Allows fil
 
 ### 2. Screen Preview
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│  Employees                                [+ Add Employee]  │
-├─────────────────────────────────────────────────────────────┤
-│  🔍 Search by Name/Email... [Role: All ▼] [Branch: All ▼]   │
-├─────────────────────────────────────────────────────────────┤
-│ ID    │ Name        │ Role    │ Branch  │ Status   │ Action │
-│-------│-------------│---------│---------│----------│--------│
-│ E101  │ John Doe    │ Manager │ MG Road │ ● Active │ [Edit] │
-│ E102  │ Jane Smith  │ Kitchen │ MG Road │ ● Active │ [Edit] │
-│ E103  │ Bob Martin  │ Delivery│ CP Delhi│ ● Inactive│ [Edit] │
-├─────────────────────────────────────────────────────────────┤
-│  Showing 1-10 of 42                        [<] [1] [2] [>]  │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│  Employees                                        [+ Add Employee]  │
+├──────────────────────────────────────────────────────────────────────┤
+│  🔍 Search by Name/Email... [Role: All ▼] [Branch: All ▼]            │
+├──────────────────────────────────────────────────────────────────────┤
+│ ID    │ Name        │ Role    │ Branch  │ Status     │ Actions               │
+│-------│-------------│---------│---------│------------│-----------------------│
+│ E101  │ John Doe    │ Manager │ MG Road │ ● Active   │ [View][Edit][Inactivate]│
+│ E102  │ Jane Smith  │ Kitchen │ MG Road │ ● Active   │ [View][Edit][Inactivate]│
+│ E103  │ Bob Martin  │ Delivery│ CP Delhi│ ● Inactive │ [View][Edit][Activate]  │
+├──────────────────────────────────────────────────────────────────────┤
+│  Showing 1-10 of 42                                  [<] [1] [2] [>] │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 3. Screen Fields Table
@@ -690,7 +691,10 @@ Tabular display containing the profile records of all system workers. Allows fil
 | Table Column: Role | Text | Read-only | Mapped enum role | `Manager` | Mapped employee role |
 | Table Column: Branch | Text | Read-only | Mapped branch location | `MG Road` | Mapped branch location |
 | Table Column: Status | Badge | Read-only | 'Active' or 'Inactive' badge | `Active` | Status pill indicator |
+| Row Action: View | Link | — | Triggers page change | `[View]` | Navigates to Screen 3.4 (View Employee Details) |
 | Row Action: Edit | Link | — | Triggers page change | `[Edit]` | Navigates to Screen 3.3 |
+| Row Action: Inactivate | Button | — | Triggers deactivation confirmation modal (Screen 3.5) | `[Inactivate]` | Shown only for `Active` employees. Opens Deactivate Employee Confirmation Modal |
+| Row Action: Activate | Button | — | Triggers activation API call | `[Activate]` | Shown only for `Inactive` employees. Directly activates the employee with optimistic UI update |
 
 ### 4. Validations
 - Standard alphanumeric search. Debounced at client level.
@@ -895,7 +899,206 @@ The reset password functionality follows a **progressive disclosure pattern** �
 
 ---
 
-## Screen 3.4: Deactivate Employee Confirmation Modal
+## Screen 3.4: View Employee Details Screen
+
+### 1. Overview
+A read-only detail screen for viewing all information related to a specific employee. The screen is divided into two zones: a **persistent header card** displaying the employee's core identity (name, ID, email, role, status) with only a Back button, and an **internal tabbed panel** below it with two read-only tabs. This is a pure view-only screen — no edit, delete, or deactivate actions are available.
+
+### 2. Screen Layout
+
+The screen is composed of two visual zones stacked vertically:
+
+**Zone 1 — Employee Identity Header Card (Always Visible)**
+A non-scrollable summary card pinned at the top of the screen. Displays core employee identity fields and a Back navigation link. This zone never changes when switching tabs.
+
+**Zone 2 — Internal Tabbed Content Panel**
+A tab bar immediately below the header card with two read-only tabs:
+
+| Tab Label | Badge Count | Description |
+|---|---|---|
+| Employee Information | — | Detailed employee profile, employment details, and audit trail |
+| Assigned Branch | — | Branch location currently assigned to this employee |
+
+### 3. Screen Preview (Full Composite View — Employee Information Tab Active)
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  ‹ Back to Employees                                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  John Doe (E101)                                            │
+│  Employee Name:  John Doe                                   │
+│  Employee ID:    E101                                       │
+│  Email:          john@roms.com                              │
+│  Role:           Manager                                    │
+│  Status:         ● Active                                   │
+│                                                             │
+│  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│  [Employee Information]    Assigned Branch                   │
+│  ───────────────────────                                    │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌───────────────────┬─────────────────────────────────────┐│
+│  │ Employee ID       │ E101                                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ First Name        │ John                                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Last Name         │ Doe                                 ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Email Address     │ john@roms.com                       ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Phone Number      │ +91 9811223344                      ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Role              │ Manager                             ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Date of Joining   │ 2026-05-01                          ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Created By        │ admin_user on 2026-05-01 10:00 AM   ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Edited By         │ admin_user on 2026-05-20 03:30 PM   ││
+│  └───────────────────┴─────────────────────────────────────┘│
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### SECTION A: Employee Identity Header Card (Persistent — Always Visible)
+
+This zone remains fixed at the top regardless of which tab is active. It displays employee identity and a Back navigation link only — no management actions.
+
+#### 1. Header Card Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Back Button | Link | Yes | Navigates back to Employee Dashboard (Screen 3.1) | `‹ Back to Employees` | Top-left navigation link. Preserves previously applied dashboard filters |
+| Employee Title | Label | Read-only | Format: `{First Name} {Last Name} ({ID})` | `John Doe (E101)` | Main page heading, prominent display |
+| Employee Name | Label | Read-only | Min 2 characters | `John Doe` | Full name displayed below title |
+| Employee ID | Label | Read-only | Unique alphanumeric code | `E101` | Displayed below employee name |
+| Email | Label | Read-only | Valid email format | `john@roms.com` | Employee login email |
+| Role | Label | Read-only | Valid system role | `Manager` | Assigned operational role |
+| Status Indicator | Badge | Read-only | Green pill for `Active`, Red pill for `Inactive` | `● Active` | Color-coded status pill next to identity |
+
+---
+
+### SECTION B: Internal Tab Bar Controller
+
+The tab bar sits directly below the header card, acting as the switcher for the content panel. Only one tab is active at a time. The active tab displays an **underline highlight** (primary color `#2563EB`) beneath its label.
+
+#### 1. Tab Bar Behavior
+| Property | Specification |
+|---|---|
+| Default Active Tab | `Employee Information` (first tab) |
+| Active Tab Indicator | Bottom border underline, `2px solid #2563EB` |
+| Inactive Tab Style | Neutral gray text, no underline |
+| URL State Persistence | Active tab selection must be reflected in the URL query parameter (e.g. `?tab=branch`) so that page refresh preserves the selected tab |
+| Keyboard Navigation | Supports `←` / `→` arrow key navigation between tabs, `Enter` to activate |
+
+---
+
+### SECTION C: Tab Content Viewports
+
+Each tab renders its own dedicated content area below the tab bar. When a tab is selected, only the content viewport area swaps — the header card and tab bar remain static. Both tabs are **read-only** with no editable fields or action buttons.
+
+---
+
+#### Tab 1: Employee Information
+
+Displays the full profile and employment configuration of the employee in a **vertical key-value detail card** format (label on left, value on right). Includes personal details, role information, and system audit trail.
+
+##### 1. Employee Information Tab Preview
+```text
+├─────────────────────────────────────────────────────────────┤
+│  [Employee Information]    Assigned Branch                   │
+│  ───────────────────────                                    │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌───────────────────┬─────────────────────────────────────┐│
+│  │ Employee ID       │ E101                                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ First Name        │ John                                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Last Name         │ Doe                                 ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Email Address     │ john@roms.com                       ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Phone Number      │ +91 9811223344                      ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Role              │ Manager                             ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Date of Joining   │ 2026-05-01                          ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Created By        │ admin_user on 2026-05-01 10:00 AM   ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Edited By         │ admin_user on 2026-05-20 03:30 PM   ││
+│  └───────────────────┴─────────────────────────────────────┘│
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+##### 2. Employee Information Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Employee ID | Text | Read-only | Unique alphanumeric code | `E101` | Unique employee identifier |
+| First Name | Text | Read-only | Min 2 characters | `John` | Employee given name |
+| Last Name | Text | Read-only | Min 2 characters | `Doe` | Employee surname |
+| Email Address | Email | Read-only | Valid email format | `john@roms.com` | Login and notification email |
+| Phone Number | Phone | Read-only | Exactly 10 digits, displayed with `+91` prefix | `+91 9811223344` | Employee contact number |
+| Role | Text | Read-only | Valid system role | `Manager` | Assigned operational role |
+| Date of Joining | Date | Read-only | Valid date format | `2026-05-01` | Employment start date |
+| Created By | Text | Read-only | Format: `{user} on {timestamp}` | `admin_user on 2026-05-01 10:00 AM` | Audit trail — creator identity and timestamp combined |
+| Edited By | Text | Read-only | Format: `{user} on {timestamp}` | `admin_user on 2026-05-20 03:30 PM` | Audit trail — last editor identity and timestamp combined |
+
+---
+
+#### Tab 2: Assigned Branch
+
+Displays the branch location currently assigned to this employee in a **read-only detail card** format. This tab provides visibility into the employee's mapped branch without any edit capabilities — branch assignment is managed through the Edit flow (Screen 3.3).
+
+##### 1. Assigned Branch Tab Preview
+```text
+├─────────────────────────────────────────────────────────────┤
+│   Employee Information    [Assigned Branch]                  │
+│                           ─────────────────                  │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Assigned Branch Details                                    │
+│  ┌───────────────────┬─────────────────────────────────────┐│
+│  │ Branch Code       │ B001                                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Branch Name       │ MG Road Branch                      ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ City              │ Bangalore                           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Branch Status     │ ● Active                            ││
+│  └───────────────────┴─────────────────────────────────────┘│
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+##### 2. Assigned Branch Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Branch Code | Text | Read-only | Alphanumeric unique code | `B001` | Assigned branch identifier |
+| Branch Name | Text | Read-only | Minimum 3 characters | `MG Road Branch` | Assigned branch location name |
+| City | Text | Read-only | Valid city name | `Bangalore` | Branch city |
+| Branch Status | Badge | Read-only | 'Active' or 'Inactive' badge | `Active` | Color-coded branch status badge |
+
+---
+
+### SECTION D: Business Validations & Rules
+
+1. **Audit Trail Integrity**: Audit tracking fields (Created By, Edited By) are system-managed and cannot be edited by any user.
+2. **Tab State Persistence**: The currently active tab must be preserved in the URL query string (e.g. `?tab=branch`) so that browser refresh or shared links restore the correct tab view.
+3. **Back Navigation**: The `‹ Back to Employees` link must return the user to the Employee Dashboard (Screen 3.1), preserving any previously applied filters.
+4. **Read-Only Screen**: This screen has no edit, delete, deactivate, or assign actions. All management actions are accessible from the Employee Dashboard table (Screen 3.1) or through the Edit flow (Screen 3.3).
+5. **Unassigned Branch Handling**: If the employee's role does not require a branch assignment (e.g., Super Admin), the Assigned Branch tab displays a message: _"This employee is not assigned to any branch."_
+
+### SECTION E: Dependencies
+
+- **Module Dependencies**: Depends directly on Module 2 (Branch Management) to query branch details for the employee's assigned location.
+
+---
+
+## Screen 3.5: Deactivate Employee Confirmation Modal
 
 ### 1. Overview
 Warning panel triggered when suspending employee accounts, revoking portal permissions immediately.
