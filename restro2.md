@@ -603,12 +603,12 @@ Each tab renders its own dedicated data table grid layout.
 │ ○ Dashboard  │  [ Accept (5) ]  [ Reject (2) ]  [ Delivered ]  [ Return ]│
 │ ○ Menu       ├─────────────────────────────────────────────────────────┤
 │ ▶ Orders     │  🔍 [ Search Order ID...   ]   Filter: [ Payment Mode ▼ ] │
-│   - Queue    ├──────────┬──────────────┬──────────────┬────────────────┤
-│   - List     │ Order ID │ Timestamp    │ Total Value  │ Status/Payment │
-│ ○ Reviews    ├──────────┼──────────────┼──────────────┼────────────────┤
-│ ○ Profile    │ #99018   │ 12:46 PM     │ ₹299.00      │ Preparing (Onl)│
-│              │ #99016   │ 12:30 PM     │ ₹420.00      │ Accepted (COD) │
-│              │ └────────┴──────────────┴──────────────┴────────────────┘ │
+│   - Queue    ├──────────┬──────────────┬──────────────┬────────────────┬────────┐
+│   - List     │ Order ID │ Timestamp    │ Total Value  │ Status/Payment │ Action │
+│ ○ Reviews    ├──────────┼──────────────┼──────────────┼────────────────┼────────┤
+│ ○ Profile    │ #99018   │ 12:46 PM     │ ₹299.00      │ Preparing (Onl)│ [View] │
+│              │ #99016   │ 12:30 PM     │ ₹420.00      │ Accepted (COD) │ [View] │
+│              │ └────────┴──────────────┴──────────────┴────────────────┴────────┘ │
 │              │ Showing 1-20 of 5 entries             [<] [1] [>]       │
 └──────────────┴─────────────────────────────────────────────────────────┘
 ```
@@ -645,7 +645,7 @@ The tab bar sits below the persistent header card. The active tab displays an un
 
 ### SECTION C: Tab Content Viewports
 
-Swaps the data table grid based on the active tab selection. Row selection in any tab opens a slide-out detailed drawer from the right.
+Swaps the data table grid based on the active tab selection. Clicking the `[View]` button in the Action column (or clicking the order ID link) in any tab opens a slide-out detailed drawer from the right.
 
 ---
 
@@ -654,21 +654,22 @@ Displays active orders currently in progress.
 
 ##### 1. Accept Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬────────────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Status/Payment │
-├──────────┼──────────────┼──────────────┼────────────────┤
-│ #99018   │ 12:46 PM     │ ₹299.00      │ Preparing (Onl)│
-│ #99016   │ 12:30 PM     │ ₹420.00      │ Accepted (COD) │
-└──────────┴──────────────┴──────────────┴────────────────┘
+┌──────────┬──────────────┬──────────────┬────────────────┬────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Status/Payment │ Action │
+├──────────┼──────────────┼──────────────┼────────────────┼────────┤
+│ #99018   │ 12:46 PM     │ ₹299.00      │ Preparing (Onl)│ [View] │
+│ #99016   │ 12:30 PM     │ ₹420.00      │ Accepted (COD) │ [View] │
+└──────────┴──────────────┴──────────────┴────────────────┴────────┘
 ```
 
 ##### 2. Accept Tab Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Table Column: Order ID | Text (Read-only) | Yes | Unique reference format | `#99018` | Row click opens details drawer |
+| Table Column: Order ID | Text Link | Yes | Unique reference format | `#99018` | Clickable link opens details drawer |
 | Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `12:46 PM` | Order creation timestamp |
 | Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Inclusive of tax |
 | Table Column: Status/Payment | Badge (Read-only) | Yes | Active status + method | `Preparing (Online)` | Valid states: Accepted, Preparing, Ready For Pickup, Out For Delivery, Arrived |
+| Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
 
 ---
 
@@ -677,22 +678,23 @@ Displays cancelled orders with refund statuses.
 
 ##### 1. Reject Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬─────────────────┬───────────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Rejection Code  │ Refund Status │
-├──────────┼──────────────┼──────────────┼─────────────────┼───────────────┤
-│ #99015   │ 11:20 AM     │ ₹180.00      │ out_of_stock    │ Refunded      │
-│ #99011   │ 10:15 AM     │ ₹320.00      │ customer_cancel │ Refund Pending│
-└──────────┴──────────────┴──────────────┴─────────────────┴───────────────┘
+┌──────────┬──────────────┬──────────────┬─────────────────┬───────────────┬────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Rejection Code  │ Refund Status │ Action │
+├──────────┼──────────────┼──────────────┼─────────────────┼───────────────┼────────┤
+│ #99015   │ 11:20 AM     │ ₹180.00      │ out_of_stock    │ Refunded      │ [View] │
+│ #99011   │ 10:15 AM     │ ₹320.00      │ customer_cancel │ Refund Pending│ [View] │
+└──────────┴──────────────┴──────────────┴─────────────────┴───────────────┴────────┘
 ```
 
 ##### 2. Reject Tab Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Table Column: Order ID | Text (Read-only) | Yes | Unique reference format | `#99015` | Row click opens details drawer |
+| Table Column: Order ID | Text Link | Yes | Unique reference format | `#99015` | Clickable link opens details drawer |
 | Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `11:20 AM` | Order checkout timestamp |
 | Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹180.00` | Order total |
 | Table Column: Rejection Code | Badge (Read-only) | Yes | Valid system reason enum | `out_of_stock` | Reason code selected in Screen 3.2 |
 | Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Not Required (for COD), Refund Pending, Refunded, Refund Failed |
+| Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
 
 ---
 
@@ -701,22 +703,23 @@ Displays completed historical orders.
 
 ##### 1. Delivered Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬─────────────────┬──────────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Delivered Time  │ Rider Rating │
-├──────────┼──────────────┼──────────────┼─────────────────┼──────────────┤
-│ #99014   │ 11:05 AM     │ ₹450.00      │ 11:35 AM        │ ⭐⭐⭐⭐⭐ (5) │
-│ #99012   │ 10:00 AM     │ ₹220.00      │ 10:30 AM        │ ⭐⭐⭐⭐☆ (4) │
-└──────────┴──────────────┴──────────────┴─────────────────┴──────────────┘
+┌──────────┬──────────────┬──────────────┬─────────────────┬──────────────┬────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Delivered Time  │ Status       │ Action │
+├──────────┼──────────────┼──────────────┼─────────────────┼──────────────┼────────┤
+│ #99014   │ 11:05 AM     │ ₹450.00      │ 11:35 AM        │ Delivered    │ [View] │
+│ #99012   │ 10:00 AM     │ ₹220.00      │ 10:30 AM        │ Delivered    │ [View] │
+└──────────┴──────────────┴──────────────┴─────────────────┴──────────────┴────────┘
 ```
 
 ##### 2. Delivered Tab Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Table Column: Order ID | Text (Read-only) | Yes | Unique reference format | `#99014` | Row click opens details drawer |
+| Table Column: Order ID | Text Link | Yes | Unique reference format | `#99014` | Clickable link opens details drawer |
 | Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `11:05 AM` | Checkout timestamp |
 | Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹450.00` | Order total |
 | Table Column: Delivered Time | DateTime (Read-only) | Yes | Valid timestamp | `11:35 AM` | Time when delivered to customer |
-| Table Column: Rider Rating | Rating Stars | No | 1 to 5 stars | `⭐⭐⭐⭐⭐ (5)` | Rating left for the delivery agent |
+| Table Column: Status | Badge (Read-only) | Yes | Value must be 'Delivered' | `Delivered` | Order completion status |
+| Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
 
 ---
 
@@ -725,30 +728,48 @@ Displays customer returned/rejected orders.
 
 ##### 1. Return Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬─────────────────┬───────────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Return Reason   │ Refund Status │
-├──────────┼──────────────┼──────────────┼─────────────────┼───────────────┤
-│ #99013   │ 10:45 AM     │ ₹299.00      │ damaged_items   │ Refunded      │
-└──────────┴──────────────┴──────────────┴─────────────────┴───────────────┘
+┌──────────┬──────────────┬──────────────┬─────────────────┬───────────────┬────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Return Reason   │ Refund Status │ Action │
+├──────────┼──────────────┼──────────────┼─────────────────┼───────────────┼────────┤
+│ #99013   │ 10:45 AM     │ ₹299.00      │ damaged_items   │ Refunded      │ [View] │
+└──────────┴──────────────┴──────────────┴─────────────────┴───────────────┴────────┘
 ```
 
 ##### 2. Return Tab Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Table Column: Order ID | Text (Read-only) | Yes | Unique reference format | `#99013` | Row click opens details drawer |
+| Table Column: Order ID | Text Link | Yes | Unique reference format | `#99013` | Clickable link opens details drawer |
 | Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `10:45 AM` | Checkout timestamp |
 | Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Order total |
 | Table Column: Return Reason | Text (Read-only) | Yes | Reason given by customer | `damaged_items` | Customer return code |
 | Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Pending, Refunded, Refund Failed |
+| Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
 
 ---
 
-#### Detailed Order Slide-out Drawer (Activated on Row Click)
-Row selection on any tab triggers a slide-out drawer containing:
-*   **Customer Information**: Name, phone, and delivery address.
-*   **Item Breakdown Table**: Itemized list showing Name, Qty, and Subtotal.
-*   **Billing Summary**: Subtotal, Applied Tax, Grand Total, and Payment Method.
-*   **Delivery Details**: Matched courier name, contact info, and registration details.
+#### Detailed Order Slide-out Drawer (Activated on Row Click or View Action)
+Row selection or click on the `[View]` button on any tab triggers a slide-out drawer containing detailed order information.
+
+##### 1. Slide-out Drawer Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Drawer Title | Text (Read-only) | Yes | Format: `Order #{ID} Details` | `Order #99018 Details` | Header title of the drawer |
+| Order Status | Badge (Read-only) | Yes | Color-coded status badge | `Preparing` | Displays current active stage state |
+| Customer Name | Text (Read-only) | Yes | Min 2 characters | `Amit Kumar` | Customer display name |
+| Customer Phone | Phone (Read-only) | Yes | Valid E.164 phone standard | `+91 9876543210` | Customer contact mobile number |
+| Customer Address | Text (Read-only) | Yes* | Min 10 characters | `123, Main Street, Bangalore` | Pinned delivery location (hidden for Takeaway/Dine-in orders) |
+| Item Table: Name | Text (Read-only) | Yes | Min 3 characters | `Veg Pizza` | Name of ordered item |
+| Item Table: Price | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Unit selling price of item |
+| Item Table: Qty | Number (Read-only) | Yes | Integer >= 1 | `1` | Ordered quantity |
+| Item Table: Subtotal | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Subtotal amount for the item line |
+| Subtotal | Currency (Read-only) | Yes | Positive decimal | `₹284.76` | Total price before tax and delivery fees |
+| Tax Amount | Currency (Read-only) | Yes | Positive decimal | `₹14.24` | Computed SGST/CGST tax |
+| Total Bill | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Grand total payable (Subtotal + Tax) |
+| Payment Method | Badge (Read-only) | Yes | COD or Prepaid | `Prepaid` | Mode of payment |
+| Payment Status | Badge (Read-only) | Yes | Paid, Pending, Refunded, or Failed | `Paid` | Payment status details |
+| Delivery Agent | Text (Read-only) | Yes* | Mapped courier name | `Mike` | Courier agent name (shown only when assigned) |
+| Agent Contact | Phone (Read-only) | Yes* | E.164 standard format | `+91 9998887776` | Contact details of assigned courier |
+| Close Drawer Button | Button | Yes | Dismisses drawer overlay | `[X]` | Pinned to top-right to close detailed view |
 
 ---
 
