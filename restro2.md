@@ -590,11 +590,11 @@ CREATE TABLE order_status_history (
 ├──────────────┬─────────────────────────────────────────────────────────┤
 │ ○ Dashboard  │  🔍 [ Search Order ID...   ]   Export Selected: [ CSV ] │
 │ ○ Menu       ├─────────────────────────────────────────────────────────┤
-│ ▶ Orders     │ Order ID │ Rejected At │ Reason         │ Refund Status │
-│   - Queue    ├──────────┼─────────────┼────────────────┼───────────────┤
-│   - List     │ #99018   │ 12:46 PM    │ Out of Stock   │ ● Success     │
-│ ○ Reviews    │ #99014   │ 11:20 AM    │ Closing Soon   │ ● Pending     │
-│ ○ Profile    │ └────────┴─────────────┴────────────────┴───────────────┘ │
+│ ▶ Orders     │ Order ID  │ Rejected At  │ Reason          │ Refund Status │ Status   │
+│   - Queue    ├──────────┼──────────────┼─────────────────┼───────────────┼─────────┤
+│   - List     │ #99018    │ 12:46 PM     │ Out of Stock    │ ● Success     │ Rejected │
+│ ○ Reviews    │ #99014    │ 11:20 AM     │ Closing Soon    │ ● Pending     │ Rejected │
+│ ○ Profile    │ └──────────┴──────────────┴─────────────────┴───────────────┴─────────┘ │
 │              │ Showing 1-20 of 42 entries            [<] [1] [2] [>]   │
 └──────────────┴─────────────────────────────────────────────────────────┘
 ```
@@ -621,6 +621,7 @@ CREATE TABLE order_status_history (
 | Table Column: Rejected At | DateTime (Read-only) | Yes | Valid timestamp | `12:46 PM` | Date and time when the order rejection occurred. |
 | Table Column: Reason | Text (Read-only) | Yes | Rejection reason string | `Out of Stock` | Cancellation reason selected during reject flow. |
 | Table Column: Refund Status | Badge (Read-only) | Yes | 'Success', 'Pending', or 'Refund Not Required' | `Success` | Reflects status of payment refund. |
+| Table Column: Status | Badge (Read-only) | Yes | Value must be `Rejected` | `Rejected` | Reflects that the order was rejected. |
 
 #### 5. Validations
 *   **Export Range Limit**: Block CSV generation requests that capture more than 30 consecutive calendar days of records.
