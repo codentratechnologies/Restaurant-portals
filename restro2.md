@@ -1169,4 +1169,60 @@ CREATE TABLE employee_details (
 #### 17. Suggested Tech Notes
 *   Store roster queries in index caches to keep screen loads fast during busy shift handovers.
 
+## 18. Order Lifecycle & Operations Flowchart
+
+Below is the complete state-machine diagram mapping the customer order lifecycle from checkout to terminal delivery or return status:
+
+![Order Lifecycle Flowchart](file:///C:/Users/romit/.gemini/antigravity-ide/brain/e8535134-99cb-4cfa-a8ef-1bfe01250521/order_lifecycle_flowchart_1779952022622.png)
+
+```mermaid
+graph TD
+    %% Order Creation & Intake
+    A[Customer Checkout] -->|Socket IO: new_incoming_order| B(Screen 3.1: Live Pending Queue)
+    B -->|WebSocket loop| C{Manager Decision}
+    
+    %% Rejection Path
+    C -->|Reject| D[Screen 3.2: Rejection Reason Modal]
+    D -->|Select Reason Dropdown| E[API POST: /orders/reject]
+    E -->|Stripe Refund Initiated| F[Status: Rejected]
+    F -->|Webhook /api/v1/webhooks/refunds| G{Refund Status}
+    G -->|Success| H([Refund Success])
+    G -->|Pending| I([Refund Pending])
+    G -->|Failed| J([Refund Failed - Admin Alert])
+
+    %% Acceptance & Preparation Path
+    C -->|Accept| K[API POST: /orders/accept]
+    K -->|Status: Accepted| L(Kitchen Preparation)
+    L -->|Cron Automation: 1 min| M[Status: Preparing]
+    M -->|Kitchen Cook Done| N[Action: Mark as Ready CTA]
+    N -->|API POST: /orders/mark-ready| O[Status: Ready For Pickup]
+
+    %% Delivery Dispatch Matching
+    O -->|Delivery Matcher Engine| P{Rider Assigned?}
+    P -->|No - 10 Min Timeout| Q[Toast Alert: Fallback manual assign]
+    P -->|Yes - Rider Match| R[Status: Ready For Pickup - Mike Assigned]
+    
+    %% Handover & Transit
+    R -->|Rider arrives & scans barcode| S[Status: Out For Delivery]
+    S -->|Rider navigates to destination| T[Status: Arrived]
+    
+    %% Handover Resolution
+    T -->|Customer Accepts Package| U[Status: Delivered]
+    T -->|Customer Rejects Package| V[Status: Returned]
+    
+    %% Auditing Ledger
+    U -->|Terminal State| W[(Table: delivered_orders)]
+    V -->|Terminal State| X[(Table: returned_orders)]
+    
+    %% Style formatting
+    style B fill:#FEF3C7,stroke:#D97706,stroke-width:2px
+    style F fill:#FEE2E2,stroke:#DC2626,stroke-width:2px
+    style M fill:#FEF3C7,stroke:#D97706,stroke-width:2px
+    style O fill:#F5F3FF,stroke:#7C3AED,stroke-width:2px
+    style S fill:#DBEAFE,stroke:#2563EB,stroke-width:2px
+    style T fill:#E0F2FE,stroke:#0284C7,stroke-width:2px
+    style U fill:#DCFCE7,stroke:#16A34A,stroke-width:2px
+    style V fill:#FEE2E2,stroke:#DC2626,stroke-width:2px
+```
+
 ***End of Handover Document***
