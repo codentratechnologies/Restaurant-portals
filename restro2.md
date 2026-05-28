@@ -286,7 +286,7 @@ CREATE TABLE branch_food_mapping (
 │ ○ Dashboard  │  Orders Waiting Action: (2 Pending)                      │
 │ ○ Menu       │                                                         │
 │ ▶ Orders     │ ┌──────────────────────────┐ ┌────────────────────────┐ │
-│   - Queue    │ │ 🚨 #ORD-99018            │ │ 🚨 #ORD-99019            │ │
+│   - Queue    │ │ 🚨 #ORD-99018 [Pending]  │ │ 🚨 #ORD-99019 [Pending]  │ │
 │   - List     │ │ Time Received: 12:44 PM  │ │ Time Received: 12:45 PM  │ │
 │ ○ Reviews    │ │ Timer Remaining: 01:45   │ │ Timer Remaining: 02:00   │ │
 │ ○ Profile    │ │ 1x Veg Margherita Pizza  │ │ 2x Spicy Chicken Burgers │ │
@@ -308,6 +308,7 @@ CREATE TABLE branch_food_mapping (
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Order Ticket: ID | Text (Read-only) | Yes | Unique order identifier format (`#ORD-XXXXX`) | `#ORD-99018` | Database key used to uniquely map the transaction. |
+| Order Ticket: Status | Badge (Read-only) | Yes | Value must be 'Pending' | `Pending` | Order queue status badge. |
 | Order Ticket: Time Received | DateTime (Read-only) | Yes | Valid timestamp | `12:44 PM` | Timestamp when order checkout was completed. |
 | Order Ticket: Timer Remaining | Number (Countdown) | Yes | Computed dynamically: `(created_at + 5 mins) - current_time` | `01:45` | Time remaining in MM:SS before order triggers auto-rejection. |
 | Order Ticket: Items List | Array of Objects | Yes | Must contain at least 1 food item | `1x Veg Margherita Pizza` | List of items, quantities, and user modifier choices. |
@@ -808,7 +809,6 @@ CREATE TABLE delivered_orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id UUID UNIQUE REFERENCES branch_orders(id) ON DELETE CASCADE,
     delivered_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    delivery_rating INT CHECK (delivery_rating BETWEEN 1 AND 5),
     notes TEXT
 );
 
