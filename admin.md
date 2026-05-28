@@ -1,1222 +1,1263 @@
-# DineOs — Restaurant Portal (Web)
+# Restaurant Order Management System — Admin Portal
 
-## Product Requirement Document (PRD) + UI/UX Specification + Backend Handover Document
+## Product Requirement Document (PRD) + UI/UX Specification
 
 | Document Property | Value |
 |---|---|
-| **Product Name** | DineOs Restaurant Order Management System |
-| **Portal / Client** | Restaurant Portal (Web Dashboard) |
-| **Version** | 1.0.0 |
-| **Status** | Approved for Execution |
-| **Last Updated** | 2026-05-27 |
-| **Audience** | Branch Managers, Frontend Web Engineers, Backend Engineers, UI/UX Designers, QA Engineers |
+| **Product Name** | Restaurant Order Management System (ROMS) |
+| **Portal** | Admin Portal (Web) |
+| **Version** | 2.0.0 |
+| **Status** | Approved |
+| **Last Updated** | 2026-05-26 |
+| **Audience** | Administrators, Product Managers, UI/UX Designers, QA, Frontend Developers |
 
 ---
 
 ## Table of Contents
-1. [Executive Summary & Global Portal Standards](#executive-summary--global-portal-standards)
-2. [Module 1 — Home & Analytics](#module-1--home--analytics)
-   - [Screen 1.1: Branch Dashboard (Home)](#screen-11-branch-dashboard-home)
-3. [Module 2 — Menu Module](#module-2--menu-module)
-   - [Screen 2.1: Menu Availability (List View)](#screen-21-menu-availability-list-view)
-4. [Module 3 — Order Management Module](#module-3--order-management-module)
-   - [Screen 3.1: Order Queue Screen (Live Pending Queue)](#screen-31-order-queue-screen-live-pending-queue)
-   - [Screen 3.2: Rejection Reason Dialog (Reject Flow Modal)](#screen-32-rejection-reason-dialog-reject-flow-modal)
-   - [Screen 3.3: Accepted Orders Queue Screen (Active Steppers)](#screen-33-accepted-orders-queue-screen-active-steppers)
-   - [Screen 3.4: Order List Screen (Tabs: Accept, Reject, Delivered, Return)](#screen-34-order-list-screen-tabs-accept-reject-delivered-return)
-5. [Module 4 — Order Review Module](#module-4--order-review-module)
-   - [Screen 4.1: Reviews & Ratings Dashboard](#screen-41-reviews--ratings-dashboard)
-6. [Module 5 — Profile Module](#module-5--profile-module)
-   - [Screen 5.1: Branch Manager Profile Screen](#screen-51-branch-manager-profile-screen)
-   - [Screen 5.2: Employee Details & Roster Screen](#screen-52-employee-details--roster-screen)
+
+1. [Executive Summary](#1-executive-summary)
+2. [Global UI/UX Standards](#2-global-uiux-standards)
+3. [Module 1 — Home & Analytics](#3-module-1--home--analytics)
+   - [Screen 1.1: Admin Dashboard](#screen-11-admin-dashboard)
+4. [Module 2 — Branch Management](#4-module-2--branch-management)
+   - [Screen 2.1: Branch Dashboard (List View)](#screen-21-branch-dashboard-list-view)
+   - [Screen 2.2: Create Branch — Multi-Step Wizard](#screen-22-create-branch--multi-step-wizard)
+   - [Screen 2.3: Update Branch — Multi-Step Wizard](#screen-23-update-branch--multi-step-wizard)
+   - [Screen 2.4: View Branch Details Screen](#screen-24-view-branch-details-screen)
+   - [Screen 2.5: Deactivate Branch Confirmation Modal](#screen-25-deactivate-branch-confirmation-modal)
+5. [Module 3 — Employee Management](#5-module-3--employee-management)
+   - [Screen 3.1: Employee Dashboard (List View)](#screen-31-employee-dashboard-list-view)
+   - [Screen 3.2: Create Employee Screen](#screen-32-create-employee-screen)
+   - [Screen 3.3: Update Employee Screen](#screen-33-update-employee-screen)
+   - [Screen 3.4: Deactivate Employee Confirmation Modal](#screen-34-deactivate-employee-confirmation-modal)
+6. [Module 4 — Order Report](#6-module-4--order-report)
+   - [Screen 4.1: Order Calendar View (Default)](#screen-41-order-calendar-view-default)
+   - [Screen 4.2: Order List Screen](#screen-42-order-list-screen)
+   - [Screen 4.3: Order Detail View Screen](#screen-43-order-detail-view-screen)
+7. [Module 5 — Food Management](#7-module-5--food-management)
+   - [Screen 5.1: Food Catalog Dashboard](#screen-51-food-catalog-dashboard)
+   - [Screen 5.2: Create Food Item Screen](#screen-52-create-food-item-screen)
+   - [Screen 5.3: Update Food Item Screen](#screen-53-update-food-item-screen)
+   - [Screen 5.4: View Food Item Slide-out Drawer](#screen-54-view-food-item-slide-out-drawer)
+   - [Screen 5.5: Deactivate Food Item Confirmation Modal](#screen-55-deactivate-food-item-confirmation-modal)
+8. [Global Role & Permission Matrix](#8-global-role--permission-matrix)
 
 ---
 
-## Executive Summary & Global Portal Standards
+# 1. Executive Summary
 
-### Project Goals
-The **DineOs Restaurant Portal** is a web-based operational system designed specifically for branch management and kitchen operators. While the global Admin Portal defines pricing and catalogs, this portal executes localized shift controls, processes order workflows in real time, manages local inventory availability, and tracks customer feedback.
+The **Admin Portal** is a web-based central command panel of the Restaurant Order Management System (ROMS). It provides owners and corporate administrators with absolute control over the organization's branches, master menus, employee rosters, and financial performance analytics.
 
-### Global Web UI/UX Standards
-*   **Design Palette**:
-    *   *Primary Accent*: `#2563EB` (Blue 600) — Main CTA, active sidebar items, visual headers.
-    *   *Success Color*: `#16A34A` (Green 600) — Order approvals, final delivery, active menu items.
-    *   *Warning Color*: `#F59E0B` (Amber 500) — Preparing states, driver search, pending refunds.
-    *   *Danger Color*: `#DC2626` (Red 600) — Reject actions, cancellation alerts, stock-outs.
-    *   *Backgrounds*: Slate 50 (`#F8FAFC`) canvas color, pure white (`#FFFFFF`) card components.
-*   **Interaction Rules**:
-    *   *Audible Pings*: Incoming pending orders trigger a looping alert sound until acted upon.
-    *   *Optimistic States*: Availability toggles update instantly on screen, roll back on API error.
-    *   *Kitchen Usability*: Typography is set to high contrast (minimum `16px` for text) to ensure legibility from wall-mounted screens in hot environments.
+### Business Goals
+- **Centralized Control**: Single interface to manage global parameters across all branch locations.
+- **Roster & Audit Trail**: Oversee employees and track key operational analytics securely.
+- **Unified Menu Catalog**: Maintain pricing consistency and dietary classification on food items chain-wide.
 
 ---
 
-## Module 1 — Home & Analytics
+# 2. Global UI/UX Standards
 
-### Screen 1.1: Branch Dashboard (Home)
+### 2.1 Design Tokens
+- **Primary Color**: `#2563EB` (Blue 600) — Default call-to-action buttons, active navigation, hyperlinks
+- **Success Color**: `#16A34A` (Green 600) — Save, activate, successful confirmations, active status pills
+- **Warning Color**: `#F59E0B` (Amber 500) — Warning states, pending status pills
+- **Danger Color**: `#DC2626` (Red 600) — Destructive actions, delete, deactivate, error banners
+- **Neutral BG**: `#F8FAFC` (Slate 50) — App layout backdrop
+- **Card BG**: `#FFFFFF` — Table grids, forms, detail summaries
 
-#### 1. Overview
-*   **Screen Purpose**: Serves as the operational control panel for the branch, presenting aggregated financial, volume, and service KPIs for daily shifts.
-*   **Business Objective**: Enable branch managers to monitor live operational throughput, watch cancellation metrics, and capture top menu insights to prevent bottlenecks.
-*   **User Workflow**: Log in ➔ View metrics ➔ Filter by date range ➔ Select day/week/month chart granularity.
-*   **Main Functionality**: Global KPIs summary cards, live charts rendering, recent logs feed, top menu ranking.
+### 2.2 Global Interaction Rules
+- **Optimistic UI Updates**: Toggles and simple configuration switches should display visual updates instantly, with automatic state rollback if the server API responds with an error.
+- **Search Debounce**: Text search bars must run with a standard `300ms` debounce duration to prevent server overloading.
+- **Modals**: Destructive confirmations must require a clear double-click or confirmation button click before API execution.
 
-#### 2. Screen Preview (Text Wireframe)
+### 2.3 Tabbed Interface Specification Standard
+To ensure maximum clarity for frontend developers and UI/UX designers, screens containing tabbed views (e.g., within dashboards, tables, or detail panels) must follow a rigorous **Two-Section Structure** in their requirements definitions:
+
+1. **Section A: Persistent Screen Shell & Tab Navigation**
+   - **Persistent Visual Elements**: Define elements that are always visible regardless of the active tab (e.g., page title, breadcrumbs, primary global actions, audit metadata).
+   - **Tab Bar Controller / Switcher**: Specify the navigation mechanism (labels, dynamic counts in badges, active/inactive states, and URL routing state persistence).
+   - **Persistent Elements Field Table**: Fields for global header buttons, title elements, and navigation selectors.
+
+2. **Section B: Tab-Specific Content Viewports**
+   - **Segmented Viewports**: List distinct subsections for *each tab* with their own high-fidelity ASCII wireframes/previews.
+   - **Context-Specific Fields Table**: Provide unique fields tables mapped strictly to each individual tab's viewport content. This eliminates ambiguity around which filters, tables, and actions are local to a specific tab versus global to the screen.
+
+---
+
+# 3. Module 1 — Home & Analytics
+
+## Screen 1.1: Admin Dashboard
+
+### 1. Overview
+Central dashboard that serves as the landing interface for ROMS Administrators. Displays aggregated metrics, revenue trends, top items, and recent orders. Supports date range, branch, and period-based filters.
+
+### 2. Screen Preview
 ```text
-┌────────────────────────────────────────────────────────────────────────┐
-│ [🍽 DineOs]   Branch: MG Road Branch  | 12:45 PM           🔔 (3)  👤 ▼ │
-├──────────────┬─────────────────────────────────────────────────────────┤
-│ ▶ Dashboard  │  Branch Operations Analytics                            │
-│ ○ Menu       │  📅 [ May 1 - May 27, 2026 ]      Period Granularity: [D|W|M]│
-│ ○ Orders     │ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐      │
-│ ○ Reviews    │ │ 💰 Revenue   │ │ 📦 Orders    │ │ ❌ Rejections│      │
-│ ○ Profile    │ │ ₹1,45,200    │ │ 342          │ │ 8 (2.3%)     │      │
-│              │ └──────────────┘ └──────────────┘ └──────────────┘      │
-│              │ ┌─────────────────────────────────────────────────────┐ │
-│              │ │  Hourly Revenue & Order Volume Trends (Line Chart)  │ │
-│              │ │  ₹ |       _/\_                                     │ │
-│              │ │  0 |______/____\__________________________________  │ │
-│              │ └─────────────────────────────────────────────────────┘ │
-│              │ ┌──────────────────────────┐ ┌────────────────────────┐ │
-│              │ │ Top Selling Items        │ │ Recent Orders          │ │
-│              │ │ 1. Veg Pizza (124 units) │ │ #ORD-9801 - ₹420 (Del) │ │
-│              │ │ 2. Garlic Bread (80 un)  │ │ #ORD-9800 - ₹120 (Rej) │ │
-│              │ └──────────────────────────┘ └────────────────────────┘ │
-└──────────────┴─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  🍽 ROMS Admin    Search...           🔔 (3)  👤 Admin User ▼ │
+├────────────┬────────────────────────────────────────────────┤
+│            │  Dashboard                                     │
+│  ▶ Home    │────────────────────────────────────────────────│
+│  ○ Branches│ Welcome back, John          📅 May 1 - May 26  │
+│  ○ Staff   │ Filter Branch: [All Branches ▼]   Period: [D|W|M]│
+│  ○ Orders  │────────────────────────────────────────────────│
+│  ○ Food    │ ┌────────────┐ ┌────────────┐ ┌────────────┐   │
+│            │ │ 💰 Revenue  │ │ 📦 Orders  │ │ 🏪 Branches│   │
+│            │ │ ₹12,45,600 │ │ 3,842      │ │ 12 Active  │   │
+│            │ │ ▲ 12.5%    │ │ ▲ 8.3%     │ │            │   │
+│            │ └────────────┘ └────────────┘ └────────────┘   │
+│            │────────────────────────────────────────────────│
+│            │  Revenue Trend Chart (Line Chart)              │
+│            │  ₹ |       _/\_                                │
+│            │  0 |______/____\_________________              │
+│            │     May 1  May 7  May 14  May 21               │
+│            │────────────────────────────────────────────────│
+│            │ ┌──────────────────────┐ ┌───────────────────┐ │
+│            │ │ Top Selling Items    │ │ Recent Orders     │ │
+│            │ │ 1. Chicken Biryani   │ │ #ORD4021 - ₹450   │ │
+│            │ │ 2. Margherita Pizza  │ │ #ORD4020 - ₹820   │ │
+│            │ │ 3. Garlic Bread      │ │ #ORD4019 - ₹320   │ │
+│            │ └──────────────────────┘ └───────────────────┘ │
+└────────────┴────────────────────────────────────────────────┘
 ```
 
-#### 3. UI/UX Layout Description
-*   **Sidebar**: Left aligned, Blue 600 accent highlighting active "Dashboard" button. Collapsible for smaller screens.
-*   **Header**: Location tracking dropdown indicator, real-time clock, WebSocket connection status pulse, and staff profile avatar with logout dropdown.
-*   **Tables & Cards**: KPI blocks using shadow wrappers. Tables render item rankings and order summaries with clear borders.
-*   **Filters**: Horizontal segment filters for date selectors and charts (Daily / Weekly / Monthly).
-*   **Charts**: Interlocking line-chart representing revenue overlaying total orders count. Rendered via responsive canvas containers.
-*   **Loading & Empty States**: Metric blocks display grey skeleton card sweep animations during fetch actions. Charts show "No data found for selected range" overlay if returns are empty.
-
-#### 4. Screen Fields Table
+### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Date Filter Start | Date Selector | Yes | Must be <= today; Cannot exceed End Date | `2026-05-01` | Defaults to today |
-| Date Filter End | Date Selector | Yes | Must be >= Start Date; Cannot exceed today | `2026-05-27` | Defaults to today |
-| Chart Granularity | Radio Toggle | Yes | Value must be 'D' (Daily), 'W', or 'M' | `D` | Aggregates line chart ticks |
-| Metric: Revenue | Currency | Read-only | Positive decimal | `₹1,45,200` | Displays total revenue of delivered orders for the branch |
-| Metric: Orders | Number | Read-only | Integer >= 0 | `342` | Total orders count for selected filters |
-| Metric: Rejections | Number & Perc. | Read-only | String format `{count} ({perc}%)` | `8 (2.3%)` | Count of rejected orders with rejection percentage rate |
-| Top Items Column: Rank | Number | Read-only | Integer >= 1 | `1` | Ranking of item by order volume |
-| Top Items Column: Name | Text | Read-only | Min 3 characters | `Veg Pizza` | Mapped food item title |
-| Top Items Column: Units | Number | Read-only | Integer >= 0 | `124 units` | Number of units sold at this branch |
-| Recent Orders Column: Order ID | Text Link | Read-only | Format `#ORD-XXXXX` | `#ORD-9801` | Clickable link opens order details drawer |
-| Recent Orders Column: Total Value | Currency | Read-only | Positive decimal | `₹420` | Grand billing total of order |
-| Recent Orders Column: Status | Badge | Read-only | Delivered, Rejected, Returned | `Del` | Order lifecycle status badge |
+| Date Range Start | Date | No | Must be <= Date Range End; Cannot be in future | `2026-05-01` | Defaults to 30 days ago |
+| Date Range End | Date | No | Must be >= Date Range Start; Cannot be in future | `2026-05-26` | Defaults to today |
+| Filter Branch | Dropdown | No | Must exist in active branches table | `All Branches` | Supports multi-select or single branch |
+| Period Toggle | Segmented | No | Must be Daily, Weekly, or Monthly | `Monthly` | Controls trend chart aggregation |
+| Metric: Revenue | Currency | Read-only | Positive decimal | `₹12,45,600` | Displays total revenue of delivered orders |
+| Metric: Orders | Number | Read-only | Integer >= 0 | `3,842` | Total orders count for selected filters |
+| Metric: Branches | Number | Read-only | Integer >= 0 | `12 Active` | Count of currently active branches |
+| Top Items Column: Rank| Number | Read-only | Integer >= 1 | `1` | Ranking of item by order volume |
+| Top Items Column: Name| Text | Read-only | Min 3 chars | `Chicken Biryani` | Mapped food item title |
+| Recent Orders: Order ID| Text | Read-only | Unique ID | `#ORD4021` | Clickable link to Screen 4.3 |
+| Recent Orders: Amount | Currency | Read-only | Positive decimal | `₹450` | Billing total of order |
 
-#### 5. Validations
-*   **Date Threshold**: Range queries cannot exceed 90 calendar days on branch level to maintain UI caching speeds.
-*   **Authentication Check**: Ensure the logged-in branch employee token contains the authorization parameter matching the selected `branch_id`.
+### 4. Validations
+- Date range query interval cannot exceed `365 days`.
+- Trend analytics calculations must safely handle division-by-zero check (e.g., zero sales in reference previous period).
 
-#### 6. Dependencies
-*   **Customer App checkout logs**: Drives revenue, order metrics, and sales values.
-*   **WebSocket Engine**: Feeds dashboard cards to update metrics immediately on order completion.
-
-#### 7. API Requirement Suggestions
-*   **GET** `/api/v1/restaurant/analytics/kpis?branch_id=br_mg_road&start_date=2026-05-01&end_date=2026-05-27`
-    *   *Response*: `{"status": "success", "data": {"revenue": 145200.00, "total_orders": 342, "rejected": 8, "returned": 2}}`
-*   **GET** `/api/v1/restaurant/analytics/charts?branch_id=br_mg_road&granularity=D`
-    *   *Response*: `{"status": "success", "chart_points": [{"label": "May 26", "revenue": 8200, "orders": 24}]}`
-
-#### 8. Database Table Suggestions
-No new analytics tables are created. Runs optimized aggregate queries over the orders database.
-
-#### 9. Backend Development Notes
-*   **Indexing Optimization**: Ensure database composite indexes are mapped on `customer_orders(branch_id, status, created_at)`.
-*   **Data Aggregation caching**: Daily sales aggregates are written into a cron-managed cache table `daily_branch_metrics` to avoid parsing raw order rows repeatedly.
-
-#### 10. Role & Permission Logic
-*   **Branch Manager**: Allowed to view all operations metrics, exports, and financial history.
-*   **Restaurant Staff**: Allowed only to view active counts (Orders, Active, Delivered) on the dashboard header, restricting access to revenue charts.
-
-#### 11. UI Components Required
-*   Date Picker, KPI Card, Reusable Chart Widget (Chart.js/Recharts integration), Sidebar Navigation, Table Row.
-
-#### 12. Edge Cases
-*   **Zero Sales Metrics**: Ensure divisions in calculations (e.g. return ratios) handle division-by-zero check variables to prevent frontend page crash.
-*   **Network Loss**: Socket disconnect freezes metrics and changes header status indicator to a Red "Reconnecting" icon.
-
-#### 13. Notifications & Toast Messages
-*   *Warning Alert*: "Dashboard data disconnected. Retrying connection..."
-
-#### 14. Real-Time Event Flow
-*   On new order completion: `/analytics` namespace pushes event `daily_metric_refresh` containing latest numbers.
-
-#### 15. Status Management System
-*   *Not applicable to analytics screen directly.*
-
-#### 16. Analytics Logic
-$$\text{Rejection Rate \%} = \left( \frac{\text{Total Rejected Orders}}{\text{Total Orders Received}} \right) \times 100$$
-$$\text{Return Rate \%} = \left( \frac{\text{Total Returned Orders}}{\text{Total Orders Received}} \right) \times 100$$
-
-#### 17. Suggested Tech Notes
-*   Use Next.js SSR for page landing framework. Implement swr/React Query caching libraries for REST endpoint metrics.
+### 5. Dependencies
+- **Module Dependencies**: Depends on aggregated metrics provided by Module 2 (Branch data), Module 3 (Staff counts), Module 4 (Order details), and Module 5 (Food details).
 
 ---
 
-## Module 2 — Menu Module
+# 4. Module 2 — Branch Management
 
-### Screen 2.1: Menu Availability (List View)
+## Screen 2.1: Branch Dashboard (List View)
 
-#### 1. Overview
-*   **Screen Purpose**: Provide immediate controls to toggle the availability state of menu items.
-*   **Business Objective**: Prevent customer friction caused by ordering out-of-stock items, keeping branch menu maps synchronized with active kitchen inventory.
-*   **User Workflow**: View list ➔ Search item ➔ Toggle availability switch.
-*   **Main Functionality**: Paginated food catalog display, search/category filtering, dynamic switch toggle status.
+### 1. Overview
+Central branch management landing page that lists active and inactive restaurant locations. Admins can filter locations and access creation, detail view, edit, or inactivate/activate actions.
 
-#### 2. Screen Preview (Text Wireframe)
+### 2. Screen Preview
 ```text
-┌────────────────────────────────────────────────────────────────────────┐
-│ [🍽 DineOs]   Menu Availability Manager                                │
-├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  🔍 [ Search food item...   ]   Category: [ All Categories ▼ ]   Status: [ All Statuses ▼ ]│
-│ ▶ Menu       │                                                         │
-│ ○ Orders     │ ┌──────────┬─────────────────┬────────┬───────────┬──────────┐ │
-│ ○ Reviews    │ │ Item ID  │ Food Name       │ Price  │ Status    │ Category │ │
-│ ○ Profile    │ ├──────────┼─────────────────┼────────┼───────────┼──────────┤ │
-│              │ │ food_101 │ Veg Pizza       │ ₹299   │ [o] On    │ Pizza    │ │
-│              │ │ food_102 │ Garlic Bread    │ ₹120   │ [x] Off   │ Sides    │ │
-│              │ └──────────┴─────────────────┴────────┴───────────┴──────────┘ │
-│              │ Showing 1-10 of 84 items             [<] [1] [2] [3] [>]│
-└──────────────┴─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│  Branches                                          [+ Add Branch]   │
+├──────────────────────────────────────────────────────────────────────┤
+│  🔍 Search by Name/Code...  [Status: All ▼] [City: All ▼]            │
+├──────────────────────────────────────────────────────────────────────┤
+│ Code  │ Name        │ City      │ Status     │ Actions               │
+│-------│-------------│-----------│------------│-----------------------│
+│ B001  │ MG Road     │ Bangalore │ ● Active   │ [View][Edit][Inactivate]│
+│ B002  │ Andheri W   │ Mumbai    │ ● Active   │ [View][Edit][Inactivate]│
+│ B003  │ CP Delhi    │ New Delhi │ ● Inactive │ [View][Edit][Activate]  │
+├──────────────────────────────────────────────────────────────────────┤
+│  Showing 1-10 of 24                               [<] [1] [2] [>]   │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
-#### 3. UI/UX Layout Description
-*   **Main Grid**: Multi-column list with unique food ID, name, locked master prices, Green/Red availability status, and category labels.
-*   **Search & Filters**: Persistent header bar containing search queries, a dropdown selection list to group items by category, and a dropdown selection list to filter by availability status (All, Available, Unavailable).
-*   **Modals**: Confirmation modal displays if toggle is turned off: "Disable this item? This will instantly remove it from the Customer App."
-
-#### 4. Screen Fields Table
-
-##### Search & Filter Fields
+### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Search Query | Input Text | No | Max 100 characters, sanitizes inputs | `Pizza` | Filters list dynamically |
-| Category Dropdown| Selector | No | Must exist in categories catalog | `Pizza` | Filter grouping |
-| Status Dropdown | Selector | No | Must match 'All', 'Available', or 'Unavailable' | `Available` | Filters items by status |
+| Search Box | Text | No | Max 50 characters | `MG Road` | Filters table columns by Branch Name or Code |
+| Status Filter | Dropdown | No | Must match 'Active', 'Inactive', or 'All' | `Active` | Filters branch listings |
+| City Filter | Dropdown | No | Must exist in systems city master database | `Bangalore` | Filters branch listings |
+| Table Column: Code | Text | Read-only | Unique alphanumeric code | `B001` | Unique branch identifier |
+| Table Column: Name | Text | Read-only | Min 3 chars | `MG Road` | Branch branch name |
+| Table Column: City | Text | Read-only | Valid city | `Bangalore` | Branch city location |
+| Table Column: Status | Badge | Read-only | 'Active' or 'Inactive' badge | `Active` | Color-coded status badge |
+| Row Action: View | Link | — | Triggers page change | `[View]` | Navigates to Screen 2.4 (Detail) |
+| Row Action: Edit | Link | — | Triggers page change | `[Edit]` | Navigates to Screen 2.3 (Update — Multi-Step Wizard) |
+| Row Action: Inactivate | Button | — | Triggers deactivation confirmation modal (Screen 2.5) | `[Inactivate]` | Shown only for `Active` branches. Opens Deactivate Branch Confirmation Modal |
+| Row Action: Activate | Button | — | Triggers activation API call | `[Activate]` | Shown only for `Inactive` branches. Directly activates the branch with optimistic UI update |
 
-##### Menu List Table
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
-| Table Column: ID | Text | Read-only | Unique alphanumeric code | `food_101` | Unique food item identifier |
-| Table Column: Name | Text | Read-only | Min 3 characters | `Veg Pizza` | Display name of the food item |
-| Table Column: Price | Currency | Read-only | Positive decimal | `₹299` | Branch selling price |
-| Table Column: Status | Toggle Switch | Yes | Boolean (true/false) | `true` | Changes availability state |
-| Table Column: Category | Text | Read-only | Must exist in categories catalog | `Pizza` | Food item category label |
-
-#### 5. Validations
-*   **Optimistic UI Rollback**: If menu toggle status change API returns a network error, the toggle must slide back to its previous status and prompt warning toast.
-
-#### 6. Dependencies
-*   **Admin Portal Catalog**: Feeds the items master records, descriptions, and pricing structure.
-*   **Customer App Menu View**: Synchronously pulls branch mapping data to refresh ordering menus.
-
-#### 7. API Requirement Suggestions
-*   **GET** `/api/v1/restaurant/menu?branch_id=br_mg_road&page=1&search=Veg&category=Pizza&status=Available`
-    *   *Response*: `{"status": "success", "items": [{"id": "food_101", "name": "Veg Pizza", "category": "Pizza", "price": 299.00, "is_available": true}]}`
-*   **POST** `/api/v1/restaurant/menu/toggle`
-    *   *Payload*: `{"branch_id": "br_mg_road", "food_item_id": "food_101", "is_available": false}`
-    *   *Response*: `{"status": "success", "updated_status": false}`
-
-#### 8. Database Table Suggestions
-```sql
-CREATE TABLE branch_food_mapping (
-    branch_id UUID REFERENCES branches(id) ON DELETE CASCADE,
-    food_item_id UUID NOT NULL,
-    is_available BOOLEAN DEFAULT TRUE,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (branch_id, food_item_id)
-);
-```
-
-#### 9. Backend Development Notes
-*   **Cache Invalidation**: On availability update, trigger an invalidate command for the customer cache key `branch:br_mg_road:menu` to force immediate synchronization.
-
-#### 10. Role & Permission Logic
-*   **Branch Manager**: Allowed to toggle all food mappings.
-*   **Restaurant Staff**: Allowed to toggle availability.
-
-#### 11. UI Components Required
-*   Toggle Switch, Table Row Card, Category Badge, Search Bar.
-
-#### 12. Edge Cases
-*   **Conflict Toggling**: Two operators toggle the same item simultaneously. Backend processes using optimistic locks, sending a sync update message to the slower client page.
-
-#### 13. Notifications & Toast Messages
-*   *Success Toast*: "Veg Pizza availability set to unavailable."
-*   *Error Toast*: "Failed to synchronize menu changes. Check internet connection."
-
-#### 14. Real-Time Event Flow
-*   On toggle submit: Backend broadcasts socket event `menu_availability_changed` to `/customers` channels.
-
-#### 15. Status Management System
-| Status | Color | Description | Next Allowed Status |
-|---|---|---|---|
-| `Available` | Green | Active ordering item | `Unavailable` |
-| `Unavailable`| Red | Hidden from checkout catalog | `Available` |
-
-#### 16. Analytics Logic
-*   Logs cumulative unavailable duration to determine high-cancellation or inventory deficit menu items.
-
-#### 17. Suggested Tech Notes
-*   Store mapping database records in Redis hash fields for sub-millisecond retrieval on customer app queries.
+### 4. Validations
+- Search box input must contain at least `2 characters` before querying database records.
 
 ---
 
-## Module 3 — Order Management Module
+## Screen 2.2: Create Branch — Multi-Step Wizard
 
-### Screen 3.1: Order Queue Screen (Live Pending Queue)
+### 1. Overview
+A two-step guided wizard for registering a new restaurant branch. **Step 1** captures branch details (basic info, location, operational hours). Upon successful creation, **Step 2** presents the menu assignment interface where the admin maps food items to the newly created branch. Menu assignment is mandatory — the admin must assign at least one menu item before completing the wizard.
 
-#### 1. Overview
-*   **Screen Purpose**: Displays incoming real-time pending customer orders requiring immediate review.
-*   **Business Objective**: Minimize operational processing latency (Target: Action within 2 minutes of checkout) to accelerate food delivery cycles.
-*   **User Workflow**: New order sound pings ➔ View details ➔ Click "Accept" or "Reject".
-*   **Main Functionality**: Live ticket feed, order countdown timer, primary action CTAs.
+### 2. Wizard Step Indicator
+A horizontal step progress bar is displayed at the top of the screen throughout both steps. The indicator visually communicates the current position in the workflow.
 
-#### 2. Screen Preview (Text Wireframe)
 ```text
-┌────────────────────────────────────────────────────────────────────────┐
-│ [🍽 DineOs]   Live Pending Orders Queue                      📢 [ONLINE]│
-├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  Orders Waiting Action: (2 Pending)                      │
-│ ○ Menu       │                                                         │
-│ ▶ Orders     │ ┌──────────────────────────┐ ┌────────────────────────┐ │
-│   - Queue    │ │ 🚨 #ORD-99018            │ │ 🚨 #ORD-99019            │ │
-│   - List     │ │ Time Received: 12:44 PM  │ │ Time Received: 12:45 PM  │ │
-│ ○ Reviews    │ │ Timer Remaining: 01:45   │ │ Timer Remaining: 02:00   │ │
-│ ○ Profile    │ │ 1x Veg Margherita Pizza  │ │ 2x Spicy Chicken Burgers │ │
-│              │ │ Subtotal: ₹284.76        │ │ Subtotal: ₹360.00        │ │
-│              │ │ Tax: ₹14.24              │ │ Tax: ₹18.00              │ │
-│              │ │ Total Bill: ₹299 | Prep. │ │ Total Bill: ₹378 | COD   │ │
-│              │ ├──────────────────────────┤ ├────────────────────────┤ │
-│              │ │ [❌ Reject]  [✅ Accept] │ │ [❌ Reject]  [✅ Accept] │ │
-│              │ └──────────────────────────┘ └────────────────────────┘ │
-└──────────────┴─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│     ① Branch Creation ─────────── ② Assign Menu             │
+│     ● (Active)                    ○ (Upcoming)              │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-#### 3. UI/UX Layout Description
-*   **Order Cards Grid**: Distinct card outlines for each order. Border changes to flashing Amber/Red when remaining response timer drops below 60 seconds.
-*   **Action Row**: Prominent Red button `[Reject]` and Green button `[Accept]` at card footer.
-*   **Alert Banner**: Full page overlay screen if browser volume permissions are disabled, prompting the operator: "Click here to enable sound notifications."
-
-#### 4. Screen Fields Table
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
-| Order Ticket: ID | Text (Read-only) | Yes | Unique order identifier format (`#ORD-XXXXX`) | `#ORD-99018` | Database key used to uniquely map the transaction. |
-| Order Ticket: Time Received | DateTime (Read-only) | Yes | Valid timestamp | `12:44 PM` | Timestamp when order checkout was completed. |
-| Order Ticket: Timer Remaining | Number (Countdown) | Yes | Computed dynamically: `(created_at + 5 mins) - current_time` | `01:45` | Time remaining in MM:SS before order triggers auto-rejection. |
-| Order Ticket: Items List | Array of Objects | Yes | Must contain at least 1 food item | `1x Veg Margherita Pizza` | List of items, quantities, and user modifier choices. |
-| Order Ticket: Subtotal | Currency (Read-only) | Yes | Positive decimal | `₹284.76` | Total price of all food items before tax. |
-| Order Ticket: Tax Amount | Currency (Read-only) | Yes | Positive decimal | `₹14.24` | Computed tax amount applied to the order. |
-| Order Ticket: Total Bill | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Final payable amount (Subtotal + Tax Amount). |
-| Order Ticket: Payment Method | Badge (Read-only) | Yes | Value must be 'COD' or 'Online' | `Prepaid` (Online) | Specifies payment channel. |
-| Action: Accept | Button | Yes | Requires active auth token | `[Accept]` | Sends POST to `/accept` endpoint immediately without prompting for cooking or preparation time; transitions status to `Accepted`. |
-| Action: Reject | Button | Yes | Requires active auth token | `[Reject]` | Opens the Rejection Reason dialog modal to log cancellation. |
-
-#### 5. Validations
-*   **Shift Operation Lock**: Rejects/Accepts cannot be submitted if branch manager has marked the overall branch state as offline.
-*   **Direct Order Acceptance**: Accepting an order must not prompt the operator for any cooking time or preparation time. The action executes immediately upon button click.
-
-#### 6. Dependencies
-*   **Customer Checkouts**: Generates the incoming order queues.
-*   **Payment Gateway Status**: Verifies payment success flags before showing online pre-paid orders in queue.
-
-#### 7. API Requirement Suggestions
-*   **POST** `/api/v1/restaurant/orders/accept`
-    *   *Payload*: `{"branch_id": "br_mg_road", "order_id": "ord_99018"}`
-    *   *Response*: `{"status": "success", "new_status": "Accepted"}`
-*   **POST** `/api/v1/restaurant/orders/reject`
-    *   *Payload*: `{"branch_id": "br_mg_road", "order_id": "ord_99018", "reason_code": "out_of_stock", "notes": "No basil leaves left"}`
-    *   *Response*: `{"status": "success", "new_status": "Rejected"}`
-
-#### 8. Database Table Suggestions
-```sql
-CREATE TABLE branch_orders (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    branch_id UUID REFERENCES branches(id),
-    customer_id UUID NOT NULL,
-    status VARCHAR(50) DEFAULT 'Pending',
-    payment_method VARCHAR(20) CHECK (payment_method IN ('COD', 'Online')),
-    payment_status VARCHAR(20) DEFAULT 'Pending',
-    subtotal_amount DECIMAL(10,2) NOT NULL,
-    tax_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    total_amount DECIMAL(10,2) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-#### 9. Backend Development Notes
-*   **Auto-Accept Timer**: Runs a backend queue scheduler that triggers automated cancellation alerts if order remains un-handled in `Pending` state for > 5 minutes.
-
-#### 10. Role & Permission Logic
-*   **Branch Manager**: Allowed to accept and reject orders.
-*   **Restaurant Staff**: Allowed only to view order lists, accept blocked by token authorization checker.
-
-#### 11. UI Components Required
-*   Order Ticket Card, Accept Button, Timer Display Badge.
-
-#### 12. Edge Cases
-*   **Network Droppage**: Operator loses connection, customer cancels order during dropout. WebSocket reconciles on recovery, removes deleted ticket from screen.
-
-#### 13. Notifications & Toast Messages
-*   *Success Push Alert*: "Order #ORD-99018 accepted successfully."
-*   *Toast Warning*: "Warning: incoming order ticket is expiring in 30 seconds."
-
-#### 14. Real-Time Event Flow
-*   Incoming order emits event `new_incoming_order` to rooms matching `branch_br_mg_road`.
-
-#### 15. Status Management System
-| Status | Color | Description | Next Allowed Status |
-|---|---|---|---|
-| `Pending` | Yellow | New incoming ticket | `Accepted` or `Rejected` |
-
-#### 16. Analytics Logic
-*   Calculates average branch response times (Time Received to Time Accepted).
-
-#### 17. Suggested Tech Notes
-*   Use Socket.io namespaces configured with Redis adapter mapping to deliver message frames horizontally across auto-scaled node clusters.
+| State | Visual Style |
+|---|---|
+| Completed Step | Filled circle with checkmark (`✓`), primary color `#2563EB` |
+| Active Step | Filled circle with step number, primary color `#2563EB`, bold label |
+| Upcoming Step | Hollow circle with step number, neutral gray `#94A3B8` |
+| Connector Line (completed) | Solid line, primary color `#2563EB` |
+| Connector Line (upcoming) | Dashed line, neutral gray `#94A3B8` |
 
 ---
 
-### Screen 3.2: Rejection Reason Dialog (Reject Flow Modal)
+### STEP 1: Branch Creation
 
 #### 1. Overview
-*   **Screen Purpose**: Captures explanations and logs details of order rejections.
-*   **Business Objective**: Compile precise cancellation data to improve inventory operations and trigger automatic payment reversals.
-*   **User Workflow**: Click "Reject" ➔ Select reason option ➔ Input detailed comment ➔ Confirm submit.
-*   **Main Functionality**: Option selectors, note text area, dynamic payment refund flag display.
+Input form to register the new branch's basic information, location details, and operational hours. This is the same form content as the original create branch screen.
 
-#### 2. Screen Preview (Text Wireframe)
+#### 2. Screen Preview
 ```text
-┌────────────────────────────────────────────────────────────────────────┐
-│  Reject Order #ORD-99018                                           [X] │
-├────────────────────────────────────────────────────────────────────────┤
-│  Select Rejection Reason:                                              │
-│  [ Out of Stock (select unavailable items next)                      ▼ ] │
-│                                                                        │
-│  Additional Notes (Mandatory for 'Other'):                             │
-│  [ Kitchen has run out of mozzarella cheese block.                   ] │
-│                                                                        │
-│  ⚠️ Prepaid Order: Confirming rejection triggers an instant refund to   │
-│  the customer payment method via Stripe (estimated 3-5 working days).  │
-├────────────────────────────────────────────────────────────────────────┤
-│                                          [ Cancel ]  [ CONFIRM REJECT ]│
-└────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Create New Branch                                          │
+│     ① Branch Creation ─────────── ② Assign Menu             │
+│     ● (Active)                    ○ (Upcoming)              │
+├─────────────────────────────────────────────────────────────┤
+│  Basic Information                                          │
+│  [Branch Code: B004     ]   [Branch Name: Indiranagar      ]  │
+│  [Contact Email: indira@roms.com] [Phone Number: 9876543210]  │
+│                                                             │
+│  Location Details                                           │
+│  [Address Line 1: 100 Feet Rd, 4th Block                    ]  │
+│  [City: Bangalore      ▼]   [State: Karnataka        ▼]     │
+│  [Pincode: 560038       ]                                   │
+│                                                             │
+│  Operational Details                                        │
+│  [Opening Time: 10:00 AM]   [Closing Time: 11:00 PM ]       │
+│                                                             │
+│                                          [Cancel] [Next →]   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-#### 3. UI/UX Layout Description
-*   **Overlay Structure**: Blur backdrop backdrop blocking main queue panel actions.
-*   **Form**: Dropdown selector for cancellation reasons. Input text container has a character limit counter (0/250).
-*   **Refund Pill Alert**: Dynamic text badge shown only for pre-paid order types. Displays: "Prepaid Order: Automated Refund Initiated."
-
-#### 4. Screen Fields Table
+#### 3. Step 1 Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Reason Code | Dropdown | Yes | Must match one of system enum cancellation keys | `out_of_stock` | Saved to logs database |
-| Reject Notes | Text Area | Yes* | Mandatory if reason is 'other'. Max 250 characters | `Out of cheese` | Strips invalid script tags |
+| Branch Code | Text | Yes | Unique, alphanumeric, min 3 / max 10 characters | `B004` | Identifier |
+| Branch Name | Text | Yes | Min 3, max 100 characters | `Indiranagar` | Official location name |
+| Contact Email | Email | Yes | Valid email format | `indira@roms.com` | Alerts sent to this address |
+| Phone Number | Phone | Yes | Numeric, exactly 10 digits | `9876543210` | Contact phone |
+| Address Line 1 | Text | Yes | Min 10, max 255 characters | `100 Feet Rd, 4th Block` | Location address |
+| City | Dropdown | Yes | Selected value must match active city list | `Bangalore` | City list |
+| State | Dropdown | Yes | Selected value must match active state list | `Karnataka` | State list |
+| Pincode | Text | Yes | Numeric, exactly 6 digits | `560038` | Local postal code |
+| Opening Time | Time | Yes | Valid 12-hour/24-hour time format | `10:00 AM` | Start of shift |
+| Closing Time | Time | Yes | Valid time format, chronologically after Opening | `11:00 PM` | End of shift |
+| Button: Cancel | Button | Yes | Navigates back to Branch Dashboard (Screen 2.1) | `[Cancel]` | Discards form data |
+| Button: Next | Button | Yes | Validates all fields, creates branch via API, proceeds to Step 2 | `[Next →]` | Triggers branch creation API call on click |
 
-#### 5. Validations
-*   **Note Requirement**: If 'Other' option selected, the confirmation submit button remains inactive until at least 10 letters are entered in additional notes block.
-
-#### 6. Dependencies
-*   **Payment Gateway API Integration**: Rejection submissions automatically dispatch refund payloads to the gateway provider.
-
-#### 7. API Requirement Suggestions
-*   **POST** `/api/v1/restaurant/orders/refund-initiate`
-    *   *Payload*: `{"order_id": "ord_99018", "refund_amount": 299.00}`
-    *   *Response*: `{"status": "initiated", "refund_id": "rf_010291", "gateway_code": "stripe_200"}`
-
-#### 8. Database Table Suggestions
-```sql
-CREATE TABLE rejected_orders (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id UUID UNIQUE REFERENCES branch_orders(id) ON DELETE CASCADE,
-    reason_code VARCHAR(50) NOT NULL,
-    notes TEXT,
-    refund_status VARCHAR(50) DEFAULT 'Not Required', -- 'Pending', 'Success', 'Failed'
-    refund_txn_id VARCHAR(100),
-    rejected_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-#### 9. Backend Development Notes
-*   **Database Transaction Locking**: Wrap database execution of order status updates and rejection insertions in single Transaction logic blocks to prevent orphaned status states.
-
-#### 10. Role & Permission Logic
-*   Restricted to **Branch Manager** authorization tokens. Restaurant Staff see disabled action trigger.
-
-#### 11. UI Components Required
-*   Modal Overlay Wrapper, Radio Input Field, Form Text Field.
-
-#### 12. Edge Cases
-*   **Refund API Failure**: Payment gateway times out during refund request processing. Backend marks order status as `Rejected` but flags refund tracking database entry as `Failed`, triggering alert flag on the admin dashboard queue.
-
-#### 13. Notifications & Toast Messages
-*   *Success Alert*: "Order rejected. Refund task created."
-*   *Error Warning*: "Refund processing failed. Administrator notified."
-
-#### 14. Real-Time Event Flow
-*   On rejection confirmation, push event `order_cancelled` containing order ID and refund status to Customer Mobile App client namespaces.
-
-#### 15. Status Management System
-| Status | Color | Description | Next Allowed Status |
-|---|---|---|---|
-| `Rejected` | Red | Ticket cancelled, terminal | None |
-
-#### 16. Analytics Logic
-*   Rejection metrics are aggregated daily to track branch performance indexes and identify catalog items experiencing frequent stock-outs.
-
-#### 17. Suggested Tech Notes
-*   Implement event-driven worker tasks using BullMQ/Celery to retry failed gateway refunds in secondary background loops.
+#### 4. Step 1 Validations
+- **Duplicate Code**: System checks that the inputted `Branch Code` is unique before allowing registration.
+- **Operating Hours**: Closing time must be chronologically after the opening time.
+- **Data Format**: Phone number must contain only numeric characters.
+- **API Call**: Branch is created (persisted) when the admin clicks `Next →`. If creation fails, the admin remains on Step 1 with error feedback.
 
 ---
 
-### Screen 3.3: Accepted Orders Queue Screen (Active Steppers)
+### STEP 2: Assign Menu
 
 #### 1. Overview
-*   **Screen Purpose**: Displays order workflows through kitchen preparation, packaging, courier matching, and handover.
-*   **Business Objective**: Optimize order lifecycle pacing. Highlight delays and manage courier handovers efficiently.
-*   **User Workflow**: Accept order ➔ Kitchen starts cooking (Auto-Preparing) ➔ Mark order as "Ready for Pickup" ➔ Courier picks up order.
-*   **Main Functionality**: Queue columns (Accepted, Preparing, Ready), Courier details card, "Mark Ready" trigger button.
+After the branch is successfully created in Step 1, this step presents the menu assignment interface. The admin maps food items from the master catalog to the newly created branch. At least one menu item must be assigned — this step cannot be skipped.
 
-#### 2. Screen Preview (Text Wireframe)
+#### 2. Screen Preview
 ```text
-┌────────────────────────────────────────────────────────────────────────┐
-│ [🍽 DineOs]   Active Orders Workspace                                  │
-├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  [ Accepted Queue (1) ]  [ Preparing (2) ]  [ Ready (1) ]│
-│ ○ Menu       ├─────────────────────────────────────────────────────────┤
-│ ▶ Orders     │ ┌────────────────────────┐ ┌──────────────────────────┐ │
-│   - Queue    │ │ #ORD-99018 (Preparing) │ │ #ORD-99017 (Ready)       │ │
-│   - List     │ │ Time Elapsed: 04:20    │ │ Courier: Assigned        │ │
-│ ○ Reviews    │ │ 1x Veg Pizza           │ │ Name: Mike (+91 999888)  │ │
-│ ○ Profile    │ │ [ Mark as Ready ]      │ │ [ Waiting Courier... ]   │ │
-│              │ └────────────────────────┘ └──────────────────────────┘ │
-└──────────────┴─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Create New Branch — Indiranagar (B004)                      │
+│     ✓ Branch Creation ─────────── ② Assign Menu             │
+│       (Completed)                 ● (Active)                │
+├─────────────────────────────────────────────────────────────┤
+│  Assign Menu Items to Branch                                │
+│  Category: [All Categories ▼]   🔍 Search Food Item...       │
+├─────────────────────────────────────────────────────────────┤
+│ [x] Select All                                              │
+│                                                             │
+│ [x] Margherita Pizza     | Category: Pizza    | ₹299        │
+│ [x] Farmhouse Pizza      | Category: Pizza    | ₹399        │
+│ [ ] Garlic Bread         | Category: Sides    | ₹149        │
+│ [ ] Choco Lava Cake      | Category: Desserts | ₹129        │
+│                                                             │
+│                                  [← Back] [Save & Finish]   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-#### 3. UI/UX Layout Description
-*   **Columns Grid**: Three visual columns mapping order stages:
-    *   *Accepted*: Immediate approvals waiting execution.
-    *   *Preparing*: Active cooking, displaying elapsed time badge counts.
-    *   *Ready*: Awaiting package handover to courier partners.
-*   **Action CTAs**: Rose color borderless button changing state on preparer actions ("Mark as Ready").
-*   **Courier Details Card**: Integrated detail drawer rendering delivery agent details (avatar picture, name, registration plate, phone, live tracking connection link).
-
-#### 4. Screen Fields Table
+#### 3. Step 2 Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Tab / Column Selector | Segmented Control | Yes | Must be 'Accepted', 'Preparing', or 'Ready' | `Preparing` | Filters active tickets by status stage. |
-| Order Card: ID | Text (Read-only) | Yes | Unique identifier format (`#ORD-XXXXX`) | `#ORD-99018` | Displays order serial reference key. |
-| Order Card: Time Elapsed | Duration (Timer) | Yes | Computed dynamically: `current_time - accepted_at` | `04:20` | Tracks cooking duration elapsed in MM:SS. |
-| Order Card: Items Summary | Array (Read-only) | Yes | Standard listing of food items | `1x Veg Pizza` | Brief catalog of dishes for fast kitchen readability. |
-| Order Card: Status | Badge (Read-only) | Yes | Must be 'Accepted', 'Preparing', or 'Ready' | `Preparing` | Displays the current stage status of the order. |
-| Order Card: Courier Match | Badge (Read-only) | Yes | 'Unassigned', 'Assigned', or 'Arrived' | `Assigned` | Live status tracking of matched dispatch riders. |
-| Courier Card: Name | Text (Read-only) | Yes* | Alphabetical characters, only when matched | `Mike` | Assigned courier dispatch partner name. |
-| Courier Card: Phone | Phone (Read-only) | Yes* | E.164 standard phone format | `+91 9998887776` | Courier phone details for quick customer contact. |
-| Action: Mark as Ready | Button | Yes | Requires active authorization token | `[Mark as Ready]` | Sends POST to `/mark-ready` endpoint; transitions state to `Ready For Pickup`. |
+| Selection Checkbox | Checkbox | No | Checked state maps item to branch | `true` | Select individual item |
+| Select All Checkbox | Checkbox | No | Boolean | `true` | Selects all currently filtered items |
+| Item Name | Text | Read-only | Min 3 chars | `Margherita Pizza` | Master food item name |
+| Item Category | Text | Read-only | Valid category tag | `Pizza` | Master category classification |
+| Item Price | Currency | Read-only | Positive decimal | `₹299` | Item selling price |
+| Category Filter | Dropdown | No | Must match active master category | `All Categories` | Filters list by food category |
+| Search Bar | Text | No | Max 50 characters | `Pizza` | Filters list by food name |
+| Button: Back | Button | Yes | Returns to Step 1 in read-only summary mode | `[← Back]` | Branch already created — Step 1 fields are non-editable on return |
+| Button: Save & Finish | Button | Yes | Saves menu assignments and redirects to Branch Dashboard | `[Save & Finish]` | Requires at least 1 item selected |
 
-#### 5. Validations
-*   **Pre-Pickup Lock**: Manual status cannot be pushed past `Ready` status by restaurant. The handover status transition to `Out For Delivery` is controlled by the Delivery Partner app coordinates scan action.
+#### 4. Step 2 Validations
+- At least **one menu item** must be selected before the admin can click `Save & Finish`.
+- Attempting to save with zero selections displays an inline error: _"Please assign at least one menu item to continue."_
+- The `← Back` button returns to Step 1, but since the branch is already created, all Step 1 fields are displayed as **read-only summary** (non-editable).
 
-#### 6. Dependencies
-*   **Delivery Partner matching algorithm**: Feeds rider assignments, profile values, and connection markers to screen.
-
-#### 7. API Requirement Suggestions
-*   **POST** `/api/v1/restaurant/orders/mark-ready`
-    *   *Payload*: `{"branch_id": "br_mg_road", "order_id": "ord_99018"}`
-    *   *Response*: `{"status": "success", "new_status": "Ready For Pickup"}`
-
-#### 8. Database Table Suggestions
-Re-uses columns from the main `branch_orders` mapping schema. Status updates and transitions are recorded in the status audit log table:
-```sql
-CREATE TABLE order_status_history (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id UUID REFERENCES branch_orders(id) ON DELETE CASCADE,
-    previous_status VARCHAR(50),
-    new_status VARCHAR(50) NOT NULL,
-    changed_by_id UUID, -- References employee details who triggered transition
-    changed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-#### 9. Backend Development Notes
-*   **Cron-based Automations**: 1 minute after status moves to `Accepted`, background cron task automatically updates status to `Preparing` and schedules delivery request broadcast events.
-
-#### 10. Role & Permission Logic
-*   Both **Branch Managers** and **Restaurant Staff** possess permissions to transition orders along the preparation pipeline and mark packages ready.
-
-#### 11. UI Components Required
-*   Pipeline Columns Wrapper, Stepper Progress Indicator, Delivery Agent Summary Card.
-
-#### 12. Edge Cases
-*   **Delivery Partner Search Timeout**: No rider accepts order within 10 minutes. Status remains `Ready for Pickup`, triggers toast alert, and unlocks fallback manually-assign button options.
-
-#### 13. Notifications & Toast Messages
-*   *Push Notification*: "Delivery Partner Mike assigned to order #ORD-99018."
-*   *Success Alert*: "Order #ORD-99018 marked ready for collection."
-
-#### 14. Real-Time Event Flow
-*   Backend publishes event `delivery_assigned` upon driver matching. The UI instantly updates status to include courier profile.
-
-#### 15. Status Management System
-| Status | Color | Description | Next Allowed Status |
-|---|---|---|---|
-| `Accepted` | Light Blue | Initialized order state | `Preparing` |
-| `Preparing` | Amber | Active kitchen processing | `Ready For Pickup` |
-| `Ready For Pickup`| Purple | Awaiting courier handover | `Out For Delivery` |
-| `Out For Delivery`| Dark Blue | Rider carrying package to customer | `Arrived` |
-| `Arrived` | Teal | Rider has arrived at delivery destination | `Delivered` or `Returned` |
-| `Delivered` | Green | Order completed successfully | None |
-| `Returned` | Orange-Red | Order returned by customer | None |
-
-#### 16. Analytics Logic
-*   Kitchen performance analytics calculate differences between `Accepted` and `Ready For Pickup` milestones.
-
-#### 17. Suggested Tech Notes
-*   Socket payloads are structured in light JSON structures, passing only IDs and statuses to reduce memory consumption on high concurrent web pages.
+#### 5. Dependencies
+- **Module Dependencies**: Relies directly on Module 5 (Food Management) master catalog to query the list of active food items available to assign.
 
 ---
 
-### Screen 3.4: Order List Screen (Tabs: Accept, Reject, Delivered, Return)
+## Screen 2.3: Update Branch — Multi-Step Wizard
+
+### 1. Overview
+A two-step guided wizard for updating an existing branch. **Step 1** displays the editable branch configuration form (Branch Code is permanently locked). Upon saving changes, **Step 2** presents the menu assignment interface showing current menu assignments with the ability to add or remove items. Menu assignment is mandatory — the branch must retain at least one assigned menu item.
+
+### 2. Wizard Step Indicator
+Uses the same horizontal step progress bar as Screen 2.2 (Create Branch Wizard). Visual states are identical.
+
+---
+
+### STEP 1: Update Branch Details
 
 #### 1. Overview
-*   **Screen Purpose**: A single repository page for all orders (active and historical) processed at the branch level, categorized by tab selection.
-*   **Business Objective**: Enable operators to audit financials, verify cash transactions, track stripe/razorpay refunds, and review customer return reasons in a consolidated workspace.
-*   **User Workflow**: Select `- List` from sidebar ➔ Click target Tab (Accept / Reject / Delivered / Return) ➔ Use filters/search ➔ Select row to inspect details via drawer.
-*   **Main Functionality**: Tabbed queue selector, CSV report exporter, alphanumeric search bar, payment mode dropdown filter, detailed order drawer widget.
+Interface to update the configuration of an existing branch. The unique Branch Code is permanently locked to preserve data records. All other fields are pre-filled with current values and fully editable.
 
-#### 2. Screen Layout
+#### 2. Screen Preview
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Update Branch — MG Road (B001)                             │
+│     ① Branch Details ─────────── ② Assign Menu              │
+│     ● (Active)                   ○ (Upcoming)               │
+├─────────────────────────────────────────────────────────────┤
+│  Basic Information                                          │
+│  Branch Code: B001 (Locked) [Branch Name: MG Road Branch   ]  │
+│  [Contact Email: mgroad@roms.com] [Phone Number: 9811223344]  │
+│                                                             │
+│  Location Details                                           │
+│  [Address Line 1: 123, Main Street, MG Road                 ]  │
+│  [City: Bangalore      ▼]   [State: Karnataka        ▼]     │
+│  [Pincode: 560001       ]                                   │
+│                                                             │
+│  Operational Details                                        │
+│  [Opening Time: 10:00 AM]   [Closing Time: 11:00 PM ]       │
+│                                                             │
+│                                          [Cancel] [Next →]   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 3. Step 1 Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Branch Code | Label | — | Locked read-only display element | `B001` | Non-editable |
+| Branch Name | Text | Yes | Min 3, max 100 characters | `MG Road Branch` | Location name |
+| Contact Email | Email | Yes | Valid email format | `mgroad@roms.com` | Alerts email |
+| Phone Number | Phone | Yes | Numeric, exactly 10 digits | `9811223344` | Contact phone |
+| Address Line 1 | Text | Yes | Min 10, max 255 characters | `123, Main Street` | Location address |
+| City | Dropdown | Yes | Selected value must match active city list | `Bangalore` | City list |
+| State | Dropdown | Yes | Selected value must match active state list | `Karnataka` | State list |
+| Pincode | Text | Yes | Numeric, exactly 6 digits | `560001` | Postal code |
+| Opening Time | Time | Yes | Valid time format | `10:00 AM` | Opening hours |
+| Closing Time | Time | Yes | Valid time format, chronologically after Opening | `11:00 PM` | Closing hours |
+| Button: Cancel | Button | Yes | Navigates back to Branch Dashboard (Screen 2.1) | `[Cancel]` | Discards unsaved changes |
+| Button: Next | Button | Yes | Validates all fields, saves changes via API, proceeds to Step 2 | `[Next →]` | Triggers branch update API call on click |
+
+#### 4. Step 1 Validations
+- Closing time must be chronologically after the opening time.
+- Changes are saved (persisted via API) when the admin clicks `Next →`. If the update fails, the admin remains on Step 1 with error feedback.
+- Changes must be saved using an active database transaction.
+
+---
+
+### STEP 2: Assign Menu
+
+#### 1. Overview
+After branch details are saved in Step 1, this step displays the current menu assignments for the branch. The admin can add or remove food item mappings. Pre-existing assignments are shown with checkboxes already checked. At least one menu item must remain assigned.
+
+#### 2. Screen Preview
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Update Branch — MG Road (B001)                             │
+│     ✓ Branch Details ─────────── ② Assign Menu              │
+│       (Completed)                ● (Active)                 │
+├─────────────────────────────────────────────────────────────┤
+│  Assign Menu Items to Branch                                │
+│  Category: [All Categories ▼]   🔍 Search Food Item...       │
+├─────────────────────────────────────────────────────────────┤
+│ [ ] Select All                                              │
+│                                                             │
+│ [x] Margherita Pizza     | Category: Pizza    | ₹299        │
+│ [x] Farmhouse Pizza      | Category: Pizza    | ₹399        │
+│ [x] Garlic Bread         | Category: Sides    | ₹149        │
+│ [ ] Choco Lava Cake      | Category: Desserts | ₹129        │
+│                                                             │
+│                                  [← Back] [Save & Finish]   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 3. Step 2 Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Selection Checkbox | Checkbox | No | Checked state maps item to branch | `true` | Select individual item. Pre-checked for currently assigned items |
+| Select All Checkbox | Checkbox | No | Boolean | `false` | Selects all currently filtered items |
+| Item Name | Text | Read-only | Min 3 chars | `Margherita Pizza` | Master food item name |
+| Item Category | Text | Read-only | Valid category tag | `Pizza` | Master category classification |
+| Item Price | Currency | Read-only | Positive decimal | `₹299` | Item selling price |
+| Category Filter | Dropdown | No | Must match active master category | `All Categories` | Filters list by food category |
+| Search Bar | Text | No | Max 50 characters | `Pizza` | Filters list by food name |
+| Button: Back | Button | Yes | Returns to Step 1 with editable fields (update mode) | `[← Back]` | Step 1 fields remain editable since this is an update flow |
+| Button: Save & Finish | Button | Yes | Saves menu assignments and redirects to Branch Dashboard | `[Save & Finish]` | Requires at least 1 item selected |
+
+#### 4. Step 2 Validations
+- At least **one menu item** must remain assigned before the admin can click `Save & Finish`.
+- Attempting to save with zero selections displays an inline error: _"Please assign at least one menu item to continue."_
+- The `← Back` button returns to Step 1 with all fields **editable** (since this is an update flow, the admin may continue editing branch details).
+
+#### 5. Dependencies
+- **Module Dependencies**: Relies directly on Module 5 (Food Management) master catalog to query the list of active food items available to assign.
+
+---
+
+## Screen 2.4: View Branch Details Screen
+
+### 1. Overview
+A read-only detail screen for viewing all information related to a specific branch. The screen is divided into two zones: a **persistent header card** displaying the branch's core identity (name, code, email, status) with only a Back button, and an **internal tabbed panel** below it with two read-only tabs. This is a pure view-only screen — no edit, delete, or deactivate actions are available.
+
+### 2. Screen Layout
+
 The screen is composed of two visual zones stacked vertically:
 
-*   **Zone 1 — Persistent Screen Shell & Tab Navigation (Always Visible)**: A sidebar for navigation, and a persistent top filtering and search panel containing search inputs and a payment mode selector. This header remains fixed as the user transitions between tabs.
-*   **Zone 2 — Internal Tabbed Content Panel**: A tab bar immediately below the persistent search panel with four tabs:
-    *   *Accept*: Lists active orders currently in Accepted, Preparing, Ready For Pickup, Out For Delivery, or Arrived status.
-    *   *Reject*: Lists cancelled orders with refund details.
-    *   *Delivered*: Lists successfully completed deliveries.
-    *   *Return*: Lists orders rejected/returned by the customer.
+**Zone 1 — Branch Identity Header Card (Always Visible)**
+A non-scrollable summary card pinned at the top of the screen. Displays core branch identity fields and a Back navigation link. This zone never changes when switching tabs.
 
-Each tab renders its own dedicated data table grid layout.
+**Zone 2 — Internal Tabbed Content Panel**
+A tab bar immediately below the header card with two read-only tabs:
 
-#### 3. Screen Preview (Full Composite View — Accept Tab Active)
+| Tab Label | Badge Count | Description |
+|---|---|---|
+| Branch Information | — | Detailed branch configuration and audit trail |
+| Branch Menu | Dynamic (e.g. `25`) | Food items currently assigned to this branch |
+
+### 3. Screen Preview (Full Composite View — Branch Information Tab Active)
 ```text
-┌────────────────────────────────────────────────────────────────────────┐
-│ [🍽 DineOs]   Order List Ledger                                        │
-├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  [ Accept (5) ]  [ Reject (2) ]  [ Delivered ]  [ Return ]│
-│ ○ Menu       ├─────────────────────────────────────────────────────────┤
-│ ▶ Orders     │  🔍 [ Search Order ID...   ]   Filter: [ Payment Mode ▼ ] │
-│   - Queue    ├──────────┬──────────────┬──────────────┬───────────┬────────────────┬────────┐
-│   - List     │ Order ID │ Timestamp    │ Total Value  │ Status    │ Payment Method │ Action │
-│ ○ Reviews    ├──────────┼──────────────┼──────────────┼───────────┼────────────────┼────────┤
-│ ○ Profile    │ #99018   │ 12:46 PM     │ ₹299.00      │ Preparing │ Online         │ [View] │
-│              │ #99016   │ 12:30 PM     │ ₹420.00      │ Accepted  │ COD            │ [View] │
-│              │ └────────┴──────────────┴──────────────┴───────────┴────────────────┴────────┘ │
-│              │ Showing 1-20 of 5 entries             [<] [1] [>]       │
-└──────────────┴─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  ‹ Back to Branches                                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  MG Road Branch (B001)                                      │
+│  Branch Name:  MG Road Branch                               │
+│  Branch Code:  B001                                         │
+│  Email:        mgroad@roms.com                              │
+│  Status:       ● Active                                     │
+│                                                             │
+│  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│  [Branch Information]    Branch Menu (25)                    │
+│  ─────────────────────                                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌───────────────────┬─────────────────────────────────────┐│
+│  │ Branch Code       │ B001                                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Address Details   │ 123, Main Street, MG Road           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ City              │ Bangalore                           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ State             │ Karnataka                           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Pincode           │ 560001                              ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Contact Phone     │ +91 9811223344                      ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Contact Email     │ mgroad@roms.com                     ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Operating Hours   │ 10:00 AM to 11:00 PM                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Created By        │ admin_user on 2026-05-01 10:00 AM   ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Edited By         │ admin_user on 2026-05-20 03:30 PM   ││
+│  └───────────────────┴─────────────────────────────────────┘│
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### SECTION A: Persistent Screen Shell & Tab Navigation (Persistent — Always Visible)
+### SECTION A: Branch Identity Header Card (Persistent — Always Visible)
 
-This zone remains fixed regardless of which tab is active. It contains the search input, payment mode filter, and CSV export action.
+This zone remains fixed at the top regardless of which tab is active. It displays branch identity and a Back navigation link only — no management actions.
 
-#### 1. Persistent Screen Shell Fields Table
+#### 1. Header Card Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Search Box | Input Text | No | Alphanumeric validation limits | `99018` | Filters the selected tab rows by matching Order ID |
-| Payment Mode Filter | Selector | No | Must match 'COD', 'Online', or 'All' | `Online` | Filters records by payment method |
-| Export Button | Button | No | Requires active list scope | `[CSV]` | Exports the currently filtered order records to a CSV file |
+| Back Button | Link | Yes | Navigates back to Branch Dashboard (Screen 2.1) | `‹ Back to Branches` | Top-left navigation link. Preserves previously applied dashboard filters |
+| Branch Title | Label | Read-only | Format: `{Name} ({Code})` | `MG Road Branch (B001)` | Main page heading, prominent display |
+| Branch Name | Label | Read-only | Min 3 characters | `MG Road Branch` | Displayed below title |
+| Branch Code | Label | Read-only | Unique alphanumeric code | `B001` | Displayed below branch name |
+| Email | Label | Read-only | Valid email format | `mgroad@roms.com` | Branch contact email |
+| Status Indicator | Badge | Read-only | Green pill for `Active`, Red pill for `Inactive` | `● Active` | Color-coded status pill next to identity |
 
 ---
 
 ### SECTION B: Internal Tab Bar Controller
 
-The tab bar sits below the persistent header card. The active tab displays an underline highlight (primary color `#2563EB`) beneath its label, with dynamic badge counts indicating matching order volume.
+The tab bar sits directly below the header card, acting as the switcher for the content panel. Only one tab is active at a time. The active tab displays an **underline highlight** (primary color `#2563EB`) beneath its label.
 
 #### 1. Tab Bar Behavior
 | Property | Specification |
 |---|---|
-| Default Active Tab | `Accept` |
+| Default Active Tab | `Branch Information` (first tab) |
 | Active Tab Indicator | Bottom border underline, `2px solid #2563EB` |
 | Inactive Tab Style | Neutral gray text, no underline |
-| Badge Counts | Dynamic count shown in parentheses next to active tabs with pending items |
-| URL State Persistence | Tab state must be persisted in the URL query parameter (e.g., `?tab=reject`) |
+| Badge Counts | Dynamic numeric count shown in parentheses for `Branch Menu` tab |
+| URL State Persistence | Active tab selection must be reflected in the URL query parameter (e.g. `?tab=menu`) so that page refresh preserves the selected tab |
+| Keyboard Navigation | Supports `←` / `→` arrow key navigation between tabs, `Enter` to activate |
 
 ---
 
 ### SECTION C: Tab Content Viewports
 
-Swaps the data table grid based on the active tab selection. Clicking the `[View]` button in the Action column (or clicking the order ID link) in any tab opens a slide-out detailed drawer from the right.
+Each tab renders its own dedicated content area below the tab bar. When a tab is selected, only the content viewport area swaps — the header card and tab bar remain static. Both tabs are **read-only** with no editable fields or action buttons.
 
 ---
 
-#### Tab 1: Accept
-Displays active orders currently in progress.
+#### Tab 1: Branch Information
 
-##### 1. Accept Tab Preview
+Displays the full operational configuration of the branch in a **vertical key-value detail card** format (label on left, value on right). Includes address details, contact information, operating hours, and system audit trail.
+
+##### 1. Branch Information Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬──────────────────┬────────────────┬────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Status           │ Payment Method │ Action │
-├──────────┼──────────────┼──────────────┼──────────────────┼────────────────┼────────┤
-│ #99018   │ 12:46 PM     │ ₹299.00      │ Preparing        │ Online         │ [View] │
-│ #99016   │ 12:30 PM     │ ₹420.00      │ Accepted         │ COD            │ [View] │
-└──────────┴──────────────┴──────────────┴──────────────────┴────────────────┴────────┘
+├─────────────────────────────────────────────────────────────┤
+│  [Branch Information]    Branch Menu (25)                    │
+│  ─────────────────────                                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌───────────────────┬─────────────────────────────────────┐│
+│  │ Branch Code       │ B001                                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Address Details   │ 123, Main Street, MG Road           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ City              │ Bangalore                           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ State             │ Karnataka                           ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Pincode           │ 560001                              ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Contact Phone     │ +91 9811223344                      ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Contact Email     │ mgroad@roms.com                     ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Operating Hours   │ 10:00 AM to 11:00 PM                ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Created By        │ admin_user on 2026-05-01 10:00 AM   ││
+│  ├───────────────────┼─────────────────────────────────────┤│
+│  │ Edited By         │ admin_user on 2026-05-20 03:30 PM   ││
+│  └───────────────────┴─────────────────────────────────────┘│
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-##### 2. Accept Tab Fields Table
+##### 2. Branch Information Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Table Column: Order ID | Text Link | Yes | Unique reference format | `#99018` | Clickable link opens details drawer |
-| Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `12:46 PM` | Order creation timestamp |
-| Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Inclusive of tax |
-| Table Column: Status | Badge (Read-only) | Yes | Active order status | `Preparing` | Valid states: Accepted, Preparing, Ready For Pickup, Out For Delivery, Arrived |
-| Table Column: Payment Method | Badge (Read-only) | Yes | Value must be 'COD' or 'Online' | `Online` | Mode of payment chosen |
-| Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
+| Branch Code | Text | Read-only | Unique alphanumeric code | `B001` | Unique branch identifier |
+| Address Details | Text | Read-only | Minimum 10 characters | `123, Main Street, MG Road` | Full street address |
+| City | Text | Read-only | Valid city name | `Bangalore` | Branch city |
+| State | Text | Read-only | Valid state name | `Karnataka` | Branch state |
+| Pincode | Text | Read-only | Exactly 6 digits | `560001` | Postal code |
+| Contact Phone | Phone | Read-only | Exactly 10 digits, displayed with `+91` prefix | `+91 9811223344` | Branch contact number |
+| Contact Email | Email | Read-only | Valid email format | `mgroad@roms.com` | Notification email |
+| Operating Hours | Text | Read-only | Format: `{Open Time} to {Close Time}` | `10:00 AM to 11:00 PM` | Daily operational window |
+| Created By | Text | Read-only | Format: `{user} on {timestamp}` | `admin_user on 2026-05-01 10:00 AM` | Audit trail — creator identity and timestamp combined |
+| Edited By | Text | Read-only | Format: `{user} on {timestamp}` | `admin_user on 2026-05-20 03:30 PM` | Audit trail — last editor identity and timestamp combined |
 
 ---
 
-#### Tab 2: Reject
-Displays cancelled orders with refund statuses.
+#### Tab 2: Branch Menu
 
-##### 1. Reject Tab Preview
+Displays the list of food items currently assigned to this branch in a **read-only tabular format**. This tab provides visibility into the branch's menu without any edit or assignment capabilities — menu management is handled through the Edit flow (Screen 2.3, Step 2).
+
+##### 1. Branch Menu Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬─────────────────┬───────────────┬───────────┬────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Rejection Code  │ Refund Status │ Status    │ Action │
-├──────────┼──────────────┼──────────────┼─────────────────┼───────────────┼───────────┼────────┤
-│ #99015   │ 11:20 AM     │ ₹180.00      │ out_of_stock    │ Refunded      │ Rejected  │ [View] │
-│ #99011   │ 10:15 AM     │ ₹320.00      │ customer_cancel │ Refund Pending│ Rejected  │ [View] │
-└──────────┴──────────────┴──────────────┴─────────────────┴───────────────┴───────────┴────────┘
+├─────────────────────────────────────────────────────────────┤
+│   Branch Information    [Branch Menu (25)]                   │
+│                         ─────────────────                    │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Assigned Menu Items                                        │
+│  ┌─────────────┬───────────────────────────────┬────────────┐│
+│  │ Item Code   │ Food Item Name                │ Price      ││
+│  ├─────────────┼───────────────────────────────┼────────────┤│
+│  │ F012        │ Chicken Biryani               │ ₹299       ││
+│  │ F045        │ Margherita Pizza              │ ₹199       ││
+│  │ F023        │ Garlic Bread                  │ ₹149       ││
+│  └─────────────┴───────────────────────────────┴────────────┘│
+│  Showing 1-10 of 25                       [<] [1] [2] [>]   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-##### 2. Reject Tab Fields Table
+##### 2. Branch Menu Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Table Column: Order ID | Text Link | Yes | Unique reference format | `#99015` | Clickable link opens details drawer |
-| Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `11:20 AM` | Order checkout timestamp |
-| Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹180.00` | Order total |
-| Table Column: Rejection Code | Badge (Read-only) | Yes | Valid system reason enum | `out_of_stock` | Reason code selected in Screen 3.2 |
-| Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Not Required (for COD), Refund Pending, Refunded, Refund Failed |
-| Table Column: Status | Badge (Read-only) | Yes | Value must be 'Rejected' | `Rejected` | Order cancellation status |
-| Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
+| Menu Table: Item Code | Text | Read-only | Alphanumeric unique code | `F012` | Linked food item code |
+| Menu Table: Food Item Name | Text | Read-only | Minimum 3 characters | `Chicken Biryani` | Master food item title |
+| Menu Table: Price | Currency | Read-only | Positive decimal format | `₹299` | Branch selling price |
+| Pagination | Control | Yes | Standard page navigation | `Showing 1-10 of 25` | Paginated at 10 items per page |
 
 ---
 
-#### Tab 3: Delivered
-Displays completed historical orders.
+### SECTION D: Business Validations & Rules
 
-##### 1. Delivered Tab Preview
+1. **Audit Trail Integrity**: Audit tracking fields (Created By, Edited By) are system-managed and cannot be edited by any user.
+2. **Dynamic Badge Count**: The numeric count displayed in the `Branch Menu` tab label (e.g. `Branch Menu (25)`) must automatically recalculate whenever items are added or removed via the Edit flow.
+3. **Tab State Persistence**: The currently active tab must be preserved in the URL query string (e.g. `?tab=menu`) so that browser refresh or shared links restore the correct tab view.
+4. **Back Navigation**: The `‹ Back to Branches` link must return the user to the Branch Dashboard (Screen 2.1), preserving any previously applied filters.
+5. **Read-Only Screen**: This screen has no edit, delete, deactivate, or assign actions. All management actions are accessible from the Branch Dashboard table (Screen 2.1) or through the Edit flow (Screen 2.3).
+
+### SECTION E: Dependencies
+
+- **Module Dependencies**: Depends directly on Module 5 (Food Management) to query master menu catalog items mapped to this branch.
+
+---
+
+## Screen 2.5: Deactivate Branch Confirmation Modal
+
+### 1. Overview
+Confirmation dialog when an Admin deactivates a branch. Halts online checkout operations at that specific branch immediately. This modal is triggered from the `[Inactivate]` action in the Branch Dashboard table (Screen 2.1).
+
+### 2. Screen Preview
 ```text
-┌──────────┬──────────────┬──────────────┬─────────────────┬──────────────┬────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Delivered Time  │ Status       │ Action │
-├──────────┼──────────────┼──────────────┼─────────────────┼──────────────┼────────┤
-│ #99014   │ 11:05 AM     │ ₹450.00      │ 11:35 AM        │ Delivered    │ [View] │
-│ #99012   │ 10:00 AM     │ ₹220.00      │ 10:30 AM        │ Delivered    │ [View] │
-└──────────┴──────────────┴──────────────┴─────────────────┴──────────────┴────────┘
+┌───────────────────────────────────────────────────────────┐
+│  Deactivate Branch — MG Road?                          [X]│
+├───────────────────────────────────────────────────────────┤
+│  ⚠️ WARNING: Deactivating this branch will immediately stop  │
+│  all customer applications from placing new orders here.   │
+│  Active orders (5) will still be processed.               │
+│                                                           │
+│                       [Cancel]  [Confirm Deactivation]    │
+└───────────────────────────────────────────────────────────┘
 ```
 
-##### 2. Delivered Tab Fields Table
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
-| Table Column: Order ID | Text Link | Yes | Unique reference format | `#99014` | Clickable link opens details drawer |
-| Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `11:05 AM` | Checkout timestamp |
-| Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹450.00` | Order total |
-| Table Column: Delivered Time | DateTime (Read-only) | Yes | Valid timestamp | `11:35 AM` | Time when delivered to customer |
-| Table Column: Status | Badge (Read-only) | Yes | Value must be 'Delivered' | `Delivered` | Order completion status |
-| Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
+### 3. Screen Fields Table
+None. (Dialog confirmation buttons only).
+
+### 4. Validations
+- Executing the deactivation automatically flags the database status indicator to `Inactive`, disabling the branch for consumer search.
 
 ---
 
-#### Tab 4: Return
-Displays customer returned/rejected orders.
+# 5. Module 3 — Employee Management
 
-##### 1. Return Tab Preview
+## Screen 3.1: Employee Dashboard (List View)
+
+### 1. Overview
+Tabular display containing the profile records of all system workers. Allows filtering by role type and branch assignment.
+
+### 2. Screen Preview
 ```text
-┌──────────┬──────────────┬──────────────┬─────────────────┬───────────────┬───────────┬────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Return Reason   │ Refund Status │ Status    │ Action │
-├──────────┼──────────────┼──────────────┼─────────────────┼───────────────┼───────────┼────────┤
-│ #99013   │ 10:45 AM     │ ₹299.00      │ damaged_items   │ Refunded      │ Returned  │ [View] │
-└──────────┴──────────────┴──────────────┴─────────────────┴───────────────┴───────────┴────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Employees                                [+ Add Employee]  │
+├─────────────────────────────────────────────────────────────┤
+│  🔍 Search by Name/Email... [Role: All ▼] [Branch: All ▼]   │
+├─────────────────────────────────────────────────────────────┤
+│ ID    │ Name        │ Role    │ Branch  │ Status   │ Action │
+│-------│-------------│---------│---------│----------│--------│
+│ E101  │ John Doe    │ Manager │ MG Road │ ● Active │ [Edit] │
+│ E102  │ Jane Smith  │ Kitchen │ MG Road │ ● Active │ [Edit] │
+│ E103  │ Bob Martin  │ Delivery│ CP Delhi│ ● Inactive│ [Edit] │
+├─────────────────────────────────────────────────────────────┤
+│  Showing 1-10 of 42                        [<] [1] [2] [>]  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-##### 2. Return Tab Fields Table
+### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Table Column: Order ID | Text Link | Yes | Unique reference format | `#99013` | Clickable link opens details drawer |
-| Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `10:45 AM` | Checkout timestamp |
-| Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Order total |
-| Table Column: Return Reason | Text (Read-only) | Yes | Reason given by customer | `damaged_items` | Customer return code |
-| Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Pending, Refunded, Refund Failed |
-| Table Column: Status | Badge (Read-only) | Yes | Value must be 'Returned' | `Returned` | Order return status |
-| Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
+| Search Bar | Text | No | Max 50 characters | `John` | Filters by employee name, email, or employee code |
+| Role Filter | Dropdown | No | Must match 'Manager', 'Kitchen', 'Delivery', or 'All' | `Manager` | Filters rows by operational role |
+| Branch Filter | Dropdown | No | Must match active branch ID | `MG Road` | Filters rows by mapped location |
+| Table Column: ID | Text | Read-only | Alphanumeric unique code | `E101` | Employee unique code |
+| Table Column: Name | Text | Read-only | Min 2 chars | `John Doe` | Employee name |
+| Table Column: Role | Text | Read-only | Mapped enum role | `Manager` | Mapped employee role |
+| Table Column: Branch | Text | Read-only | Mapped branch location | `MG Road` | Mapped branch location |
+| Table Column: Status | Badge | Read-only | 'Active' or 'Inactive' badge | `Active` | Status pill indicator |
+| Row Action: Edit | Link | — | Triggers page change | `[Edit]` | Navigates to Screen 3.3 |
+
+### 4. Validations
+- Standard alphanumeric search. Debounced at client level.
 
 ---
 
-#### Detailed Order Slide-out Drawer (Activated on Row Click or View Action)
-Row selection or click on the `[View]` button on any tab triggers a slide-out drawer containing detailed order information.
+## Screen 3.2: Create Employee Screen
 
-##### 1. Slide-out Drawer Fields Table
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
-| Drawer Title | Text (Read-only) | Yes | Format: `Order #{ID} Details` | `Order #99018 Details` | Header title of the drawer |
-| Order Status | Badge (Read-only) | Yes | Color-coded status badge | `Preparing` | Displays current active stage state |
-| Customer Name | Text (Read-only) | Yes | Min 2 characters | `Amit Kumar` | Customer display name |
-| Customer Phone | Phone (Read-only) | Yes | Valid E.164 phone standard | `+91 9876543210` | Customer contact mobile number |
-| Customer Address | Text (Read-only) | Yes* | Min 10 characters | `123, Main Street, Bangalore` | Pinned delivery location (hidden for Takeaway/Dine-in orders) |
-| Item Table: Name | Text (Read-only) | Yes | Min 3 characters | `Veg Pizza` | Name of ordered item |
-| Item Table: Price | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Unit selling price of item |
-| Item Table: Qty | Number (Read-only) | Yes | Integer >= 1 | `1` | Ordered quantity |
-| Item Table: Subtotal | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Subtotal amount for the item line |
-| Subtotal | Currency (Read-only) | Yes | Positive decimal | `₹284.76` | Total price before tax and delivery fees |
-| Tax Amount | Currency (Read-only) | Yes | Positive decimal | `₹14.24` | Computed SGST/CGST tax |
-| Total Bill | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Grand total payable (Subtotal + Tax) |
-| Payment Method | Badge (Read-only) | Yes | COD or Prepaid | `Prepaid` | Mode of payment |
-| Payment Status | Badge (Read-only) | Yes | Paid, Pending, Refunded, or Failed | `Paid` | Payment status details |
-| Delivery Agent | Text (Read-only) | Yes* | Mapped courier name | `Mike` | Courier agent name (shown only when assigned) |
-| Agent Contact | Phone (Read-only) | Yes* | E.164 standard format | `+91 9998887776` | Contact details of assigned courier |
-| Close Drawer Button | Button | Yes | Dismisses drawer overlay | `[X]` | Pinned to top-right to close detailed view |
+### 1. Overview
+Registration form to onboard system operators and managers, mapping them to explicit branch environments.
 
----
-
-#### 5. Validations
-*   **Export Range Limit**: Block CSV generation requests that capture more than 30 consecutive calendar days of records.
-*   **Read-Only Integrity**: Completed terminal entries (Reject, Delivered, Return) are write-locked; modifications or editing are disabled.
-
-#### 6. Dependencies
-*   **Payment Gateway Webhooks**: Stripe/Razorpay notifications drive the refund status changes on the Reject/Return tabs.
-*   **Delivery Partner Telemetry**: Courier handover, navigation, and location coordinates trigger state transitions.
-
-#### 7. API Requirement Suggestions
-*   **GET** `/api/v1/restaurant/orders/list?branch_id=br_mg_road&tab=reject&page=1`
-    *   *Response*: `{"status": "success", "orders": [{"id": "ord_99018", "created_at": "2026-05-27T12:46:00Z", "total": 299.00, "status": "Rejected", "payment_status": "Refunded"}]}`
-
-#### 8. Database Table Suggestions
-Suggests creating/maintaining these schemas for archival order statistics:
-```sql
-CREATE TABLE delivered_orders (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id UUID UNIQUE REFERENCES branch_orders(id) ON DELETE CASCADE,
-    delivered_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    delivery_rating INT CHECK (delivery_rating BETWEEN 1 AND 5),
-    notes TEXT
-);
-
-CREATE TABLE returned_orders (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id UUID UNIQUE REFERENCES branch_orders(id) ON DELETE CASCADE,
-    return_reason VARCHAR(100) NOT NULL,
-    return_description TEXT,
-    returned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    refund_status VARCHAR(50) DEFAULT 'Pending'
-);
-```
-
-#### 9. Backend Development Notes
-*   **Inventory Reconciliation**: For returned orders, program background actions to adjust kitchen ingredient stocks if non-perishable packaged items are restocked (e.g. packaged drinks).
-*   **Database Transaction Locking**: Wrap database execution of order status updates and rejection/return insertions in single Transaction logic blocks to prevent orphaned status states.
-
-#### 10. Role & Permission Logic
-*   **Branch Manager**: Allowed to view all logs, initiate custom refund escalations, and trigger CSV exports.
-*   **Restaurant Staff**: Allowed only to view lists; CSV exports and refund actions are blocked.
-
-#### 11. UI Components Required
-*   Slide-out Drawer Widget, Data Table, Paginated Footer, Status Badge.
-
-#### 12. Edge Cases
-*   **Late Status Sync**: Courier confirms delivery offline. The system reconciles the missing status log asynchronously once the courier's device reconnects, sliding the ticket into this queue.
-*   **False Return Declarations**: Dispute resolution channels are initialized by the manager if the customer disputes a driver's return declaration.
-
-#### 13. Notifications & Toast Messages
-*   *Toast Success*: "Order list records verified."
-*   *Error Push Notification*: "Delivery Partner marked order #ORD-99012 as Returned."
-
-#### 14. Real-Time Event Flow
-*   WebSocket channel broadcasts order completion triggers to keep the active kitchen dashboard queue state updated.
-
-#### 15. Status Management System
-| Status | Color | Description | Next Allowed Status |
-|---|---|---|---|
-| `Accepted` | Light Blue | Initialized order state | `Preparing` |
-| `Preparing` | Amber | Active kitchen processing | `Ready For Pickup` |
-| `Ready For Pickup`| Purple | Awaiting courier handover | `Out For Delivery` |
-| `Out For Delivery`| Dark Blue | Rider carrying package to customer | `Arrived` |
-| `Arrived` | Teal | Rider has arrived at delivery destination | `Delivered` or `Returned` |
-| `Delivered` | Green | Order completed successfully | None |
-| `Returned` | Orange-Red | Order returned by customer | None |
-
-#### 16. Analytics Logic
-*   Aggregates total gross checkout pricing fields to update daily branch revenue totals.
-*   Return metrics are aggregated monthly to measure branch losses and assess quality control of delivery routing.
-
-#### 17. Suggested Tech Notes
-*   Render detailed view layouts on client side using server data payloads fetched dynamically on list element clicks.
-*   Implement database triggers to notify managers if more than 3 returned order statuses are logged within a single shift.
-
----
-
-## Module 4 — Order Review Module
-
-### Screen 4.1: Reviews & Ratings Dashboard
-
-#### 1. Overview
-*   **Screen Purpose**: Display ratings, comments, and reviews left by customers for their orders.
-*   **Business Objective**: Monitor food quality, evaluate delivery performance, and track customer satisfaction trends.
-*   **User Workflow**: Click "Reviews" ➔ Filter by rating (e.g. 1-Star, 5-Star) ➔ View comment details ➔ Click order reference link to inspect items.
-*   **Main Functionality**: Cumulative rating display widget, individual rating card feeds, order drawer reference buttons.
-
-#### 2. Screen Preview (Text Wireframe)
+### 2. Screen Preview
 ```text
-┌────────────────────────────────────────────────────────────────────────┐
-│ [🍽 DineOs]   Customer Reviews & Ratings Dashboard                     │
-├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  Average Rating: ⭐ 4.6 / 5.0 (120 total reviews)        │
-│ ○ Menu       │  Filter Ratings: [ All Ratings ▼ ]  Sort: [ Newest ▼ ]  │
-│ ○ Orders     │─────────────────────────────────────────────────────────┤
-│ ▶ Reviews    │ ┌─────────────────────────────────────────────────────┐ │
-│ ○ Profile    │ │ ⭐⭐⭐⭐☆  | Order Reference: #ORD-99016                │ │
-│              │ │ Date: 2026-05-27 | Customer: Amit Kumar             │ │
-│              │ │ Comments: The Margherita pizza was fresh and delicious│ │
-│              │ │ but the delivery was slightly delayed.              │ │
-│              │ │ [ View Linked Order ]                               │ │
-│              │ └─────────────────────────────────────────────────────┘ │
-└──────────────┴─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Create New Employee                                        │
+├─────────────────────────────────────────────────────────────┤
+│  Personal Details                                           │
+│  [First Name: Amit     ]      [Last Name: Kumar         ]   │
+│  [Email: amit@roms.com ]      [Phone Number: 9876543211 ]   │
+│                                                             │
+│  Employment Details                                         │
+│  [Role: Manager       ▼]      [Assign Branch: MG Road   ▼]  │
+│  [Date of Joining: 2026-05-26]                              │
+│                                                             │
+│  Authentication                                             │
+│  [Password: ********** ]      [Confirm Password: *******]   │
+│                                                             │
+│                                      [Cancel] [Save Profile]│
+└─────────────────────────────────────────────────────────────┘
 ```
 
-#### 3. UI/UX Layout Description
-*   **Summary Block**: Top bar displaying average rating numbers with dynamic yellow star graphics.
-*   **Card Layout Feed**: Individual review listings with:
-    *   Left side: Star count display and review date.
-    *   Right side: Customer name, linked order ID link button, and comment text.
-*   **Order Details Drawer**: Clicking the "View Linked Order" button opens a slide-out drawer detailing the order items (e.g., Margherita Pizza, Coke).
-
-#### 4. Screen Fields Table
-
-##### Search & Filter Fields
+### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Rating Filter | Selector | No | Must be 1 to 5, or 'All' | `1` | Filters reviews display by star rating count. |
-| Sort Order | Dropdown | Yes | Value must be 'Newest' or 'Oldest' | `Newest` | Sorts reviews timeline chronologically. |
+| First Name | Text | Yes | Min 2, max 50 characters; letters only | `Amit` | Staff given name |
+| Last Name | Text | Yes | Min 2, max 50 characters; letters only | `Kumar` | Staff surname |
+| Email Address | Email | Yes | Valid unique email syntax | `amit@roms.com` | Used for portal credentials |
+| Phone Number | Phone | Yes | Numeric, exactly 10 digits | `9876543211` | Contact phone |
+| Role Selection | Dropdown | Yes | Role must be in validated system enum | `Manager` | Determines portal permissions |
+| Assign Branch | Dropdown | Yes* | Mapped branch ID | `MG Road` | Required if role is Manager, Kitchen, or Delivery |
+| Date of Joining| Date | Yes | Cannot be future date | `2026-05-26` | Start date record |
+| Password | Password | Yes | Min 8 characters; 1 upper, 1 lower, 1 digit, 1 special | `**********` | Hashed securely |
+| Confirm Password| Password| Yes | Must match Password exactly | `**********` | Verification check |
 
-##### Reviews List Table
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
-| Table Column: Rating Stars | Star Rating Indicator | Yes | 1 to 5 stars | `⭐⭐⭐⭐☆` | Displays the score given by the customer. |
-| Table Column: Order Reference | Text Link (Read-only) | Yes | Valid Order ID reference key | `#ORD-99016` | Displays linked order number. |
-| Table Column: Date | Date (Read-only) | Yes | Valid date format | `2026-05-27` | Date when the customer submitted the review. |
-| Table Column: Customer Name | Text (Read-only) | Yes | Alphabetical characters or 'Anonymous' | `Amit Kumar` | Customer name (masked as Anonymous if customer opted so). |
-| Table Column: Comment Text | Text (Read-only) | No | Max 500 characters, sanitizes inputs | `The Margherita pizza was fresh and delicious` | Detailed feedback text written by the customer. |
-| Row Action: View Linked Order | Button | Yes | Requires active auth token | `[View Linked Order]` | Opens details drawer showing order itemization. |
+### 4. Validations
+- Email must be unique globally across users.
+- Confirm Password must match Password exactly.
+- Assign Branch is dynamically required if the user role selected is Manager, Kitchen Staff, or Delivery Executive.
 
-#### 5. Validations
-*   **Review Length Limits**: Customer app comment strings are truncated to 500 characters on screen to prevent layout breakage.
-
-#### 6. Dependencies
-*   **Customer App review submissions**: Provides the dashboard data feed.
-
-#### 7. API Requirement Suggestions
-*   **GET** `/api/v1/restaurant/reviews?branch_id=br_mg_road&rating=4&sort=desc`
-    *   *Response*: `{"status": "success", "reviews": [{"id": "rev_01", "rating": 4, "comment": "Good", "order_id": "ord_99016"}]}`
-
-#### 8. Database Table Suggestions
-```sql
-CREATE TABLE order_reviews (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    order_id UUID UNIQUE REFERENCES branch_orders(id) ON DELETE CASCADE,
-    customer_id UUID NOT NULL,
-    rating INT CHECK (rating BETWEEN 1 AND 5),
-    comment TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-#### 9. Backend Development Notes
-*   **Audit Flags**: Automatically flag reviews containing profanity or vulgar terms for administrative review, blocking them from the public dashboard.
-
-#### 10. Role & Permission Logic
-*   Read-only access for branch employees and managers. Responses to reviews are managed at the Admin level.
-
-#### 11. UI Components Required
-*   Rating Star Indicator, Review Card, Filter Selection Tag.
-
-#### 12. Edge Cases
-*   **Anonymous Reviews**: If a customer opts to review anonymously, mask their name on the list as `Anonymous Customer`.
-
-#### 13. Notifications & Toast Messages
-*   *Toast Notification*: "Reviews timeline updated."
-
-#### 14. Real-Time Event Flow
-*   Review submissions send a dashboard notification trigger: "New 5-star review received for order #ORD-99016."
-
-#### 15. Status Management System
-*   *Not applicable to reviews dashboard.*
-
-#### 16. Analytics Logic
-*   Calculates moving averages of ratings over weekly and monthly periods to evaluate customer satisfaction trends.
-
-#### 17. Suggested Tech Notes
-*   Create a text search index on the `order_reviews(comment)` column to support quick keyword searches in the review history.
+### 5. Dependencies
+- **Module Dependencies**: Relies on Module 2 (Branch Management) to load active physical branches inside the dropdown selection.
 
 ---
 
-## Module 5 — Profile Module
+## Screen 3.3: Update Employee Screen
 
-### Screen 5.1: Branch Manager Profile Screen
+### 1. Overview
+Interface to update staff profiles. The form is divided into two sections: **Personal & Employment Details** (always visible) and **Reset Password** (collapsed by default, expandable on demand). Password entry is entirely optional — the admin can save profile changes without touching the password section.
 
-#### 1. Overview
-*   **Screen Purpose**: Display profile data, mapped roles, and operational configurations for the Branch Manager.
-*   **Business Objective**: Ensure access accountability, manage security settings, and confirm branch association details.
-*   **User Workflow**: Click "Profile" ➔ Select "Branch Manager Details" tab ➔ View properties or initiate password updates.
-*   **Main Functionality**: Read-only profile overview grid, profile image upload, credential reset triggers.
-
-#### 2. Screen Preview (Text Wireframe)
+### 2. Screen Preview (Default State — Password Section Collapsed)
 ```text
-┌────────────────────────────────────────────────────────────────────────┐
-│ [🍽 DineOs]   Branch Manager Profile Profile                           │
-├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  ┌───────────────────────┐                              │
-│ ○ Menu       │  │ Mapped Profile Photo  │   Name: Amit Kumar           │
-│ ○ Orders     │  │       [Image]         │   Email: amit@dineos.com     │
-│ ○ Reviews    │  │                       │   Mobile: +91 9876543210     │
-│ ▶ Profile    │  │ [ Upload New Image ]  │   Branch: MG Road Branch     │
-│              │  └───────────────────────┘   Role: Branch Manager       │
-│              │                                                         │
-│              │  [ CHANGE SYSTEM PASSWORD ]      [ UPDATE PHONE NUMBER ]│
-└──────────────┴─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Update Employee — John Doe (E101)                          │
+├─────────────────────────────────────────────────────────────┤
+│  Personal & Employment Details                              │
+│  Employee ID: E101 (Locked)                                 │
+│  [First Name: John     ]      [Last Name: Doe           ]   │
+│  [Email: john@roms.com (Locked)] [Phone Number: 9811223344]  │
+│  [Role: Manager       ▼]      [Assign Branch: MG Road   ▼]  │
+│  [Date of Joining: 2026-05-01]                              │
+│                                                             │
+│  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│  🔒 Reset Password                                    [▶ Expand]│
+│                                                             │
+│                                      [Cancel] [Save Changes]│
+└─────────────────────────────────────────────────────────────┘
 ```
 
-#### 3. UI/UX Layout Description
-*   **Profile Detail Card**: Balanced grid block. Left: Avatar placeholder with upload button trigger. Right: Contact details list.
-*   **Actions Row**: Multi-button footer layout featuring `[Change Password]` and `[Update Profile]` actions.
-*   **Password Reset Modal**: Center overlay window with secure password fields (current, new, and confirm).
+### 3. Screen Preview (Expanded State — Password Fields Visible)
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Update Employee — John Doe (E101)                          │
+├─────────────────────────────────────────────────────────────┤
+│  Personal & Employment Details                              │
+│  Employee ID: E101 (Locked)                                 │
+│  [First Name: John     ]      [Last Name: Doe           ]   │
+│  [Email: john@roms.com (Locked)] [Phone Number: 9811223344]  │
+│  [Role: Manager       ▼]      [Assign Branch: MG Road   ▼]  │
+│  [Date of Joining: 2026-05-01]                              │
+│                                                             │
+│  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│  🔓 Reset Password                                  [▼ Collapse]│
+│                                                             │
+│  ⚠️ Setting a new password will immediately invalidate the    │
+│  employee's current sessions and require re-login.          │
+│                                                             │
+│  [New Password: ********** ]  [Confirm Password: **********] │
+│                                                             │
+│  Password Requirements:                                     │
+│  ✓ Minimum 8 characters                                     │
+│  ✓ At least 1 uppercase letter                              │
+│  ✓ At least 1 lowercase letter                              │
+│  ✓ At least 1 digit                                         │
+│  ✓ At least 1 special character (!@#$%^&*)                  │
+│                                                             │
+│                                      [Cancel] [Save Changes]│
+└─────────────────────────────────────────────────────────────┘
+```
 
-#### 4. Screen Fields Table
+### 4. Screen Fields Table
 
-##### Profile Detail Card Fields
+#### Personal & Employment Details Fields
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Profile Photo | Image | No | Standard image upload validation (PNG, JPG, max 2MB) | `profile.jpg` | Thumbnail image representing employee avatar. |
-| Manager Name | Text (Read-only) | Yes | Combined first and last name | `Amit Kumar` | Display name of the manager. |
-| Contact Email | Text (Read-only) | Yes | Valid unique email format | `amit@dineos.com` | Email used for authentication credentials. |
-| Mobile Number | Input Text | Yes | Exactly 10 digits | `+91 9876543210` | Registered contact mobile phone number. |
-| Assigned Branch | Text (Read-only) | Yes | Valid branch location | `MG Road Branch` | Mapped physical restaurant branch name. |
-| Mapped Role | Text (Read-only) | Yes | Value must be 'Branch Manager' | `Branch Manager` | Assigned authorization system role. |
-| Action: Upload Photo | Button | No | Triggers file picker overlay | `[Upload New Image]` | Uploads a new avatar file. |
+| Employee ID | Label | — | Locked read-only display element | `E101` | Non-editable |
+| First Name | Text | Yes | Min 2, max 50 characters | `John` | Given name |
+| Last Name | Text | Yes | Min 2, max 50 characters | `Doe` | Surname |
+| Email Address | Label | — | Locked read-only | `john@roms.com` | Cannot modify username |
+| Phone Number | Phone | Yes | Numeric, exactly 10 digits | `9811223344` | Contact number |
+| Role Selection | Dropdown | Yes | Valid system role | `Manager` | System permission |
+| Assign Branch | Dropdown | Yes* | Mapped branch ID | `MG Road` | Required if role is Manager, Kitchen, or Delivery |
+| Date of Joining | Date | Yes | Cannot be future date | `2026-05-01` | Start date |
 
-##### Profile Update Actions
+#### Reset Password Section Fields
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Action: Change Password | Button | Yes | Opens password reset modal | `[CHANGE SYSTEM PASSWORD]` | Opens dialog to update authentication credentials. |
-| Action: Update Phone | Button | Yes | Saves profile mobile number | `[UPDATE PHONE NUMBER]` | Dispatches update request to profile API endpoint. |
+| Reset Password Toggle | Toggle / Accordion | No | Collapsed by default; click to expand | `[▶ Expand]` / `[▼ Collapse]` | Toggles visibility of password fields |
+| New Password | Password | Yes* | Min 8 characters; 1 upper, 1 lower, 1 digit, 1 special character | `**********` | *Required only when Reset Password section is expanded. Hashed securely before storage |
+| Confirm Password | Password | Yes* | Must exactly match New Password | `**********` | *Required only when Reset Password section is expanded. Verification check |
 
-##### Password Reset Modal Fields
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
-| Current Password | Password | Yes | Min 8 chars, verified on submission | `********` | Checked against existing database password hash. |
-| New Password | Password | Yes | Min 8 chars, strong complexity validation | `********` | Cannot match current password. |
-| Confirm Password | Password | Yes | Must match New Password exactly | `********` | Confirms spelling of the target new password. |
+### 5. Reset Password Flow
 
-#### 5. Validations
-*   **Password Complexity Rules**: New passwords require a minimum of 8 characters, including 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.
+The reset password functionality follows a **progressive disclosure pattern** — password fields are hidden by default and only shown when the admin explicitly opts to reset:
 
-#### 6. Dependencies
-*   **System Authentication Service**: Handles session verification, password resets, and JWT validation.
+#### Flow Steps
 
-#### 7. API Requirement Suggestions
-*   **GET** `/api/v1/restaurant/profile/manager`
-    *   *Response*: `{"name": "Amit Kumar", "email": "amit@dineos.com", "branch": "MG Road"}`
-*   **POST** `/api/v1/restaurant/profile/change-password`
-    *   *Payload*: `{"current_pass": "old_pass", "new_pass": "new_pass"}`
-    *   *Response*: `{"status": "success", "message": "Password updated"}`
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  1. Admin opens Update Employee screen                      │
+│     → Password section is COLLAPSED (default)               │
+│     → Admin can save profile changes without touching       │
+│       passwords                                             │
+├─────────────────────────────────────────────────────────────┤
+│  2. Admin clicks [▶ Expand] on "Reset Password"            │
+│     → Section expands with animation (slide-down)           │
+│     → Warning banner is displayed:                          │
+│       "Setting a new password will immediately invalidate   │
+│        the employee's current sessions and require re-login"│
+│     → New Password and Confirm Password fields appear       │
+│     → Password requirements checklist appears (live updates)│
+├─────────────────────────────────────────────────────────────┤
+│  3. Admin fills in New Password                             │
+│     → Requirements checklist updates in real-time:          │
+│       ✓ Green check when requirement is met                 │
+│       ✗ Red cross when requirement is not met               │
+├─────────────────────────────────────────────────────────────┤
+│  4. Admin fills in Confirm Password                         │
+│     → Inline validation: shows match/mismatch indicator     │
+│       ✓ "Passwords match" (green text)                      │
+│       ✗ "Passwords do not match" (red text)                 │
+├─────────────────────────────────────────────────────────────┤
+│  5. Admin clicks [Save Changes]                             │
+│     → Profile fields are validated first                    │
+│     → If password section is expanded AND has values:       │
+│       • Password rules are validated                        │
+│       • Confirm Password match is validated                 │
+│       • On success: password is hashed and updated          │
+│       • All active JWT sessions for this employee are       │
+│         immediately revoked (forced re-login)               │
+│     → If password section is collapsed OR empty:            │
+│       • Password is NOT changed                             │
+│       • Only profile fields are updated                     │
+├─────────────────────────────────────────────────────────────┤
+│  6. Admin clicks [▼ Collapse] (optional)                    │
+│     → Section collapses, any entered password values        │
+│       are cleared (security measure)                        │
+└─────────────────────────────────────────────────────────────┘
+```
 
-#### 8. Database Table Suggestions
-Re-uses records from employee credentials schemas managed in the main database tables.
+#### Password Requirements (Real-Time Checklist)
+| Requirement | Rule | Live Indicator |
+|---|---|---|
+| Minimum Length | At least 8 characters | ✓ / ✗ updates as user types |
+| Uppercase Letter | At least 1 uppercase letter (A-Z) | ✓ / ✗ updates as user types |
+| Lowercase Letter | At least 1 lowercase letter (a-z) | ✓ / ✗ updates as user types |
+| Digit | At least 1 numeric digit (0-9) | ✓ / ✗ updates as user types |
+| Special Character | At least 1 special character (!@#$%^&*) | ✓ / ✗ updates as user types |
+| Password Match | Confirm Password must exactly match New Password | ✓ / ✗ shown below Confirm Password field |
 
-#### 9. Backend Development Notes
-*   **Token Expirations**: When a manager resets their password, invalidate all active JSON Web Tokens associated with their account to force re-authentication across active devices.
+### 6. Validations
+- Email and Employee ID fields are locked and non-editable.
+- If the Reset Password section is **collapsed** (default), the admin can save profile changes without any password validation — password is not modified.
+- If the Reset Password section is **expanded** and contains values, full password validation is enforced:
+  - New Password must meet all requirements (min 8 chars, 1 upper, 1 lower, 1 digit, 1 special).
+  - Confirm Password must exactly match New Password.
+  - Both fields become required when the section is expanded.
+- If the admin **collapses** the Reset Password section after entering values, the entered password data is immediately cleared from the form (security measure to prevent accidental submission).
+- On successful password reset, all active JWT tokens for the employee are **immediately revoked**, forcing a re-login on all devices.
 
-#### 10. Role & Permission Logic
-*   Only the logged-in **Branch Manager** is authorized to view or edit their profile details.
-
-#### 11. UI Components Required
-*   Profile Overview Block, Secure Input Dialog, Image Cropper Modal.
-
-#### 12. Edge Cases
-*   **Session Expiration**: Token expires during profile update. Redirect user to login and display message: "Session expired. Please log in to complete your changes."
-
-#### 13. Notifications & Toast Messages
-*   *Success Toast*: "Password updated successfully."
-*   *Error Alert*: "Incorrect current password. Please try again."
-
-#### 14. Real-Time Event Flow
-*   *Not applicable to profile updates.*
-
-#### 15. Status Management System
-*   *Not applicable to profile screen.*
-
-#### 16. Analytics Logic
-*   *Not applicable to profile screen.*
-
-#### 17. Suggested Tech Notes
-*   Hash passwords using bcrypt with a work factor of 12 before writing changes to the database.
+### 7. Dependencies
+- **Module Dependencies**: Relies on Module 2 (Branch Management) to populate the active branch selection choices.
 
 ---
 
-### Screen 5.2: Employee Details & Roster Screen
+## Screen 3.4: Deactivate Employee Confirmation Modal
 
-#### 1. Overview
-*   **Screen Purpose**: List staff members assigned to the branch and manage their operational details.
-*   **Business Objective**: Maintain branch staff rosters, verify contact details, and coordinate shift timings.
-*   **User Workflow**: Navigate to Profile ➔ Select "Employee Roster" tab ➔ Browse list ➔ Edit or add new entries.
-*   **Main Functionality**: Alphanumeric search bar, interactive roster listing table, inline profile edit controls.
+### 1. Overview
+Warning panel triggered when suspending employee accounts, revoking portal permissions immediately.
 
-#### 2. Screen Preview (Text Wireframe)
+### 2. Screen Preview
 ```text
-┌────────────────────────────────────────────────────────────────────────┐
-│ [🍽 DineOs]   Branch Employee Roster & Shifts                          │
-├──────────────┬─────────────────────────────────────────────────────────┤
-│ ○ Dashboard  │  🔍 [ Search by name...    ]             [+ Onboard Staff]│
-│ ○ Menu       ├─────────────────────────────────────────────────────────┤
-│ ○ Orders     │ Staff Name    │ Mobile Number  │ Role        │ Shift    │
-│ ○ Reviews    ├───────────────┼────────────────┼─────────────┼──────────┤
-│ ▶ Profile    │ Jane Smith    │ +91 9988776655 │ Chef        │ Morning  │
-│              │ Bob Martin    │ +91 9988776644 │ Helper      │ Evening  │
-│              │ └─────────────┴────────────────┴─────────────┴──────────┘ │
-│              │ Showing 1-2 of 2 staff members                          │
-└──────────────┴─────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│  Deactivate Employee — John Doe?                       [X]│
+├───────────────────────────────────────────────────────────┤
+│  ⚠️ WARNING: Deactivating this employee will immediately     │
+│  revoke all access to active ROMS portals and sessions.    │
+│  Active orders handled by them will not be deleted.       │
+│                                                           │
+│                       [Cancel]  [Confirm Deactivation]    │
+└───────────────────────────────────────────────────────────┘
 ```
 
-#### 3. UI/UX Layout Description
-*   **Roster Grid**: Clean table layout listing employee profiles with columns for Name, Phone, Role, and Shift.
-*   **Form Drawer**: Slide-out panel containing fields to edit or onboard staff members.
-*   **Active Shift Indicators**: Badge displays indicating which shift is currently active based on real-time server hours.
+### 3. Screen Fields Table
+None.
 
-#### 4. Screen Fields Table
+### 4. Validations
+- On confirmation, the employee's status in the database switches to `Inactive`, and all active user JWT tokens are revoked instantly.
+
+---
+
+# 6. Module 4 — Order Report
+
+## Screen 4.1: Order Calendar View (Default)
+
+### 1. Overview
+A calendar dashboard displaying aggregated daily totals of completed orders and sales figures. Admins can click any date cell to browse that day's orders.
+
+### 2. Screen Preview
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Order Reports                             [<] May 2026 [>] │
+├─────────────────────────────────────────────────────────────┤
+│  Sun    │  Mon    │  Tue    │  Wed    │  Thu    │  Fri    │
+├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+│         │         │         │         │ 1       │ 2       │
+│         │         │         │         │ Ord: 12 │ Ord: 15 │
+│         │         │         │         │ ₹4,500  │ ₹5,200  │
+├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+│ 3       │ 4       │ 5       │ 6       │ 7       │ 8       │
+│ Ord: 8  │ Ord: 14 │ Ord: 22 │ Ord: 19 │ Ord: 11 │ Ord: 25 │
+│ ₹2,100  │ ₹4,200  │ ₹8,500  │ ₹6,100  │ ₹3,800  │ ₹9,500  │
+└─────────┴─────────┴─────────┴─────────┴─────────┴─────────┘
+```
+
+### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Employee Name | Input Text | Yes | Min 3, max 100 characters | `Jane Smith` | Alphabetic only |
-| Phone Number | Phone Input| Yes | E.164 standard formatting (10 digits) | `9988776655` | Unique index key |
-| Role Title | Dropdown | Yes | Must match one of system enum roles | `Chef` | Permissions check |
-| Shift Timing | Dropdown | Yes | Morning, Evening, or Night | `Morning` | Coordinates rosters |
+| Month Selector | Buttons | Yes | Calendar boundary navigation | `May 2026` | Switches month and queries daily summary metrics |
+| Calendar Day Cell| Button | Yes | Interactive date click trigger | `Ord: 22` | Clicking cell redirects to Screen 4.2 |
 
-#### 5. Validations
-*   **Duplicate Numbers check**: Onboarding forms block submissions and display inline alerts if the inputted mobile number already exists in system records.
+### 4. Validations
+- Clicking future dates is disabled.
+- Calendar renders only aggregated metrics.
 
-#### 6. Dependencies
-*   **Employee Database mapping**: Coordinates logins and validates branch permissions.
+---
 
-#### 7. API Requirement Suggestions
-*   **GET** `/api/v1/restaurant/employees?branch_id=br_mg_road`
-    *   *Response*: `{"status": "success", "employees": [{"name": "Jane Smith", "phone": "9988776655", "role": "Chef"}]}`
-*   **POST** `/api/v1/restaurant/employees/create`
-    *   *Payload*: `{"branch_id": "br_mg_road", "name": "Jane Smith", "phone": "9988776655", "role": "Chef", "shift": "Morning"}`
-    *   *Response*: `{"status": "success", "employee_id": "emp_0129"}`
+## Screen 4.2: Order List Screen
 
-#### 8. Database Table Suggestions
-```sql
-CREATE TABLE employee_details (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    branch_id UUID REFERENCES branches(id) ON DELETE CASCADE,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    phone VARCHAR(20) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(50) CHECK (role IN ('Manager', 'Chef', 'Helper', 'Delivery')),
-    shift_timing VARCHAR(20) CHECK (shift_timing IN ('Morning', 'Evening', 'Night')),
-    status VARCHAR(20) DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive')),
-    date_of_joining DATE DEFAULT CURRENT_DATE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+### 1. Overview
+Lists orders that were logged on a specific day. Admins can filter the orders and export the visible records.
+
+### 2. Screen Preview
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Orders for May 5, 2026                  [Export to CSV ▼]  │
+├─────────────────────────────────────────────────────────────┤
+│  🔍 Search Order ID...   [Branch: All ▼] [Status: All ▼]    │
+├─────────────────────────────────────────────────────────────┤
+│ Order ID │ Branch  │ Customer │ Amount │ Status     │ Action│
+│----------│---------│----------│--------│------------│-------│
+│ #ORD101  │ MG Road │ John D.  │ ₹450   │ ● Delivered│ [View]│
+│ #ORD102  │ CP Delhi│ Sara K.  │ ₹120   │ ● Cancelled│ [View]│
+├─────────────────────────────────────────────────────────────┤
+│  Showing 1-20 of 220                       [<] [1] [2] [>]  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-#### 9. Backend Development Notes
-*   **Access Token Management**: Staff updates push notifications to authentication loops to ensure credentials match assigned branches.
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Search Input | Text | No | Alphanumeric characters | `ORD101` | Search by Order ID or customer phone |
+| Branch Filter | Dropdown | No | Must be valid branch ID or All | `MG Road` | Filters lists by branch location |
+| Status Filter | Dropdown | No | Valid order status values | `Delivered` | Filters orders by status |
+| Table Column: ID | Text | Read-only | Unique alphanumeric code | `#ORD101` | Clickable link to details |
+| Table Column: Branch | Text | Read-only | Valid branch | `MG Road` | Branch location label |
+| Table Column: Customer| Text | Read-only | Min 2 characters | `John D.` | Customer billing name |
+| Table Column: Amount| Currency | Read-only | Positive decimal | `₹450` | Total billing value |
+| Table Column: Status| Badge | Read-only | Valid status badge pill | `Delivered` | Color-coded status badge |
+| Row Action: View | Link | — | Triggers detail page change | `[View]` | Navigates to Screen 4.3 |
+| Button: Export | Button | Yes | Invokes CSV creation | `[Export to CSV]` | Triggers CSV download |
 
-#### 10. Role & Permission Logic
-*   Only **Branch Managers** can create, edit, or delete staff records. Staff accounts have read-only view permissions.
+### 4. Validations
+- CSV Exports are limited to a maximum range of `31 days` of order records in a single query block to prevent backend response timeouts.
 
-#### 11. UI Components Required
-*   Roster Table, Onboarding Slide-out Form, Shift Tag.
+### 5. Dependencies
+- **System Dependencies**: Dependent on historical order data generated from Customer App checkout transactions and branch-level order states.
 
-#### 12. Edge Cases
-*   **Role Transitions**: Staff member is reassigned to a different branch. Backend deletes mapping rows for the current branch and initializes a new mapping row under the target branch ID.
+---
 
-#### 13. Notifications & Toast Messages
-*   *Success Toast*: "Employee record saved successfully."
-*   *Error Warning*: "Mobile number already mapped to an active account."
+## Screen 4.3: Order Detail View Screen
 
-#### 14. Real-Time Event Flow
-*   Updates to staff rosters trigger an immediate cache invalidation for the branch roster query key.
+### 1. Overview
+Redesigned detailed layout showing the customer details, order itemization table, billing calculation block, vertical order lifecycle stepper, and delivery executive tracking metadata.
 
-#### 15. Status Management System
-*   *Not applicable to employee roster management.*
-
-#### 16. Analytics Logic
-*   Logs cumulative shift allocations to coordinate labor capacity with transaction volumes on peak hourly schedules.
-
-#### 17. Suggested Tech Notes
-*   Store roster queries in index caches to keep screen loads fast during busy shift handovers.
-
-## 18. Order Lifecycle & Operations Flowchart
-
-Below is the complete state-machine diagram mapping the customer order lifecycle from checkout to terminal delivery or return status:
-
-![Order Lifecycle Flowchart](file:///C:/Users/romit/.gemini/antigravity-ide/brain/e8535134-99cb-4cfa-a8ef-1bfe01250521/order_lifecycle_flowchart_1779952022622.png)
-
-```mermaid
-graph TD
-    %% Order Creation & Intake
-    A[Customer Checkout] -->|Socket IO: new_incoming_order| B(Screen 3.1: Live Pending Queue)
-    B -->|WebSocket loop| C{Manager Decision}
-    
-    %% Rejection Path
-    C -->|Reject| D[Screen 3.2: Rejection Reason Modal]
-    D -->|Select Reason Dropdown| E[API POST: /orders/reject]
-    E -->|Stripe Refund Initiated| F[Status: Rejected]
-    F -->|Webhook /api/v1/webhooks/refunds| G{Refund Status}
-    G -->|Success| H([Refund Success])
-    G -->|Pending| I([Refund Pending])
-    G -->|Failed| J([Refund Failed - Admin Alert])
-
-    %% Acceptance & Preparation Path
-    C -->|Accept| K[API POST: /orders/accept]
-    K -->|Status: Accepted| L(Kitchen Preparation)
-    L -->|Cron Automation: 1 min| M[Status: Preparing]
-    M -->|Kitchen Cook Done| N[Action: Mark as Ready CTA]
-    N -->|API POST: /orders/mark-ready| O[Status: Ready For Pickup]
-
-    %% Delivery Dispatch Matching
-    O -->|Delivery Matcher Engine| P{Rider Assigned?}
-    P -->|No - 10 Min Timeout| Q[Toast Alert: Fallback manual assign]
-    P -->|Yes - Rider Match| R[Status: Ready For Pickup - Mike Assigned]
-    
-    %% Handover & Transit
-    R -->|Rider arrives & scans barcode| S[Status: Out For Delivery]
-    S -->|Rider navigates to destination| T[Status: Arrived]
-    
-    %% Handover Resolution
-    T -->|Customer Accepts Package| U[Status: Delivered]
-    T -->|Customer Rejects Package| V[Status: Returned]
-    
-    %% Auditing Ledger
-    U -->|Terminal State| W[(Table: delivered_orders)]
-    V -->|Terminal State| X[(Table: returned_orders)]
-    
-    %% Style formatting
-    style B fill:#FEF3C7,stroke:#D97706,stroke-width:2px
-    style F fill:#FEE2E2,stroke:#DC2626,stroke-width:2px
-    style M fill:#FEF3C7,stroke:#D97706,stroke-width:2px
-    style O fill:#F5F3FF,stroke:#7C3AED,stroke-width:2px
-    style S fill:#DBEAFE,stroke:#2563EB,stroke-width:2px
-    style T fill:#E0F2FE,stroke:#0284C7,stroke-width:2px
-    style U fill:#DCFCE7,stroke:#16A34A,stroke-width:2px
-    style V fill:#FEE2E2,stroke:#DC2626,stroke-width:2px
+### 2. Screen Preview
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  < Back to List | Order #ORD101               ● Delivered   │
+├─────────────────────────────────────────────────────────────┤
+│  Customer Details                    |  Order Timeline      │
+│  John Doe (9876543210)               |  [x] Placed 12:00 PM │
+│  123 Main St, Bangalore              |  [x] Kitchen12:05 PM │
+│                                      |  [x] Out    12:20 PM │
+│  Order Items                         |  [x] Deliv. 12:45 PM │
+│  ┌────────────────────────┬───────┬──────┬──────────────┐   │
+│  │ Item Name              │ Price │ Qty  │ Subtotal     │   │
+│  ├────────────────────────┼───────┼──────┼──────────────┤   │
+│  │ Margherita Pizza       │ ₹299  │ 1    │ ₹299         │   │
+│  │ Coke                   │ ₹50   │ 2    │ ₹100         │   │
+│  └────────────────────────┴───────┴──────┴──────────────┘   │
+│  Bill Summary                        |  Delivery Agent      │
+│  Subtotal: ₹399 | Tax: ₹20 | Total: ₹419  Mike (9998887776) │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-***End of Handover Document***
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Order Status Badge | Status Badge | Read-only | Color-coded status | `● Delivered` | Current database state |
+| Customer Name | Text | Read-only | Min 2 chars | `John Doe` | Customer display name |
+| Customer Phone | Phone | Read-only | Numeric digits | `9876543210` | Contact phone |
+| Customer Address | Text | Read-only | Min 10 chars | `123 Main St, Bangalore` | Mapped delivery location |
+| Delivery Agent | Text | Read-only | Name of courier | `Mike` | Display courier name |
+| Agent Contact | Phone | Read-only | Numeric digits | `9998887776` | Phone number of courier |
+| Item Table: Name | Text | Read-only | Min 3 characters | `Margherita Pizza` | Mapped food item title |
+| Item Table: Price | Currency | Read-only | Positive decimal | `₹299` | Captured selling price |
+| Item Table: Qty | Number | Read-only | Integer >= 1 | `1` | Ordered quantity count |
+| Item Table: Subtotal| Currency | Read-only | Positive decimal | `₹299` | Line item total subtotal |
+| Subtotal | Currency | Read-only | Positive decimal | `₹399` | Sum of all subtotals |
+| Tax Amount | Currency | Read-only | Positive decimal | `₹20` | Computed taxes |
+| Total Amount | Currency | Read-only | Positive decimal | `₹419` | Grand total billing price |
+| Timeline Stepper | Step Tracker | Read-only | Step checkmarks | `[x] Placed` | Order tracking history |
+
+### 4. Validations
+- Historical records are read-only and cannot be altered by admins.
+- Delivery address is hidden for takeaway or dine-in orders.
+
+### 5. Dependencies
+- **Module Dependencies**: Relies on Module 2 (Branch details) and Module 5 (Food item details) to fetch location and menu metadata.
+- **System Dependencies**: Linked to delivery status events tracked by the Delivery App system.
+
+---
+
+# 7. Module 5 — Food Management
+
+## Screen 5.1: Food Catalog Dashboard
+
+### 1. Overview
+Catalog repository listing all master items. Supports list and grid layouts.
+
+### 2. Screen Preview
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Food Catalog                            [+ Add Food Item]  │
+├─────────────────────────────────────────────────────────────┤
+│  🔍 Search Item...     [Category: All ▼] [Type: All ▼]      │
+├─────────────────────────────────────────────────────────────┤
+│ ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │
+│ │ [Image]      │  │ [Image]      │  │ [Image]      │        │
+│ │ Veg Burger   │  │ Choco Lava   │  │ Coke 300ml   │        │
+│ │ ₹150 | 🟢 Veg │  │ ₹99  | 🟢 Veg │  │ ₹60 | 🟢 Veg  │        │
+│ │ [Edit][View] │  │ [Edit][View] │  │ [Edit][View] │        │
+│ └──────────────┘  └──────────────┘  └──────────────┘        │
+├─────────────────────────────────────────────────────────────┤
+│  Showing 1-12 of 85                        [<] [1] [2] [>]  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Search Bar | Text | No | Alphanumeric characters | `Burger` | Search by item name |
+| Category Filter | Dropdown | No | Must be valid Category ID | `Pizza` | Filters by food category |
+| Dietary Filter | Dropdown | No | Must match Veg, Non-Veg, Egg, Vegan | `Veg` | Filters by type |
+| Item Card: Name | Text | Read-only | Min 3 chars | `Veg Burger` | Display name of food |
+| Item Card: Price | Currency | Read-only | Positive decimal | `₹150` | Base selling price |
+| Item Card: Dietary | Badge | Read-only | Veg, Non-Veg, Egg, Vegan | `Veg` | Dietary badge pill |
+| Row Action: Edit | Link | — | Triggers page change | `[Edit]` | Navigates to Screen 5.3 |
+| Row Action: View | Link | — | Opens slide-out panel | `[View]` | Navigates to Screen 5.4 |
+
+### 4. Validations
+- Standard debounced query validations.
+
+---
+
+## Screen 5.2: Create Food Item Screen
+
+### 1. Overview
+Form used to add a new food item to the system.
+
+### 2. Screen Preview
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Create Food Item                                           │
+├─────────────────────────────────────────────────────────────┤
+│  Item Details                  |  Item Image                │
+│  [Item Name: Paneer Tikka    ] |  ┌──────────────────────┐  │
+│  [Category: Starters      ▼]   |  │ [Image Preview]      │  │
+│  [Dietary Type: Veg       ▼]   |  │ paneer_tikka.png     │  │
+│  [Base Price (₹): 249.00     ] |  │                      │  │
+│  [Description: Spiced cottage] |  │ [Change Image]       │  │
+│  [cheese grilled in tandoor  ] |  └──────────────────────┘  │
+│                                |                            │
+│                       [Cancel] [Save Food Item]             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Item Name | Text | Yes | Min 3, max 100 characters, Unique | `Paneer Tikka` | Display name of the item |
+| Category | Dropdown | Yes | Must match active categories master | `Starters` | Item classification |
+| Dietary Type | Dropdown | Yes | Veg, Non-Veg, Egg, Vegan | `Veg` | Dietary classification |
+| Base Price | Currency | Yes | Numeric, greater than zero | `249.00` | Default customer pricing |
+| Description | Text Area | No | Max 500 characters | `Spiced cottage cheese...` | Item description |
+| Item Image | File | Yes | PNG or JPG format, size < 2MB | `paneer_tikka.png` | Thumbnail upload |
+
+### 4. Validations
+- **Price Limit**: Price must be greater than zero.
+- **Image Check**: Only JPG or PNG formats are allowed, under `2MB` max size.
+- **Item Name**: Must be unique globally to avoid duplication.
+
+### 5. Dependencies
+- **Data Dependencies**: Relies on categories master mapping tables (e.g. Starters, Sides, Desserts) to resolve Category dropdown.
+
+---
+
+## Screen 5.3: Update Food Item Screen
+
+### 1. Overview
+Edit existing menu item details. Highlights current image and allows replacing it.
+
+### 2. Screen Preview
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Update Food Item — Paneer Tikka                            │
+├─────────────────────────────────────────────────────────────┤
+│  Item Details                  |  Item Image                │
+│  [Item Name: Paneer Tikka    ] |  ┌──────────────────────┐  │
+│  [Category: Starters      ▼]   |  │ [Current Image]      │  │
+│  [Dietary Type: Veg       ▼]   |  │ paneer_tikka.png     │  │
+│  [Base Price (₹): 279.00     ] |  │                      │  │
+│  [Description: Spiced cottage] |  │ [Upload New Image]   │  │
+│  [cheese grilled in tandoor  ] |  └──────────────────────┘  │
+│                                |                            │
+│                       [Cancel] [Save Changes]               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Item Name | Text | Yes | Min 3, max 100 characters, Unique | `Paneer Tikka` | Display name of the item |
+| Category | Dropdown | Yes | Must match active categories master | `Starters` | Item classification |
+| Dietary Type | Dropdown | Yes | Veg, Non-Veg, Egg, Vegan | `Veg` | Dietary classification |
+| Base Price | Currency | Yes | Numeric, greater than zero | `279.00` | Default customer pricing |
+| Description | Text Area | No | Max 500 characters | `Spiced cottage cheese...` | Item description |
+| Item Image | File | No | PNG or JPG format, size < 2MB | `paneer_tikka.png` | Replaces current thumbnail |
+
+### 4. Validations
+- Item image upload is optional for updates.
+- Modifying price only affects future orders; historical order items tables retain checkout price details.
+
+### 5. Dependencies
+- **Data Dependencies**: Relies on categories configuration tables to resolve Category dropdown.
+
+---
+
+## Screen 5.4: View Food Item Slide-out Drawer
+
+### 1. Overview
+Redesigned detailed drawer panel sliding from the right edge. Displays CDN image preview, item configurations, and a mapping table showing which branch locations have this item active on their menu.
+
+### 2. Screen Preview
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Paneer Tikka Detail View                                [X]│
+├─────────────────────────────────────────────────────────────┤
+│  [Image: Paneer Tikka CDN URL]                             │
+│  Name: Paneer Tikka | Price: ₹279.00 | Tag: 🟢 Veg          │
+│  Category: Starters                                         │
+│  Description: Spiced cottage cheese grilled in tandoor.     │
+│                                                             │
+│  Assigned Locations Mappings                                │
+│  ┌─────────────┬─────────────────────┬──────────────────┐   │
+│  │ Branch Code │ Branch Name         │ Branch Status    │   │
+│  ├─────────────┼─────────────────────┼──────────────────┤   │
+│  │ B001        │ MG Road Branch      │ ● Active         │   │
+│  │ B004        │ Indiranagar Branch  │ ● Active         │   │
+│  └─────────────┴─────────────────────┴──────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Item Name | Text | Read-only | Min 3 chars | `Paneer Tikka` | Food item title |
+| Base Price | Currency | Read-only | Positive decimal | `₹279.00` | Current base pricing |
+| Category Label | Text | Read-only | Min 3 chars | `Starters` | Category classification |
+| Description | Text | Read-only | Max 500 chars | `Spiced cottage cheese...` | Description notes |
+| Branch Table: Code | Text | Read-only | Valid alphanumeric code | `B001` | Mapped branch code |
+| Branch Table: Name | Text | Read-only | Min 3 chars | `MG Road Branch` | Mapped branch name |
+| Branch Table: Status| Badge | Read-only | 'Active' or 'Inactive' badge | `Active` | Branch status badge |
+
+### 4. Validations
+- Mapped branch list queries active `branch_menus` tables to generate locations data dynamically.
+
+### 5. Dependencies
+- **Module Dependencies**: Relies on Module 2 (Branch Management) relationship tables to pull assigned branches mapping logs.
+
+---
+
+## Screen 5.5: Deactivate Food Item Confirmation Modal
+
+### 1. Overview
+Confirmation panel verifying global item deactivation, which removes it from customer-facing menus globally.
+
+### 2. Screen Preview
+```text
+┌───────────────────────────────────────────────────────────┐
+│  Deactivate Food Item Globally?                        [X]│
+├───────────────────────────────────────────────────────────┤
+│  ⚠️ WARNING: Deactivating this item will instantly remove    │
+│  it from customer menus at all assigned branches.          │
+│                                                           │
+│                       [Cancel]  [Confirm Deactivation]    │
+└───────────────────────────────────────────────────────────┘
+```
+
+### 3. Screen Fields Table
+None.
+
+### 4. Validations
+- Requires explicit confirmation click.
+
+---
+
+# 8. Global Role & Permission Matrix
+
+Permissions are strictly enforced based on the system roles:
+
+| Module | Super Admin | Admin | Manager |
+|---|:---:|:---:|:---:|
+| **Dashboard / Analytics** | Full Access | Full Access | Branch Only |
+| **Branch Management** | Full Access | Full Access | View Branch Only |
+| **Employee Management**| Full Access | Full Access | View Branch Only |
+| **Order Reports** | Full Access | Full Access | View Branch Only |
+| **Food Management** | Full Access | Full Access | Read Only |
+
+***End of Document***
