@@ -603,12 +603,12 @@ Each tab renders its own dedicated data table grid layout.
 │ ○ Dashboard  │  [ Accept (5) ]  [ Reject (2) ]  [ Delivered ]  [ Return ]│
 │ ○ Menu       ├─────────────────────────────────────────────────────────┤
 │ ▶ Orders     │  🔍 [ Search Order ID...   ]   Filter: [ Payment Mode ▼ ] │
-│   - Queue    ├──────────┬──────────────┬──────────────┬────────────────┬────────┐
-│   - List     │ Order ID │ Timestamp    │ Total Value  │ Status/Payment │ Action │
-│ ○ Reviews    ├──────────┼──────────────┼──────────────┼────────────────┼────────┤
-│ ○ Profile    │ #99018   │ 12:46 PM     │ ₹299.00      │ Preparing (Onl)│ [View] │
-│              │ #99016   │ 12:30 PM     │ ₹420.00      │ Accepted (COD) │ [View] │
-│              │ └────────┴──────────────┴──────────────┴────────────────┴────────┘ │
+│   - Queue    ├──────────┬──────────────┬──────────────┬───────────┬────────────────┬────────┐
+│   - List     │ Order ID │ Timestamp    │ Total Value  │ Status    │ Payment Method │ Action │
+│ ○ Reviews    ├──────────┼──────────────┼──────────────┼───────────┼────────────────┼────────┤
+│ ○ Profile    │ #99018   │ 12:46 PM     │ ₹299.00      │ Preparing │ Online         │ [View] │
+│              │ #99016   │ 12:30 PM     │ ₹420.00      │ Accepted  │ COD            │ [View] │
+│              │ └────────┴──────────────┴──────────────┴───────────┴────────────────┴────────┘ │
 │              │ Showing 1-20 of 5 entries             [<] [1] [>]       │
 └──────────────┴─────────────────────────────────────────────────────────┘
 ```
@@ -654,12 +654,12 @@ Displays active orders currently in progress.
 
 ##### 1. Accept Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬────────────────┬────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Status/Payment │ Action │
-├──────────┼──────────────┼──────────────┼────────────────┼────────┤
-│ #99018   │ 12:46 PM     │ ₹299.00      │ Preparing (Onl)│ [View] │
-│ #99016   │ 12:30 PM     │ ₹420.00      │ Accepted (COD) │ [View] │
-└──────────┴──────────────┴──────────────┴────────────────┴────────┘
+┌──────────┬──────────────┬──────────────┬──────────────────┬────────────────┬────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Status           │ Payment Method │ Action │
+├──────────┼──────────────┼──────────────┼──────────────────┼────────────────┼────────┤
+│ #99018   │ 12:46 PM     │ ₹299.00      │ Preparing        │ Online         │ [View] │
+│ #99016   │ 12:30 PM     │ ₹420.00      │ Accepted         │ COD            │ [View] │
+└──────────┴──────────────┴──────────────┴──────────────────┴────────────────┴────────┘
 ```
 
 ##### 2. Accept Tab Fields Table
@@ -668,7 +668,8 @@ Displays active orders currently in progress.
 | Table Column: Order ID | Text Link | Yes | Unique reference format | `#99018` | Clickable link opens details drawer |
 | Table Column: Timestamp | DateTime (Read-only) | Yes | Valid timestamp | `12:46 PM` | Order creation timestamp |
 | Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Inclusive of tax |
-| Table Column: Status/Payment | Badge (Read-only) | Yes | Active status + method | `Preparing (Online)` | Valid states: Accepted, Preparing, Ready For Pickup, Out For Delivery, Arrived |
+| Table Column: Status | Badge (Read-only) | Yes | Active order status | `Preparing` | Valid states: Accepted, Preparing, Ready For Pickup, Out For Delivery, Arrived |
+| Table Column: Payment Method | Badge (Read-only) | Yes | Value must be 'COD' or 'Online' | `Online` | Mode of payment chosen |
 | Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
 
 ---
