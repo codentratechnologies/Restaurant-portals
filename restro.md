@@ -542,10 +542,15 @@ CREATE TABLE rejected_orders (
 *   **Action CTAs**: Action buttons inline on each row, such as `[Ready]` for preparing orders or status messages like `[Waiting Courier]` for ready items.
 *   **Dynamic Filters**: Filter dropdown to group records by status queue (Accepted, Preparing, Ready) and a search box to instantly search by Order ID.
 
-#### 4. Screen Fields Table
+##### Search & Filter Fields
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Tab / Column Selector | Segmented Control | Yes | Must be 'Accepted', 'Preparing', or 'Ready' | `Preparing` | Filters active tickets by status stage. |
+| Queue Filter / Tab Selector | Segmented Control | Yes | Must be 'Accepted', 'Preparing', or 'Ready' | `Preparing` | Filters active tickets by status stage. |
+| Search Order ID | Input Text | No | Alphanumeric validation limits | `99018` | Search box to instantly search by Order ID |
+
+##### Active Orders List Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
 | Order Card: ID | Text (Read-only) | Yes | Unique identifier format (`#ORD-XXXXX`) | `#ORD-99018` | Displays order serial reference key. |
 | Order Card: Time Elapsed | Duration (Timer) | Yes | Computed dynamically: `current_time - accepted_at` | `04:20` | Tracks cooking duration elapsed in MM:SS. |
 | Order Card: Items Summary | Array (Read-only) | Yes | Standard listing of food items | `1x Veg Pizza` | Brief catalog of dishes for fast kitchen readability. |
