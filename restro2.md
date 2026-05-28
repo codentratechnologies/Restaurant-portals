@@ -169,18 +169,18 @@ $$\text{Return Rate \%} = \left( \frac{\text{Total Returned Orders}}{\text{Total
 ├──────────────┬─────────────────────────────────────────────────────────┤
 │ ○ Dashboard  │  🔍 [ Search food item...   ]   Category: [ All Categories ▼ ]│
 │ ▶ Menu       │                                                         │
-│ ○ Orders     │ ┌───────┬─────────────────┬──────────┬────────┬───────────┐ │
-│ ○ Reviews    │ │ Image │ Food Name       │ Category │ Price  │ Status    │ │
-│ ○ Profile    │ ├───────┼─────────────────┼──────────┼────────┼───────────┤ │
-│              │ │ [img] │ Veg Pizza       │ Pizza    │ ₹299   │ [o] On    │ │
-│              │ │ [img] │ Garlic Bread    │ Sides    │ ₹120   │ [x] Off   │ │
-│              │ └───────┴─────────────────┴──────────┴────────┴───────────┘ │
+│ ○ Orders     │ ┌──────────┬─────────────────┬────────┬───────────┬──────────┐ │
+│ ○ Reviews    │ │ Item ID  │ Food Name       │ Price  │ Status    │ Category │ │
+│ ○ Profile    │ ├──────────┼─────────────────┼────────┼───────────┼──────────┤ │
+│              │ │ food_101 │ Veg Pizza       │ ₹299   │ [o] On    │ Pizza    │ │
+│              │ │ food_102 │ Garlic Bread    │ ₹120   │ [x] Off   │ Sides    │ │
+│              │ └──────────┴─────────────────┴────────┴───────────┴──────────┘ │
 │              │ Showing 1-10 of 84 items             [<] [1] [2] [3] [>]│
 └──────────────┴─────────────────────────────────────────────────────────┘
 ```
 
 #### 3. UI/UX Layout Description
-*   **Main Grid**: Multi-column list with food image thumbnails, name, category labels, locked master prices, and Green/Red availability toggle switches.
+*   **Main Grid**: Multi-column list with unique food ID, name, locked master prices, Green/Red availability status, and category labels.
 *   **Search**: Persistent header bar containing search queries and a dropdown selection list to group items by category.
 *   **Modals**: Confirmation modal displays if toggle is turned off: "Disable this item? This will instantly remove it from the Customer App."
 
@@ -189,7 +189,11 @@ $$\text{Return Rate \%} = \left( \frac{\text{Total Returned Orders}}{\text{Total
 |---|---|---|---|---|---|
 | Search Query | Input Text | No | Max 100 characters, sanitizes inputs | `Pizza` | Filters list dynamically |
 | Category Dropdown| Selector | No | Must exist in categories catalog | `Pizza` | Filter grouping |
-| Toggle Switch | Checkbox | Yes | Boolean (true/false) | `true` | Changes availability state |
+| Table Column: ID | Text | Read-only | Unique alphanumeric code | `food_101` | Unique food item identifier |
+| Table Column: Name | Text | Read-only | Min 3 characters | `Veg Pizza` | Display name of the food item |
+| Table Column: Price | Currency | Read-only | Positive decimal | `₹299` | Branch selling price |
+| Table Column: Status | Toggle Switch | Yes | Boolean (true/false) | `true` | Changes availability state |
+| Table Column: Category | Text | Read-only | Must exist in categories catalog | `Pizza` | Food item category label |
 
 #### 5. Validations
 *   **Optimistic UI Rollback**: If menu toggle status change API returns a network error, the toggle must slide back to its previous status and prompt warning toast.
@@ -1021,9 +1025,13 @@ CREATE TABLE employee_details (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     branch_id UUID REFERENCES branches(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
     phone VARCHAR(20) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     role VARCHAR(50) CHECK (role IN ('Manager', 'Chef', 'Helper', 'Delivery')),
     shift_timing VARCHAR(20) CHECK (shift_timing IN ('Morning', 'Evening', 'Night')),
+    status VARCHAR(20) DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive')),
+    date_of_joining DATE DEFAULT CURRENT_DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 ```
