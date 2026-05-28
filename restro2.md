@@ -678,12 +678,12 @@ Displays cancelled orders with refund statuses.
 
 ##### 1. Reject Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬─────────────────┬───────────────┬────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Rejection Code  │ Refund Status │ Action │
-├──────────┼──────────────┼──────────────┼─────────────────┼───────────────┼────────┤
-│ #99015   │ 11:20 AM     │ ₹180.00      │ out_of_stock    │ Refunded      │ [View] │
-│ #99011   │ 10:15 AM     │ ₹320.00      │ customer_cancel │ Refund Pending│ [View] │
-└──────────┴──────────────┴──────────────┴─────────────────┴───────────────┴────────┘
+┌──────────┬──────────────┬──────────────┬─────────────────┬───────────────┬───────────┬────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Rejection Code  │ Refund Status │ Status    │ Action │
+├──────────┼──────────────┼──────────────┼─────────────────┼───────────────┼───────────┼────────┤
+│ #99015   │ 11:20 AM     │ ₹180.00      │ out_of_stock    │ Refunded      │ Rejected  │ [View] │
+│ #99011   │ 10:15 AM     │ ₹320.00      │ customer_cancel │ Refund Pending│ Rejected  │ [View] │
+└──────────┴──────────────┴──────────────┴─────────────────┴───────────────┴───────────┴────────┘
 ```
 
 ##### 2. Reject Tab Fields Table
@@ -694,6 +694,7 @@ Displays cancelled orders with refund statuses.
 | Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹180.00` | Order total |
 | Table Column: Rejection Code | Badge (Read-only) | Yes | Valid system reason enum | `out_of_stock` | Reason code selected in Screen 3.2 |
 | Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Not Required (for COD), Refund Pending, Refunded, Refund Failed |
+| Table Column: Status | Badge (Read-only) | Yes | Value must be 'Rejected' | `Rejected` | Order cancellation status |
 | Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
 
 ---
@@ -728,11 +729,11 @@ Displays customer returned/rejected orders.
 
 ##### 1. Return Tab Preview
 ```text
-┌──────────┬──────────────┬──────────────┬─────────────────┬───────────────┬────────┐
-│ Order ID │ Timestamp    │ Total Value  │ Return Reason   │ Refund Status │ Action │
-├──────────┼──────────────┼──────────────┼─────────────────┼───────────────┼────────┤
-│ #99013   │ 10:45 AM     │ ₹299.00      │ damaged_items   │ Refunded      │ [View] │
-└──────────┴──────────────┴──────────────┴─────────────────┴───────────────┴────────┘
+┌──────────┬──────────────┬──────────────┬─────────────────┬───────────────┬───────────┬────────┐
+│ Order ID │ Timestamp    │ Total Value  │ Return Reason   │ Refund Status │ Status    │ Action │
+├──────────┼──────────────┼──────────────┼─────────────────┼───────────────┼───────────┼────────┤
+│ #99013   │ 10:45 AM     │ ₹299.00      │ damaged_items   │ Refunded      │ Returned  │ [View] │
+└──────────┴──────────────┴──────────────┴─────────────────┴───────────────┴───────────┴────────┘
 ```
 
 ##### 2. Return Tab Fields Table
@@ -743,6 +744,7 @@ Displays customer returned/rejected orders.
 | Table Column: Total Value | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Order total |
 | Table Column: Return Reason | Text (Read-only) | Yes | Reason given by customer | `damaged_items` | Customer return code |
 | Table Column: Refund Status | Badge (Read-only) | Yes | Refund status indicator | `Refunded` | States: Pending, Refunded, Refund Failed |
+| Table Column: Status | Badge (Read-only) | Yes | Value must be 'Returned' | `Returned` | Order return status |
 | Row Action: View | Button / Link | Yes | Triggers detailed view | `[View]` | Button opens detailed slide-out drawer from the right |
 
 ---
