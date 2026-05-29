@@ -1623,8 +1623,10 @@
    #### Header Fields
    | Field Name | Type | Required | Validation | Example | Notes |
    |---|---|---|---|---|---|
+   | Create Coupon Button | Button | — | Triggers page change | `[+ Create Coupon]` | Navigates to Screen 6.2 |
    | Search Box | Text | No | Max 50 characters | `WELCOME50` | Search by coupon code |
    | Status Filter | Dropdown | No | Active, Inactive, All | `Active` | Filters list by status |
+   | Type Filter | Dropdown | No | Percentage, Flat, All | `All` | Filters list by discount type |
 
    #### Table Fields
    | Field Name | Type | Required | Validation | Example | Notes |
@@ -1632,8 +1634,13 @@
    | Table Column: Code | Text | Read-only | Alphanumeric | `WELCOME50` | The promotion code |
    | Table Column: Discount | Text | Read-only | Percentage or Flat rate | `50% Off` | Display format based on type |
    | Table Column: Valid Until | Date | Read-only | Valid date | `2026-12-31` | Expiration date |
+   | Table Column: Status | Badge | Read-only | Active or Inactive | `Active` | Current status of coupon |
+   | Row Action: View | Link | — | Triggers page change | `[View]` | Navigates to Screen 6.4 |
    | Row Action: Edit | Link | — | Triggers page change | `[Edit]` | Navigates to Screen 6.3 |
    | Row Action: Deactivate | Button | — | Triggers modal | `[De]` | Opens Screen 6.5 |
+   | Row Action: Activate | Button | — | Triggers API call | `[Ac]` | Activates an inactive coupon |
+   | Pagination Info | Label | Read-only | Shows record count | `Showing 1-10 of 15` | Current records being viewed |
+   | Pagination Controls| Buttons | — | Changes page | `[<] [1] [2] [>]` | Table navigation |
 
    ---
 
@@ -1668,6 +1675,7 @@
    | Field Name | Type | Required | Validation | Example | Notes |
    |---|---|---|---|---|---|
    | Coupon Code | Text | Yes | Alphanumeric, uppercase, min 4 | `SUMMER20` | Customer-facing code |
+   | Status | Dropdown | Yes | Active, Inactive | `Active` | Initial status |
    | Discount Type | Dropdown | Yes | Flat, Percentage | `Percentage` | Determines calculation |
    | Discount Value | Number | Yes | >0 | `20` | Flat amt or % value |
    | Max Discount Amount| Currency | No | >0 | `₹150` | Ceiling for % discounts |
@@ -1681,6 +1689,8 @@
    | Valid Until | Date | Yes | >= Valid From | `2026-06-30` | End date |
    | Target Audience | Dropdown | No | All, New Users, Loyalty | `Loyalty` | Personalization cohort |
    | Applicable Branches | Dropdown | No | Multi-select valid branches | `All Branches` | Location restriction |
+   | Cancel Button | Button | — | Returns to Dashboard | `[Cancel]` | Discards changes |
+   | Save Coupon Button | Button | — | Submits form | `[Save Coupon]` | Saves coupon data |
 
    ### 4. Validations
    - **Code Uniqueness**: Code must not exist in the database.
