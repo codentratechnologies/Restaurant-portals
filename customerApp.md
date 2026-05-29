@@ -315,7 +315,7 @@ The primary landing surface where users browse available food items, select cate
 │  │ 🛵 Active Order Tracking           │  │
 │  └────────────────────────────────────┘  │
 │ ┌──────────────────────────────────────┐ │
-│ │  [Home]   [Orders]   [Saved]  [Profile]│
+│ │  [Home]          [Reorder]    [Profile]│
 │ └──────────────────────────────────────┘ │
 └──────────────────────────────────────────┘
 ```
@@ -343,7 +343,7 @@ The primary landing surface where users browse available food items, select cate
 | Food Item Add Button | Button | Yes | Opens customization sheet | `[Add]` | Launches Screen 5.1 customization |
 | View Cart Bar | Floating Bar | No | Visible if cart items > 0 | `View Cart (2 Items) - ₹488` | Navigates to Screen 6 |
 | Track Order Bar | Floating Bar | No | Visible if active order exists | `Active Order Tracking` | Navigates to Screen 7 |
-| Bottom Navigation | Navigation Tab| Yes | Home, Orders, Saved, Profile | `[Home]` | Swaps active client viewports |
+| Bottom Navigation | Navigation Tab| Yes | Home, Reorder, Profile | [Home] | Swaps active client viewports |
 
 ### 4. Validations
 * Item availability is queried real-time against active branch mapping inventory.
