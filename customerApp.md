@@ -383,7 +383,7 @@ The primary landing surface where users browse available food items, select cate
 ## Screen 5: Food Detail Screen
 
 ### 1. Overview
-Displays detailed descriptions, images, prices, category markers, and average ratings for selected food items. Allows users to save/unsave items from collections and initiate additions to the cart.
+Displays detailed descriptions, images, prices, and category markers for selected food items. Allows users to save/unsave items from collections and initiate additions to the cart.
 
 ### 2. Screen Preview
 ```text
@@ -393,7 +393,7 @@ Displays detailed descriptions, images, prices, category markers, and average ra
 │                                          │
 │             [ FOOD IMAGE ]               │
 │                                          │
-│  Margherita Pizza               ★ 4.8    │
+│  Margherita Pizza                        │
 │  Pizza | Veg                             │
 │                                          │
 │  Classic cheese pizza with fresh tomato  │
@@ -414,7 +414,6 @@ Displays detailed descriptions, images, prices, category markers, and average ra
 | Collection Button | Toggle | No | Boolean | `true` | Saved (`♥`) or Unsaved (`♡`) |
 | Food Image | Image | Read-only | Valid image URL | `[ FOOD IMAGE ]` | Product photo |
 | Food Name | Label | Read-only | Min 3 characters | `Margherita Pizza` | Product name display |
-| Rating Score | Label | Read-only | Decimal range `[1.0, 5.0]` | `★ 4.8` | Average user rating |
 | Category Badge | Label | Read-only | Valid category tag name | `Pizza \| Veg` | Shows food classifications |
 | Food Description | Label | Read-only | Text block | `Classic cheese pizza...` | Detailed description |
 | Price Tag | Label | Read-only | Pos. Decimal currency format | `₹299` | Base item cost |
