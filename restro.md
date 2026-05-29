@@ -1378,19 +1378,7 @@ graph TD
     style T fill:#E0F2FE,stroke:#0284C7,stroke-width:2px,color:#000
     style U fill:#DCFCE7,stroke:#16A34A,stroke-width:2px,color:#000
     style Y fill:#FEE2E2,stroke:#DC2626,stroke-width:2px,color:#000
-    style A color:#000
-    style C color:#000
-    style D color:#000
-    style E color:#000
-    style G color:#000
-    style H color:#000
-    style I color:#000
-    style J color:#000
-    style K color:#000
-    style R color:#000
-    style N color:#000
-    style Z color:#000
-    style W color:#000
+
 ```
 
 ***End of Handover Document***
