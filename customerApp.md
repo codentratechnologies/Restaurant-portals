@@ -625,7 +625,7 @@ Manages cart items, applies promotional coupons, reviews estimated delivery time
 ## Screen 6.1: Select Coupon Screen
 
 ### 1. Overview
-Displays available promotional discount coupons, showing criteria like expiration date, min order value, and terms of service.
+Displays available promotional discount coupons retrieved from the Admin configurations. Shows detailed eligibility rules, discount types (flat/percentage), maximum caps, and date constraints.
 
 ### 2. Screen Preview
 ```text
@@ -636,15 +636,17 @@ Displays available promotional discount coupons, showing criteria like expiratio
 │                                          │
 │  Available Coupons:                      │
 │  ┌────────────────────────────────────┐  │
-│  │ DINE50                             │  │
-│  │ Save ₹100 on orders above ₹400     │  │
-│  │ Expiry: 2026-06-30                 │  │
+│  │ SUMMER20             [ 20% OFF ]   │  │
+│  │ Min Order: ₹500 | Max Disc: ₹150    │  │
+│  │ Validity: 2026-06-01 to 2026-06-30 │  │
+│  │ Audience: Loyalty Tier 1 & 2       │  │
 │  │ [APPLY]                            │  │
 │  └────────────────────────────────────┘  │
 │  ┌────────────────────────────────────┐  │
-│  │ WELCOME150                         │  │
-│  │ Save ₹150 on first order           │  │
-│  │ Expiry: 2026-12-31                 │  │
+│  │ FESTIVE200           [ FLAT ₹200 ] │  │
+│  │ Min Order: ₹1000                   │  │
+│  │ Validity: 2026-05-01 to 2026-10-30 │  │
+│  │ Audience: All Users                │  │
 │  │ [APPLY]                            │  │
 │  └────────────────────────────────────┘  │
 └──────────────────────────────────────────┘
@@ -663,33 +665,48 @@ Displays available promotional discount coupons, showing criteria like expiratio
 | Back Button | Link | Yes | Navigates back to Screen 6 | `[←]` | Returns to checkout page |
 | Coupon Apply Button | Button | Yes | Requires valid input coupon code | `[Apply]` | Submits coupon input for validation |
 | Coupons List | Container | Read-only | Array list of active coupons | Coupon Cards List | Scrollable list of available promo codes |
-| Coupon Code Card | Label | Read-only | Valid coupon string code | `DINE50` | Displayed coupon code on cards |
-| Coupon Description | Label | Read-only | Text details of terms | `Save ₹100 on orders...` | Coupon rules description |
-| Coupon Expiry Date | Label | Read-only | Date format | `2026-06-30` | Coupon expiration deadline |
-| Apply Coupon Action | Button | Yes | Minimum order value validation | `[APPLY]` | Directly applies coupon to cart subtotal |
+| Coupon Code Card | Label | Read-only | Valid coupon string code | `SUMMER20` | Displayed coupon code on cards |
+| Discount Badge | Badge | Read-only | Type and amount display | `[ 20% OFF ]` | Visual indicator for percentage or flat discounts |
+| Min Order Limit Display | Label | Read-only | Currency format | `Min Order: ₹500` | Indicates minimum cart value required |
+| Max Discount Display | Label | Read-only | Currency format | `Max Disc: ₹150` | Visible only on percentage-type coupons |
+| Validity Period Display | Label | Read-only | Date range format | `Validity: 2026-06-01 to 2026-06-30` | Live campaign timeframe |
+| Target Audience Display | Badge | Read-only | Cohort targeting restriction | `Audience: Loyalty Tier 1 & 2` | Highlights user tier restriction |
+| Apply Coupon Action | Button | Yes | Triggers validations | `[APPLY]` | Directly applies coupon to cart subtotal |
 
 ### 4. Validations
-* Checks against minimum cart value constraints.
-* Checks against user eligibility (e.g., first-time user only coupon).
+* **Minimum Order Value Verification**: Validate if the active cart subtotal $\ge$ `Minimum Order Value`.
+* **Date Range Validity**: Verify the current client-side timestamp falls between `Valid From` and `Valid Until`.
+* **Target Audience Cohort Check**: Check if the customer profile status matches the targeted cohort (e.g. Loyalty tier or New User eligibility).
+* **Branch Compatibility Check**: Validate if the customer's currently selected assigned branch is included within the coupon's `applicableBranches` array.
+* **Discount Calculation Logic**:
+  * Flat Type: Discount = `Discount Value`.
+  * Percentage Type: Discount = $\min(\text{Cart Subtotal} \times \text{Discount Value}, \text{Max Discount Amount})$.
 
 ### 5. Dependencies
-* **Active Coupons Master Database**: To list valid configurations.
+* **Admin Portal Promotion Config**: To retrieve live coupon rules.
+* **Branch Assignment State**: Determines if branch-specific coupons apply.
 
 ### 6. UI/UX Layout Description
-* Visual cards outlining coupon code rules. Includes terms & conditions drop-down tabs on cards.
+* Visual cards outlining coupon code rules. Accented colors used for discount badges (`#10B981` for active eligible coupons). Disabled/greyed-out styling applied to coupons for which the cart does not meet the minimum value requirement.
 
 ### 7. API Requirement Suggestions
-* **Endpoint**: `GET /api/v1/coupons/applicable?customerId=cust_82839120&cartValue=758.00`
+* **Endpoint**: `GET /api/v1/coupons/applicable`
+* **Query Parameters**: `customerId=cust_82839120&branchId=br_102&cartValue=758.00`
 * **Sample Response**:
   ```json
   {
     "success": true,
     "coupons": [
       {
-        "code": "DINE50",
-        "discountValue": 100.00,
-        "description": "Save ₹100 on orders above ₹400",
-        "expiryDate": "2026-06-30"
+        "code": "SUMMER20",
+        "discountType": "PERCENTAGE",
+        "discountValue": 20.00,
+        "maxDiscountAmount": 150.00,
+        "minOrderValue": 500.00,
+        "validFrom": "2026-06-01T00:00:00Z",
+        "validUntil": "2026-06-30T23:59:59Z",
+        "targetAudience": "LOYALTY",
+        "applicableBranches": ["br_102", "br_105"]
       }
     ]
   }
@@ -1581,9 +1598,13 @@ To ensure consistency and maintainable code in Flutter, developers must implemen
 * **Scenario**: A food item is added to the cart, but is subsequently disabled or sold out at the assigned branch before checkout.
 * **Resolution**: On checkout page load, run real-time availability check. If any item is marked unavailable, show warning banner, highlight the affected item in red, and disable the "Proceed to Payment" action until the item is removed.
 
-### 2. Coupon Expiration During Selection
-* **Scenario**: A user selects a coupon code, but it expires or reaches its usage limit before checkout is completed.
-* **Resolution**: The checkout API validates the coupon. If validation fails, abort checkout, return message: `"Coupon no longer valid"`, clear coupon discount, and prompt user to choose a different payment option.
+### 2. Coupon Expiration & Validation Failures During Selection
+* **Scenario**: A user selects or enters a coupon code, but one of the following occurs before order placement is finalized:
+  - The campaign date bounds are exceeded (validity expires or has not started yet).
+  - The total global usage limit (configured by Admin, e.g., 1000 uses) has been reached.
+  - The admin manually disables/deactivates the coupon code from the admin dashboard.
+  - The customer changes their delivery address, causing the assigned branch to change to a branch not supported by the coupon's location rules.
+* **Resolution**: The checkout API runs strict validation checks. If any validation fails, checkout is aborted, the user is presented with a specific error toast (e.g. `"Coupon usage limit exceeded"`, `"Coupon not applicable at this branch"`, or `"Coupon campaign inactive"`), the coupon discount is removed from the cart, and the subtotal is recalculated.
 
 ### 3. Payment Gateway Timeout/Failure
 * **Scenario**: Third-party payment gateway transaction times out or fails during online checkout.
