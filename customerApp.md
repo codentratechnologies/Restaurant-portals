@@ -321,14 +321,20 @@ The primary landing surface where users browse available food items, select cate
 └──────────────────────────────────────────┘
 ```
 
-### 3. Screen Fields Table
-| Field Name | Type | Required | Validation | Example | Notes |
+### 3. Screen Filters & Fields Specification
+
+#### Screen Filters Table
+| Filter Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Location Selector | Dropdown | Yes | Non-empty | `MG Road, Bangalore` | Defaults to nearest branch |
 | Search Bar | Text | No | Max 100 characters | `Margherita` | Triggers client-side & server-side filter |
 | Category Chip | Selectable | No | Valid Category ID | `Pizza` | Clicking filters food item results |
 | Veg Toggle | Switch | No | Boolean | `true` | Filters for `is_veg = true` |
 | Non-Veg Toggle | Switch | No | Boolean | `false` | Filters for `is_veg = false` |
+
+#### Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Location Selector | Dropdown | Yes | Non-empty | `MG Road, Bangalore` | Defaults to nearest branch |
 | Food Item List | Container | Read-only | Array of items mapped from branch | Food Listing Grid | Scrollable list container for food cards |
 | Food Item Image | Image | Read-only | Valid image URL | `[ IMAGE ]` | Product thumbnail preview |
 | Food Item Name | Label | Read-only | Min 3 characters | `Margherita Pizza` | Displays menu item name |
