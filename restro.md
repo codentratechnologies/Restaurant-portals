@@ -30,7 +30,7 @@
    - [Screen 5.2: View Employee Detail Screen](#screen-52-view-employee-detail-screen)
 
 ---
- 
+
 ## Executive Summary & Global Portal Standards
 
 ### Project Goals
@@ -1325,6 +1325,7 @@ Below is the complete state-machine diagram mapping the customer order lifecycle
 
 ```mermaid
 graph TD
+    classDef default color:#000;
     %% Order Creation & Intake
     A[Customer Checkout] -->|Status: Pending| B(Screen 3.1: Live Pending Queue)
     B -->|Manager Decision| C{Accept or Reject?}
@@ -1369,14 +1370,14 @@ graph TD
     Y -->|Terminal State| Z[(Table: cancelled_orders)]
     
     %% Style formatting
-    style B fill:#FEF3C7,stroke:#D97706,stroke-width:2px
-    style F fill:#FEE2E2,stroke:#DC2626,stroke-width:2px
-    style M fill:#FEF3C7,stroke:#D97706,stroke-width:2px
-    style O fill:#F5F3FF,stroke:#7C3AED,stroke-width:2px
-    style S fill:#DBEAFE,stroke:#2563EB,stroke-width:2px
-    style T fill:#E0F2FE,stroke:#0284C7,stroke-width:2px
-    style U fill:#DCFCE7,stroke:#16A34A,stroke-width:2px
-    style Y fill:#FEE2E2,stroke:#DC2626,stroke-width:2px
+    style B fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#000
+    style F fill:#FEE2E2,stroke:#DC2626,stroke-width:2px,color:#000
+    style M fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#000
+    style O fill:#F5F3FF,stroke:#7C3AED,stroke-width:2px,color:#000
+    style S fill:#DBEAFE,stroke:#2563EB,stroke-width:2px,color:#000
+    style T fill:#E0F2FE,stroke:#0284C7,stroke-width:2px,color:#000
+    style U fill:#DCFCE7,stroke:#16A34A,stroke-width:2px,color:#000
+    style Y fill:#FEE2E2,stroke:#DC2626,stroke-width:2px,color:#000
 ```
 
 ***End of Handover Document***
