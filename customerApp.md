@@ -659,14 +659,17 @@ Displays available promotional discount coupons retrieved from the Admin configu
 |---|---|---|---|---|---|
 | Enter Coupon Code | Text | No | Uppercase alphanumeric | `WELCOME150` | Inputted code field to search custom coupon |
 
-#### Screen Fields Table
+#### Coupon Screen Navigation & Inputs Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Back Button | Link | Yes | Navigates back to Screen 6 | `[←]` | Returns to checkout page |
 | Coupon Apply Button | Button | Yes | Requires valid input coupon code | `[Apply]` | Submits coupon input for validation |
+
+#### Coupons List & Actions Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
 | Coupons List | Container | Read-only | Array list of active coupons | Coupon Cards List | Scrollable list of available promo codes |
 | Coupon Code Card | Label | Read-only | Valid coupon string code | `SUMMER20` | Displayed coupon code on cards |
-| Discount Badge | Badge | Read-only | Type and amount display | `[ 20% OFF ]` | Visual indicator for percentage or flat discounts |
 | Min Order Limit Display | Label | Read-only | Currency format | `Min Order: ₹500` | Indicates minimum cart value required |
 | Max Discount Display | Label | Read-only | Currency format | `Max Disc: ₹150` | Visible only on percentage-type coupons |
 | Validity Period Display | Label | Read-only | Date range format | `Validity: 2026-06-01 to 2026-06-30` | Live campaign timeframe |
