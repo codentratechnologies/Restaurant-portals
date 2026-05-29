@@ -1190,10 +1190,16 @@ Displays food items saved by the customer. Allows quick access to food detail vi
 └──────────────────────────────────────────┘
 ```
 
-### 3. Screen Fields Table
+### 3. Screen Fields Specification
+
+#### Saved Collection Navigation Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Back Button | Link | Yes | Navigates back to Screen 8 | `[←]` | Returns to main profile |
+
+#### Saved Foods List & Actions Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
 | Food Card Details | Container | Read-only | Valid mapping to food catalog item | Margherita Pizza Card | Contains name, category, price, and image |
 | Saved Toggle Heart | Icon Toggle | Yes | Boolean (active/inactive state) | `♥` (Active heart) | Tapping sets to unchecked (heart outlined `♡`) and triggers removal |
 | View Details Action | Button | Yes | Navigates to Screen 5 | `[View Details]` | Opens details panel for the food item |
