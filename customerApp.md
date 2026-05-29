@@ -344,7 +344,24 @@ The primary landing surface where users browse available food items, select cate
 | Food Item Add Button | Button | Yes | Opens customization sheet | `[Add]` | Launches Screen 5.1 customization |
 | View Cart Bar | Floating Bar | No | Visible if cart items > 0 | `View Cart (2 Items) - ₹488` | Navigates to Screen 6 |
 | Track Order Bar | Floating Bar | No | Visible if active order exists | `Active Order Tracking` | Navigates to Screen 7 |
-| Bottom Navigation | Navigation Tab| Yes | Home, Reorder, Profile | [Home] | Swaps active client viewports. Reorder routes to Screen 8.3; Profile routes to Screen 8. |
+| Bottom Navigation | Navigation Tab| Yes | Home, Reorder, Profile | [Home] | Swaps active client viewports. See Bottom Navigation details below. |
+
+#### Bottom Navigation Specification
+The Bottom Navigation bar persists at the bottom of the main viewport shell (across Screen 4, Screen 8.3, and Screen 8) to swap active layouts.
+
+##### Bottom Navigation Preview
+```text
+┌──────────────────────────────────────────┐
+│  [Home]          [Reorder]    [Profile]  │
+└──────────────────────────────────────────┘
+```
+
+##### Bottom Navigation Tabs Table
+| Tab Name | Type | Required | Validation / Action | Example | Notes |
+|---|---|---|---|---|---|
+| Home Tab | Icon Button | Yes | Click swaps main viewport to Screen 4 | `[Home]` | Warm Orange (#F97316) if active, else Slate Gray (#64748B) |
+| Reorder Tab | Icon Button | Yes | Click swaps main viewport to Screen 8.3 (Recent Orders) | `[Reorder]` | Warm Orange (#F97316) if active, else Slate Gray (#64748B) |
+| Profile Tab | Icon Button | Yes | Click swaps main viewport to Screen 8 | `[Profile]` | Warm Orange (#F97316) if active, else Slate Gray (#64748B) |
 
 ### 4. Validations
 * Item availability is queried real-time against active branch mapping inventory.
