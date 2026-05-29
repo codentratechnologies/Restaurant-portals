@@ -1266,13 +1266,14 @@ Displays food items saved by the customer. Allows quick access to food detail vi
 ## Screen 8.3: Recent Orders Screen
 
 ### 1. Overview
-Lists the customer's order history, filtered by order status (Delivered, Cancelled). Displays the 10 most recent orders.
+Lists the customer's order history, filtered by order status (Delivered, Cancelled) and search keyword. Displays the 10 most recent orders matching the active criteria.
 
 ### 2. Screen Preview
 ```text
 ┌──────────────────────────────────────────┐
 │  [←] Order History                       │
 ├──────────────────────────────────────────┤
+│  🔍 Search food or order ID...           │
 │  Filters:  [All]  [Delivered]  [Cancelled]│
 │                                          │
 │  Recent Orders:                          │
@@ -1298,6 +1299,7 @@ Lists the customer's order history, filtered by order status (Delivered, Cancell
 #### Screen Filters Table
 | Filter Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
+| Search Bar | Text | No | Max 100 characters, alphanumeric, spaces, hashes, and dashes | `Pizza` or `#5521` | Filters order list by matched item names, descriptions, or order IDs |
 | Status Filter Toggle | Selector | Yes | Must be ALL, DELIVERED, or CANCELLED | `Delivered` | Filters recent order history records |
 
 #### Screen Fields Table
@@ -1317,6 +1319,8 @@ Lists the customer's order history, filtered by order status (Delivered, Cancell
 ### 4. Validations
 * Query constraint: Limit history load payload to exactly 10 records per request page.
 * Quick Reorder availability verification: Check if items in selected past order are active and in stock at assigned branch.
+* **Search Bar Debouncing & Sanitization**: The search input field must trigger a debounced search query (300ms delay) to limit redundant backend API calls. Input values must be sanitized to strip invalid special characters, allowing only alphanumeric characters, spaces, and `#` or `-` (for order IDs).
+* **Search Query Matching Rules**: A non-empty search query filters the order list by matching substrings in the Order ID, food item names, or food item descriptions.
 
 ### 5. Dependencies
 * **Order Engine Database**: Retrieves customer order history records.
@@ -1326,7 +1330,7 @@ Lists the customer's order history, filtered by order status (Delivered, Cancell
 
 ### 7. API Requirement Suggestions
 * **Endpoint**: `GET /api/v1/orders/history`
-* **Query Parameters**: `customerId=cust_82839120&filter=DELIVERED&limit=10&page=1`
+* **Query Parameters**: `customerId=cust_82839120&filter=DELIVERED&search=Pizza&limit=10&page=1`
 * **Sample Response**:
   ```json
   {
