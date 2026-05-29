@@ -1180,12 +1180,12 @@ Displays food items saved by the customer. Allows quick access to food detail vi
 │  ┌────────────────────────────────────┐  │
 │  │ Margherita Pizza              (♥)  │  │
 │  │ Pizza | Veg | ₹299                 │  │
-│  │ [ Remove ]             [View Details]│  │
+│  │ [View Details]                     │  │
 │  └────────────────────────────────────┘  │
 │  ┌────────────────────────────────────┐  │
 │  │ Garlic Bread                  (♥)  │  │
 │  │ Sides | Veg | ₹149                 │  │
-│  │ [ Remove ]             [View Details]│  │
+│  │ [View Details]                     │  │
 │  └────────────────────────────────────┘  │
 └──────────────────────────────────────────┘
 ```
@@ -1195,8 +1195,7 @@ Displays food items saved by the customer. Allows quick access to food detail vi
 |---|---|---|---|---|---|
 | Back Button | Link | Yes | Navigates back to Screen 8 | `[←]` | Returns to main profile |
 | Food Card Details | Container | Read-only | Valid mapping to food catalog item | Margherita Pizza Card | Contains name, category, price, and image |
-| Saved Toggle Heart | Icon Toggle | Yes | Boolean (active/inactive state) | `♥` (Active heart) | Tapping sets to unchecked and triggers removal |
-| Remove Action | Button | Yes | API delete mapping | `[ Remove ]` | Removes item from user collections database |
+| Saved Toggle Heart | Icon Toggle | Yes | Boolean (active/inactive state) | `♥` (Active heart) | Tapping sets to unchecked (heart outlined `♡`) and triggers removal |
 | View Details Action | Button | Yes | Navigates to Screen 5 | `[View Details]` | Opens details panel for the food item |
 
 ### 4. Validations
@@ -1797,4 +1796,3 @@ Step 7: If no branches meet criteria: Abort checkout, return "No branches availa
 * **Database**: PostgreSQL for transactional consistency; Redis for fast cart storage.
 * **WebSockets**: Socket.io server clustering backed by Redis adapter to handle real-time connection scales.
 * **Security**: SSL encryption on all routes, API rate limits, and SQL injection sanitizers on query parameters.
-
