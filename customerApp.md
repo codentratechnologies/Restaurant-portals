@@ -38,17 +38,16 @@
    - [Screen 8.3.1: Recent Order Detail Screen](#screen-831-recent-order-detail-screen)
    - [Screen 8.4: Address Book Screen](#screen-84-address-book-screen)
    - [Screen 8.4.1: Edit Address Screen](#screen-841-edit-address-screen)
-7. [System-Wide Database Table Suggestions](#system-wide-database-table-suggestions)
-8. [Backend Development Notes](#backend-development-notes)
-9. [Role & Permission Logic](#role--permission-logic)
-10. [Reusable UI Components Required](#reusable-ui-components-required)
-11. [System Edge Cases & Handling](#system-edge-cases--handling)
-12. [Notifications & Toast Messages](#notifications--toast-messages)
-13. [Real-Time Event Flow](#real-time-event-flow)
-14. [Status Management System](#status-management-system)
-15. [Payment & Refund Flows](#payment--refund-flows)
-16. [Branch Allocation Logic](#branch-allocation-logic)
-17. [Suggested Tech Notes](#suggested-tech-notes)
+7. [Backend Development Notes](#backend-development-notes)
+8. [Role & Permission Logic](#role--permission-logic)
+9. [Reusable UI Components Required](#reusable-ui-components-required)
+10. [System Edge Cases & Handling](#system-edge-cases--handling)
+11. [Notifications & Toast Messages](#notifications--toast-messages)
+12. [Real-Time Event Flow](#real-time-event-flow)
+13. [Status Management System](#status-management-system)
+14. [Payment & Refund Flows](#payment--refund-flows)
+15. [Branch Allocation Logic](#branch-allocation-logic)
+16. [Suggested Tech Notes](#suggested-tech-notes)
 
 ---
 
@@ -1492,116 +1491,7 @@ Allows modifications to existing saved addresses.
 
 ---
 
-# System-Wide Database Table Suggestions
 
-To support the Customer Mobile App, the backend database (PostgreSQL structure suggested) should implement the following tables:
-
-```mermaid
-erDiagram
-    customers ||--o{ customer_sessions : manages
-    customers ||--o{ customer_addresses : saves
-    customers ||--o{ food_collections : saves
-    customers ||--o{ customer_orders : places
-    customer_orders ||--|| payments : settles
-    customer_orders ||--|| order_reviews : receives
-    customer_orders ||--o{ cart_items : contains
-    coupons ||--o{ customer_orders : discount
-```
-
-### 1. Table: `customers`
-Stores user profile information.
-* `id` (VARCHAR(50), PK): Unique customer identifier.
-* `full_name` (VARCHAR(100)): Full name.
-* `mobile_number` (VARCHAR(15), Unique): Verified phone number.
-* `username` (VARCHAR(50), Unique): Alphanumeric login credential.
-* `email` (VARCHAR(100), Unique): Verified email address.
-* `password_hash` (VARCHAR(255)): Salted bcrypt password hash.
-* `is_verified` (BOOLEAN): Email verification status check.
-* `dob` (DATE, Nullable): Date of birth.
-* `created_at` (TIMESTAMP): Date created.
-
-### 2. Table: `customer_sessions`
-Tracks active device tokens and logins.
-* `id` (VARCHAR(50), PK): Unique session ID.
-* `customer_id` (VARCHAR(50), FK): Reference to `customers.id`.
-* `token` (TEXT): Encrypted JWT session token.
-* `device_type` (VARCHAR(20)): iOS, Android, or Web client.
-* `expiry` (TIMESTAMP): Token expiration time.
-
-### 3. Table: `customer_addresses`
-Stores user delivery locations.
-* `id` (VARCHAR(50), PK): Unique address ID.
-* `customer_id` (VARCHAR(50), FK): Reference to `customers.id`.
-* `tag` (VARCHAR(20)): Label (e.g., Home, Office).
-* `flat_no` (VARCHAR(50)): House or apartment number.
-* `building_name` (VARCHAR(100)): Apartment/building name.
-* `landmark` (VARCHAR(100), Nullable): Landmarks.
-* `road_name` (VARCHAR(150)): Street line.
-* `pincode` (VARCHAR(10)): Postal code.
-* `city` (VARCHAR(50)): City name.
-* `state` (VARCHAR(50)): State name.
-* `latitude` (DECIMAL(10, 8)): Latitude coordinate.
-* `longitude` (DECIMAL(11, 8)): Longitude coordinate.
-* `is_default` (BOOLEAN): Priority location selector.
-
-### 4. Table: `food_collections`
-Tracks saved favorites.
-* `id` (VARCHAR(50), PK): Unique collection item entry.
-* `customer_id` (VARCHAR(50), FK): Reference to `customers.id`.
-* `food_id` (VARCHAR(50)): Reference to food item code.
-
-### 5. Table: `cart_items`
-Tracks transient shopping cart state.
-* `id` (VARCHAR(50), PK): Unique cart entry.
-* `customer_id` (VARCHAR(50), FK): Reference to `customers.id`.
-* `food_id` (VARCHAR(50)): Target item.
-* `quantity` (INT): Selection scale.
-* `customizations` (JSONB): Array list of chosen add-ons (options/prices).
-
-### 6. Table: `coupons`
-Stores promotional discount rules.
-* `code` (VARCHAR(20), PK): Promo code string.
-* `discount_value` (DECIMAL(10, 2)): Discount amount.
-* `min_order_value` (DECIMAL(10, 2)): Minimum spend required.
-* `expiry_date` (TIMESTAMP): Expiration timestamp.
-* `usage_limit` (INT): Max uses globally.
-* `status` (VARCHAR(20)): Active/Inactive/Expired.
-
-### 7. Table: `customer_orders`
-Stores order details and tracking states.
-* `id` (VARCHAR(50), PK): Unique Order ID.
-* `customer_id` (VARCHAR(50), FK): Reference to `customers.id`.
-* `branch_id` (VARCHAR(50)): Target branch assigned.
-* `address_id` (VARCHAR(50), FK): Reference to `customer_addresses.id`.
-* `item_total` (DECIMAL(10,2)): Sum of items.
-* `tax` (DECIMAL(10,2)): Tax.
-* `packaging_charge` (DECIMAL(10,2)): Packaging.
-* `discount` (DECIMAL(10,2)): Promo code discount.
-* `grand_total` (DECIMAL(10,2)): Final amount.
-* `payment_method` (VARCHAR(20)): COD, UPI, Card.
-* `status` (VARCHAR(30)): PENDING, PREPARING, etc.
-* `delivery_partner_id` (VARCHAR(50), Nullable): Assigned delivery agent.
-* `created_at` (TIMESTAMP): Creation time.
-
-### 8. Table: `order_reviews`
-Stores feedback on completed orders.
-* `id` (VARCHAR(50), PK): Unique review ID.
-* `order_id` (VARCHAR(50), FK): Reference to `customer_orders.id`.
-* `customer_id` (VARCHAR(50), FK): Reference to `customers.id`.
-* `branch_id` (VARCHAR(50)): Rated branch identifier.
-* `rating` (INT): 1 to 5 stars.
-* `review_text` (TEXT, Nullable): Feedback comments.
-
-### 9. Table: `payments`
-Tracks transaction status.
-* `id` (VARCHAR(50), PK): Transaction ID.
-* `order_id` (VARCHAR(50), FK): Reference to `customer_orders.id`.
-* `gateway_transaction_id` (VARCHAR(100)): External ID.
-* `amount` (DECIMAL(10,2)): Charge total.
-* `status` (VARCHAR(20)): SUCCESS, FAILED, REFUNDED.
-* `refund_initiated_at` (TIMESTAMP, Nullable): Refund timestamp.
-
----
 
 # Backend Development Notes
 
