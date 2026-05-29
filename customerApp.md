@@ -329,6 +329,16 @@ The primary landing surface where users browse available food items, select cate
 | Category Chip | Selectable | No | Valid Category ID | `Pizza` | Clicking filters food item results |
 | Veg Toggle | Switch | No | Boolean | `true` | Filters for `is_veg = true` |
 | Non-Veg Toggle | Switch | No | Boolean | `false` | Filters for `is_veg = false` |
+| Food Item List | Container | Read-only | Array of items mapped from branch | Food Listing Grid | Scrollable list container for food cards |
+| Food Item Image | Image | Read-only | Valid image URL | `[ IMAGE ]` | Product thumbnail preview |
+| Food Item Name | Label | Read-only | Min 3 characters | `Margherita Pizza` | Displays menu item name |
+| Food Item Desc | Label | Read-only | Max 200 characters | `Fresh dough, cheese` | Short menu description |
+| Food Item Price | Label | Read-only | Pos. Decimal currency | `₹299` | Base item selling price |
+| Food Item Save Toggle | Icon Toggle | No | Boolean | `(♥)` (Saved) or `(♡)` (Unsaved) | Adds or removes item to/from collections |
+| Food Item Add Button | Button | Yes | Opens customization sheet | `[Add]` | Launches Screen 5.1 customization |
+| View Cart Bar | Floating Bar | No | Visible if cart items > 0 | `View Cart (2 Items) - ₹488` | Navigates to Screen 6 |
+| Track Order Bar | Floating Bar | No | Visible if active order exists | `Active Order Tracking` | Navigates to Screen 7 |
+| Bottom Navigation | Navigation Tab| Yes | Home, Orders, Saved, Profile | `[Home]` | Swaps active client viewports |
 
 ### 4. Validations
 * Item availability is queried real-time against active branch mapping inventory.
