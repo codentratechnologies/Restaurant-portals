@@ -1677,12 +1677,14 @@
    | Coupon Code | Text | Yes | Alphanumeric, uppercase, min 4 | `SUMMER20` | Customer-facing code |
    | Status | Dropdown | Yes | Active, Inactive | `Active` | Initial status |
    | Discount Type | Dropdown | Yes | Flat, Percentage | `Percentage` | Determines calculation |
-   | Discount Value | Number | Yes | >0 | `20` | Flat amt or % value 
+   | Discount Value | Number | Yes | >0 | `20` | Flat amt or % value |
+   | Max Discount Amount| Currency | No | >0 | `₹150` | Ceiling for % discounts |
 
    #### Conditions & Targeting Fields
    | Field Name | Type | Required | Validation | Example | Notes |
    |---|---|---|---|---|---|
    | Minimum Order Value | Currency | No | >=0 | `₹500` | Minimum cart total |
+   | Usage Limit | Number | No | >0 | `1000` | Max total redemptions |
    | Valid From | Date | Yes | Cannot be in past | `2026-06-01` | Start date |
    | Valid Until | Date | Yes | >= Valid From | `2026-06-30` | End date |
    | Target Audience | Dropdown | No | All, New Users, Loyalty | `Loyalty` | Personalization cohort |
@@ -1700,20 +1702,150 @@
    ## Screen 6.3: Update Coupon Screen
 
    ### 1. Overview
-   Configuration form to adjust an existing coupon's settings. The Coupon Code itself is permanently locked to preserve analytics integrity, but conditions and validity can be updated.
+   Configuration form to adjust an existing coupon's details. Pre-fills all current values for editing. The **Coupon Code is permanently locked** (read-only) to preserve analytics and redemption history integrity. All other fields — including conditions and targeting — are fully editable. Changes apply immediately to all subsequent customer checkouts upon saving.
 
-   ### 2. Validations
-   - Coupon Code is a read-only Label element.
-   - Saving updates applies immediately to all subsequent checkouts.
+   ### 2. Screen Preview
+   ```text
+   ┌─────────────────────────────────────────────────────────────┐
+   │  ‹ Back to Coupons                                          │
+   ├─────────────────────────────────────────────────────────────┤
+   │  Update Coupon — SUMMER20                                   │
+   ├─────────────────────────────────────────────────────────────┤
+   │  Basic Details                                              │
+   │  Coupon Code: SUMMER20 (Locked)  [Status: Active        ▼] │
+   │  [Discount Type: Percentage ▼]  [Discount Value: 20       ] │
+   │  [Max Discount Amount: ₹150  ]                              │
+   │                                                             │
+   │  Conditions & Targeting                                     │
+   │  [Minimum Order Value: ₹500  ]  [Usage Limit (Total): 1000] │
+   │  [Valid From: 2026-06-01    ]  [Valid Until: 2026-06-30  ] │
+   │  [Target Audience: Loyalty Tier 1 & 2                    ▼] │
+   │  [Applicable Branches: All Branches                      ▼] │
+   │                                                             │
+   │                                 [Cancel] [Save Changes]     │
+   └─────────────────────────────────────────────────────────────┘
+   ```
+
+   ### 3. Screen Fields Table
+
+   #### Header Fields
+   | Field Name | Type | Required | Validation | Example | Notes |
+   |---|---|---|---|---|---|
+   | Back Button | Link | — | Navigates back to Coupon Dashboard | `‹ Back to Coupons` | Discards unsaved changes |
+   | Screen Title | Label | Read-only | Format: `Update Coupon — {Code}` | `Update Coupon — SUMMER20` | Page heading |
+
+   #### Basic Details Fields
+   | Field Name | Type | Required | Validation | Example | Notes |
+   |---|---|---|---|---|---|
+   | Coupon Code | Label | — | Locked, non-editable | `SUMMER20` | Permanently locked to preserve history |
+   | Status | Dropdown | Yes | Active, Inactive | `Active` | Toggle coupon on or off |
+   | Discount Type | Dropdown | Yes | Flat, Percentage | `Percentage` | Determines discount calculation |
+   | Discount Value | Number | Yes | >0 | `20` | Flat amount or percentage value |
+   | Max Discount Amount | Currency | No | >0 | `₹150` | Ceiling cap for percentage discounts |
+
+   #### Conditions & Targeting Fields
+   | Field Name | Type | Required | Validation | Example | Notes |
+   |---|---|---|---|---|---|
+   | Minimum Order Value | Currency | No | >=0 | `₹500` | Minimum cart total to apply coupon |
+   | Usage Limit | Number | No | >0 | `1000` | Max total redemptions across all users |
+   | Valid From | Date | Yes | Cannot be in past | `2026-06-01` | Campaign start date |
+   | Valid Until | Date | Yes | >= Valid From | `2026-06-30` | Campaign end / expiry date |
+   | Target Audience | Dropdown | No | All, New Users, Loyalty Tier 1, Loyalty Tier 2 | `Loyalty Tier 1 & 2` | Restricts coupon to a user cohort |
+   | Applicable Branches | Dropdown | No | Multi-select from active branches | `All Branches` | Location-based restriction |
+   | Cancel Button | Button | — | Returns to Coupon Dashboard | `[Cancel]` | Discards unsaved edits |
+   | Save Changes Button | Button | — | Submits update | `[Save Changes]` | Saves updated coupon configuration |
+
+   ### 4. Validations
+   - **Coupon Code**: Non-editable. Displayed as a read-only label.
+   - **Percentages**: If Discount Type is Percentage, value cannot exceed `100`.
+   - **Dates**: Valid Until must be chronologically after or equal to Valid From.
+   - **Optimistic Update**: Status toggle changes take effect immediately on the live system upon save.
+
+   ### 5. Dependencies
+   - **Module Dependencies**: Relies on Module 2 (Branch Management) to populate the active branch selection choices for the Applicable Branches field.
 
    ---
 
    ## Screen 6.4: View Coupon Details Screen
 
    ### 1. Overview
-   Read-only detail screen for viewing coupon configuration and basic usage metrics (e.g., total redemptions). No edit or delete actions.
+   A read-only detail screen displaying the complete configuration of a coupon alongside its live usage metrics (total redemptions, remaining usage). Accessed via the `[View]` action from the Coupon Dashboard. No edit or delete actions are available on this screen — all management is done through Screen 6.3.
+
+   ### 2. Screen Preview
+   ```text
+   ┌─────────────────────────────────────────────────────────────┐
+   │  ‹ Back to Coupons                                          │
+   ├─────────────────────────────────────────────────────────────┤
+   │  SUMMER20                                    ● Active       │
+   │  Percentage Discount · 20% Off · Max ₹150                   │
+   ├─────────────────────────────────────────────────────────────┤
+   │  ┌───────────────────────┬─────────────────────────────────┐ │
+   │  │ Coupon Code           │ SUMMER20                        │ │
+   │  ├───────────────────────┼─────────────────────────────────┤ │
+   │  │ Discount Type         │ Percentage                      │ │
+   │  ├───────────────────────┼─────────────────────────────────┤ │
+   │  │ Discount Value        │ 20%                             │ │
+   │  ├───────────────────────┼─────────────────────────────────┤ │
+   │  │ Max Discount Amount   │ ₹150                            │ │
+   │  ├───────────────────────┼─────────────────────────────────┤ │
+   │  │ Minimum Order Value   │ ₹500                            │ │
+   │  ├───────────────────────┼─────────────────────────────────┤ │
+   │  │ Usage Limit           │ 1000                            │ │
+   │  ├───────────────────────┼─────────────────────────────────┤ │
+   │  │ Times Redeemed        │ 342                             │ │
+   │  ├───────────────────────┼─────────────────────────────────┤ │
+   │  │ Remaining Usage       │ 658                             │ │
+   │  ├───────────────────────┼─────────────────────────────────┤ │
+   │  │ Valid From            │ 2026-06-01                      │ │
+   │  ├───────────────────────┼─────────────────────────────────┤ │
+   │  │ Valid Until           │ 2026-06-30                      │ │
+   │  ├───────────────────────┼─────────────────────────────────┤ │
+   │  │ Target Audience       │ Loyalty Tier 1 & 2              │ │
+   │  ├───────────────────────┼─────────────────────────────────┤ │
+   │  │ Applicable Branches   │ All Branches                    │ │
+   │  ├───────────────────────┼─────────────────────────────────┤ │
+   │  │ Created By            │ admin_user on 2026-05-01 10:00 AM│ │
+   │  ├───────────────────────┼─────────────────────────────────┤ │
+   │  │ Last Edited By        │ admin_user on 2026-05-20 03:30 PM│ │
+   │  └───────────────────────┴─────────────────────────────────┘ │
+   └─────────────────────────────────────────────────────────────┘
+   ```
+
+   ### 3. Screen Fields Table
+
+   #### Header Fields
+   | Field Name | Type | Required | Validation | Example | Notes |
+   |---|---|---|---|---|---|
+   | Back Button | Link | — | Navigates back to Coupon Dashboard | `‹ Back to Coupons` | Preserves previously applied dashboard filters |
+   | Coupon Title | Label | Read-only | Coupon Code value | `SUMMER20` | Main page heading |
+   | Status Badge | Badge | Read-only | Active or Inactive | `● Active` | Color-coded: Green for Active, Red for Inactive |
+   | Discount Summary | Label | Read-only | Format: `{Type} · {Value} Off · Max {Cap}` | `Percentage Discount · 20% Off · Max ₹150` | Quick summary sub-heading |
+
+   #### Coupon Details & Usage Fields
+   | Field Name | Type | Required | Validation | Example | Notes |
+   |---|---|---|---|---|---|
+   | Coupon Code | Text | Read-only | Alphanumeric | `SUMMER20` | Unique coupon identifier |
+   | Discount Type | Text | Read-only | Flat or Percentage | `Percentage` | Method of discount calculation |
+   | Discount Value | Text | Read-only | >0 | `20%` | The configured discount value |
+   | Max Discount Amount | Currency | Read-only | >0 | `₹150` | Cap on percentage discounts |
+   | Minimum Order Value | Currency | Read-only | >=0 | `₹500` | Minimum cart requirement |
+   | Usage Limit | Number | Read-only | >0 | `1000` | Configured max redemptions |
+   | Times Redeemed | Number | Read-only | Integer >= 0 | `342` | Live count of redemptions so far |
+   | Remaining Usage | Number | Read-only | Integer >= 0 | `658` | Computed: Usage Limit minus Times Redeemed |
+   | Valid From | Date | Read-only | Valid date | `2026-06-01` | Campaign start date |
+   | Valid Until | Date | Read-only | Valid date | `2026-06-30` | Campaign expiry date |
+   | Target Audience | Text | Read-only | All, New Users, Loyalty tier | `Loyalty Tier 1 & 2` | User cohort restriction |
+   | Applicable Branches | Text | Read-only | Branch list or All | `All Branches` | Location restriction |
+   | Created By | Text | Read-only | Format: `{user} on {timestamp}` | `admin_user on 2026-05-01 10:00 AM` | Audit trail — creator identity |
+   | Last Edited By | Text | Read-only | Format: `{user} on {timestamp}` | `admin_user on 2026-05-20 03:30 PM` | Audit trail — last editor identity |
+
+   ### 4. Validations
+   - **Read-Only Screen**: No fields are editable. All management actions are accessible from the Coupon Dashboard (Screen 6.1) or the Edit screen (Screen 6.3).
+   - **Remaining Usage**: Computed field — if no Usage Limit is set, displays `Unlimited`.
+   - **Back Navigation**: The `‹ Back to Coupons` link must return the user to the Coupon Dashboard, preserving any previously applied filters.
 
    ---
+
 
    ## Screen 6.5: Deactivate Coupon Confirmation Modal
 
