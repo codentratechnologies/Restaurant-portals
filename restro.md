@@ -30,7 +30,7 @@
    - [Screen 5.2: View Employee Detail Screen](#screen-52-view-employee-detail-screen)
 
 ---
-
+ 
 ## Executive Summary & Global Portal Standards
 
 ### Project Goals
