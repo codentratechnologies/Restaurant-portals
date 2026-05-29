@@ -853,17 +853,31 @@ Allows the customer to add a new address to their address book. Integrates GPS g
 └──────────────────────────────────────────┘
 ```
 
-### 3. Screen Fields Table
+### 3. Screen Fields Specification
+
+#### Location Coordinates & Map Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| GPS Coordinates | Geopoint | Yes | Lat/Lng valid bounds | `(12.9716, 77.5946)` | Sourced from map widget |
-| House Number | Text | Yes | Min 1 character | `Flat 101` | Flat or unit code |
-| Building Name | Text | Yes | Min 3 characters | `Oakwood Apartments` | Building identifier |
-| Landmark | Text | No | Max 100 characters | `Opposite Central Mall` | Navigation aid |
-| Road Name | Text | Yes | Min 5 characters | `MG Road` | Street line |
-| Pincode | Text | Yes | Exactly 6 digits | `560001` | Postal routing code |
-| City | Text | Yes | Min 2 characters | `Bangalore` | Match database supported list |
-| State | Text | Yes | Min 2 characters | `Karnataka` | Regional boundary |
+| Back Button | Link | Yes | Navigates back to Screen 6.3 | `[←]` | Returns to address selection |
+| Interactive Map | Widget | Yes | Returns valid coordinates | Draggable map frame | Draggable pin interface to lock location |
+| GPS Coordinates | Geopoint | Yes | Latitude/Longitude bounds | `(12.9716, 77.5946)` | Automatically updated by pin position |
+| Use Current Location | Button | No | Checks device GPS permission | `[x] Use Current Location` | Automatically resolves coordinates and fills form |
+
+#### Address Form Details Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| House Number | Text | Yes | Min 1 character | `Flat 101` | Flat, unit, or villa number |
+| Building Name | Text | Yes | Min 3 characters | `Oakwood Apartments` | Building/apartment name |
+| Landmark | Text | No | Max 100 characters | `Opposite Central Mall` | Local helper guide |
+| Road Name | Text | Yes | Min 5 characters | `MG Road` | Street detail |
+| Pincode | Text | Yes | Exactly 6 digits | `560001` | Postal postal code |
+| City | Text | Yes | Min 2 characters | `Bangalore` | User selected city |
+| State | Text | Yes | Min 2 characters | `Karnataka` | User selected state |
+
+#### Save Action Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Save Address Button | Button | Yes | Form fields validation check | `[ SAVE ADDRESS ]` | Stores address and returns to checkout |
 
 ### 4. Validations
 * Pincode format validation: Regex `^[1-9][0-9]{5}$`.
