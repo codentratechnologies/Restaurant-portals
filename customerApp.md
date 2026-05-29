@@ -650,10 +650,23 @@ Displays available promotional discount coupons, showing criteria like expiratio
 └──────────────────────────────────────────┘
 ```
 
-### 3. Screen Fields Table
+### 3. Screen Filters & Fields Specification
+
+#### Screen Filters Table
+| Filter Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Enter Coupon Code | Text | No | Uppercase alphanumeric | `WELCOME150` | Inputted code field to search custom coupon |
+
+#### Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Custom Coupon Code | Text | No | Uppercase alphanumeric | `WELCOME150` | Inputted code field |
+| Back Button | Link | Yes | Navigates back to Screen 6 | `[←]` | Returns to checkout page |
+| Coupon Apply Button | Button | Yes | Requires valid input coupon code | `[Apply]` | Submits coupon input for validation |
+| Coupons List | Container | Read-only | Array list of active coupons | Coupon Cards List | Scrollable list of available promo codes |
+| Coupon Code Card | Label | Read-only | Valid coupon string code | `DINE50` | Displayed coupon code on cards |
+| Coupon Description | Label | Read-only | Text details of terms | `Save ₹100 on orders...` | Coupon rules description |
+| Coupon Expiry Date | Label | Read-only | Date format | `2026-06-30` | Coupon expiration deadline |
+| Apply Coupon Action | Button | Yes | Minimum order value validation | `[APPLY]` | Directly applies coupon to cart subtotal |
 
 ### 4. Validations
 * Checks against minimum cart value constraints.
@@ -1159,11 +1172,17 @@ Lists the customer's order history, filtered by order status (Delivered, Cancell
 └──────────────────────────────────────────┘
 ```
 
-### 3. Screen Fields Table
+### 3. Screen Filters & Fields Specification
+
+#### Screen Filters Table
+| Filter Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Status Filter Toggle | Selector | Yes | Must be ALL, DELIVERED, or CANCELLED | `Delivered` | Filters recent order history records |
+
+#### Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Back Button | Link | Yes | Navigates back to Screen 8 | `[←]` | Returns to main profile screen |
-| Status Filter Toggle | Selector | Yes | Must be ALL, DELIVERED, or CANCELLED | `Delivered` | Filters recent order history records |
 | Order Item Row | Container | Read-only | Valid matching past order data | Order card showing #5521 details | Holds ID, price, date, summary, and action link |
 | View Order Details Link| Link | Yes | Navigates to Screen 8.3.1 | `[View Order Details]` | Opens completed detail receipt panel |
 
