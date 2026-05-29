@@ -955,6 +955,15 @@ The primary interface for monitoring live orders. Displays real-time preparation
 │  (✓) Pending (✓) Accepted (✓) Preparing  │
 │  (✓) Ready   (●) Out For Delivery ( ) Del│
 │                                          │
+│  Customer Details:                       │
+│  Name: John Doe                          │
+│  Phone: 9876543210                       │
+│  Deliver to: Flat 101, Oakwood Apts      │
+│                                          │
+│  Order Items:                            │
+│  • Margherita Pizza (2)           ₹758   │
+│  Grand Total: ₹727 (Payment: COD)        │
+│                                          │
 │  Delivery Partner Details:               │
 │  Name: Rajesh Kumar                      │
 │  Phone: 9988776655            [Call Driver]│
@@ -963,18 +972,37 @@ The primary interface for monitoring live orders. Displays real-time preparation
 └──────────────────────────────────────────┘
 ```
 
-### 3. Screen Fields Table
+### 3. Screen Fields Specification
+
+#### Order Tracking & Map Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Back Button | Link | Yes | Navigates to Screen 8.3 | `[←]` | Returns to profile orders list |
-| Order ID Label | Label | Read-only | Alphanumeric code | `#5521` | Unique order identifier |
 | Live Map View | Map | Read-only | Render map object coordinates | `[ MAP AREA ]` | Shows driver location and path route |
 | Status Header | Label | Read-only | Valid status tag name | `Status: Out For Delivery` | Shows current order lifecycle status |
 | Status Progress Track | Progress | Read-only | Array of status nodes | `Pending -> Accepted -> ...` | Visual sequence marker |
+| Cancel Order Button | Button | No | Allowed state checks | `[ CANCEL ORDER ]` | Cancels order (disabled if Ready/Out/Delivered) |
+
+#### Customer Details Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Customer Name | Label | Read-only | Min 3 characters | `John Doe` | Customer name display |
+| Customer Contact | Label | Read-only | Verified 10 digit number | `9876543210` | Customer contact phone number |
+| Delivery Address Display| Label | Read-only | Multi-line text | `Flat 101, Oakwood Apartments...` | Destination coordinates for delivery |
+
+#### Ordered Items & Financials Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Ordered Items List | Container | Read-only | List of food item objects in order | Ordered list | Includes item names, quantities, and prices |
+| Grand Total Display | Label | Read-only | Decimal currency | `₹727` | Total amount charged |
+| Payment Status Display | Label | Read-only | COD / Paid / Pending | `Payment: COD (Pending)` | Current status of checkout transaction |
+
+#### Delivery Partner Details Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
 | Driver Name | Label | Read-only | Text characters | `Rajesh Kumar` | Delivery partner name |
 | Driver Contact | Label | Read-only | Verified 10 digit number | `9988776655` | Contact channel |
 | Call Driver Button | Button | Yes | Initiates dialer intent | `[Call Driver]` | Triggers device phone dialer |
-| Cancel Order Button | Button | No | Allowed state checks | `[ CANCEL ORDER ]` | Cancels order (disabled if Ready/Out/Delivered) |
 
 ### 4. Validations
 * **Order Cancellation Rules**: Cancellation is allowed only if order status is `Pending`, `Accepted`, or `Preparing`. The cancellation action is disabled on the client side and blocked on the server side if status is `Ready For Pickup`, `Out For Delivery`, or `Delivered`.
@@ -996,6 +1024,19 @@ The primary interface for monitoring live orders. Displays real-time preparation
   {
     "orderId": "order_5521",
     "status": "OUT_FOR_DELIVERY",
+    "customer": {
+      "name": "John Doe",
+      "phone": "9876543210",
+      "deliveryAddress": "Flat 101, Oakwood Apartments, MG Road, Bangalore"
+    },
+    "orderDetails": {
+      "items": [
+        { "foodId": "food_9921", "name": "Margherita Pizza", "quantity": 2, "price": 758.00 }
+      ],
+      "grandTotal": 727.40,
+      "paymentMethod": "COD",
+      "paymentStatus": "PENDING"
+    },
     "deliveryPartner": {
       "name": "Rajesh Kumar",
       "latitude": 12.9740,
@@ -1756,3 +1797,4 @@ Step 7: If no branches meet criteria: Abort checkout, return "No branches availa
 * **Database**: PostgreSQL for transactional consistency; Redis for fast cart storage.
 * **WebSockets**: Socket.io server clustering backed by Redis adapter to handle real-time connection scales.
 * **Security**: SSL encryption on all routes, API rate limits, and SQL injection sanitizers on query parameters.
+
