@@ -1325,7 +1325,7 @@ Below is the complete state-machine diagram mapping the customer order lifecycle
 
 ```mermaid
 graph TD
-    classDef default color:#000;
+    classDef default color:#fff;
     %% Order Creation & Intake
     A[Customer Checkout] -->|Status: Pending| B(Screen 3.1: Live Pending Queue)
     B -->|Manager Decision| C{Accept or Reject?}
