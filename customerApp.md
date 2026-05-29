@@ -544,11 +544,35 @@ Manages cart items, applies promotional coupons, reviews estimated delivery time
 └──────────────────────────────────────────┘
 ```
 
-### 3. Screen Fields Table
+### 3. Screen Fields & Billing Specification
+
+#### Cart Items & Actions Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Coupon Code | Text | No | Alphanumeric, max 15 chars | `DINE50` | Case-insensitive conversion |
-| Item Quantity | Counter | Yes | Integer >= 1 | `2` | Direct adjustment within cart screen |
+| Back Button | Link | Yes | Navigates back to Screen 4 | `[←]` | Returns to home page |
+| Cart Items List | Container | Read-only | List of active items in user session | Cart List | Dynamic array of selected food cards |
+| Food Item Name | Label | Read-only | Matches menu catalog | `Margherita Pizza` | Displays selected item name |
+| Food Customizations| Label | Read-only | List of active options | `[Extra Cheese, Extra Sauce]` | Chosen add-ons |
+| Item Quantity | Counter | Yes | Integer >= 1 | `2` | Increments/decrements quantity in session |
+| Delete Item Button | Button | Yes | Destructive click trigger | `[Delete]` | Removes item from active cart |
+| Add More Items Link| Link | Yes | Navigates to Screen 4 | `[+ Add More Items]` | Redirects user to browse menu |
+
+#### Checkout & Actions Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Coupon Code Input | Text | No | Alphanumeric, max 15 chars | `DINE50` | User input field for promo codes |
+| Apply Coupon Button| Button | Yes | Valid code constraint | `[Apply]` | Triggers coupon discount check |
+| Delivery ETA Display| Label | Read-only | Time duration format | `32 mins` | Approximate delivery timeline |
+| Checkout Button | Button | Yes | Cart must contain >= 1 available item | `[ PROCEED TO CHECKOUT ]` | Opens checkout mapping flow |
+
+#### Billing Summary Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Item Total | Label | Read-only | Sum of items and customizations | `₹758` | Subtotal cost |
+| Packaging Charges | Label | Read-only | Fixed decimal | `₹30` | Box and preparation packaging cost |
+| Tax | Label | Read-only | 5% GST value | `₹39` | Calculated government tax |
+| Coupon Discount | Label | Read-only | Negative decimal | `-₹100` | Applied coupon savings |
+| Grand Total | Label | Read-only | Calculated checkout total | `₹727` | Final payable balance |
 
 ### 4. Validations
 * Item availability check: If any cart item is flagged as unavailable in the branch master, prompt warning banner and disable checkout action.
