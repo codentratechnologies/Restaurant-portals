@@ -1263,6 +1263,11 @@ Lists the customer's order history, filtered by order status (Delivered, Cancell
 |---|---|---|---|---|---|
 | Back Button | Link | Yes | Navigates back to Screen 8 | `[←]` | Returns to main profile screen |
 | Order Item Row | Container | Read-only | Valid matching past order data | Order card showing #5521 details | Holds ID, price, date, summary, and action link |
+| Order ID Display | Label | Read-only | Alphanumeric unique format | `Order #5521` | Unique order identifier displayed on card |
+| Grand Total Display | Label | Read-only | Pos. Decimal currency | `₹727` | Total checkout cost paid for order |
+| Order Date Display | Label | Read-only | Date format (YYYY-MM-DD) | `2026-05-29` | Timestamp date of order placement |
+| Items Summary Display| Label | Read-only | Combined items description | `Pizza (2)` | Short text summarizing items in order |
+| Order Status Display | Label | Read-only | Delivered / Cancelled status pill | `Delivered` | Visual state classification of completed order |
 | View Order Details Link| Link | Yes | Navigates to Screen 8.3.1 | `[View Order Details]` | Opens completed detail receipt panel |
 
 ### 4. Validations
