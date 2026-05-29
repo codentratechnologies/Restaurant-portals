@@ -394,7 +394,14 @@ Displays detailed descriptions, images, prices, category markers, and average ra
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
+| Back Button | Link | Yes | Navigates back to Screen 4 | `[←]` | Returns to Home Screen |
 | Collection Button | Toggle | No | Boolean | `true` | Saved (`♥`) or Unsaved (`♡`) |
+| Food Image | Image | Read-only | Valid image URL | `[ FOOD IMAGE ]` | Product photo |
+| Food Name | Label | Read-only | Min 3 characters | `Margherita Pizza` | Product name display |
+| Rating Score | Label | Read-only | Decimal range `[1.0, 5.0]` | `★ 4.8` | Average user rating |
+| Category Badge | Label | Read-only | Valid category tag name | `Pizza \| Veg` | Shows food classifications |
+| Food Description | Label | Read-only | Text block | `Classic cheese pizza...` | Detailed description |
+| Price Tag | Label | Read-only | Pos. Decimal currency format | `₹299` | Base item cost |
 | Add Button | Action | Yes | — | Click action | Opens customization view (Screen 5.1) |
 
 ### 4. Validations
@@ -658,7 +665,10 @@ Allows the customer to select their preferred payment option. Supported configur
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Payment Method Option | Radio | Yes | Must match supported list | `COD` | Mutually exclusive selector |
+| Back Button | Link | Yes | Navigates back to Screen 6 | `[←]` | Returns to cart view |
+| Payable Amount | Label | Read-only | Decimal currency | `₹727` | Grand total charge display |
+| Payment Method Radio | Radio | Yes | Must match UPI, Card, Net Banking, Wallet, COD | `COD` | Selects primary checkout mechanism |
+| Place Order Button | Button | Yes | Requires active payment config | `[ PLACE ORDER (₹727) ]` | Initiates checkout logic |
 
 ### 4. Validations
 * For COD: Restrict placement if customer has a historical COD rejection rate > 20%.
@@ -722,7 +732,10 @@ Enables customers to select an active delivery address from their saved address 
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Address Selection | Radio | Yes | Must correspond to valid address ID | `addr_99120` | Dynamic selection |
+| Back Button | Link | Yes | Navigates back to Screen 6 | `[←]` | Returns to cart view |
+| Address Selector | Radio | Yes | Active address ID | `addr_99120` | Radio list items mapped from addresses database |
+| Add New Address Link | Link | Yes | Navigates to Screen 6.3.1 | `[+ Add New Address]` | Opens new address mapping |
+| Confirm Address Button | Button | Yes | Requires active selection | `[ CONFIRM ADDRESS ]` | Selects destination point and returns to cart |
 
 ### 4. Validations
 * Chosen address must lie within the 5 KM delivery radius of at least one operational branch.
@@ -863,7 +876,15 @@ The primary interface for monitoring live orders. Displays real-time preparation
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Cancel Order | Action | No | Allowed status validation | Button click | Disabled once order reaches "Ready For Pickup" |
+| Back Button | Link | Yes | Navigates to Screen 8.3 | `[←]` | Returns to profile orders list |
+| Order ID Label | Label | Read-only | Alphanumeric code | `#5521` | Unique order identifier |
+| Live Map View | Map | Read-only | Render map object coordinates | `[ MAP AREA ]` | Shows driver location and path route |
+| Status Header | Label | Read-only | Valid status tag name | `Status: Out For Delivery` | Shows current order lifecycle status |
+| Status Progress Track | Progress | Read-only | Array of status nodes | `Pending -> Accepted -> ...` | Visual sequence marker |
+| Driver Name | Label | Read-only | Text characters | `Rajesh Kumar` | Delivery partner name |
+| Driver Contact | Label | Read-only | Verified 10 digit number | `9988776655` | Contact channel |
+| Call Driver Button | Button | Yes | Initiates dialer intent | `[Call Driver]` | Triggers device phone dialer |
+| Cancel Order Button | Button | No | Allowed state checks | `[ CANCEL ORDER ]` | Cancels order (disabled if Ready/Out/Delivered) |
 
 ### 4. Validations
 * **Order Cancellation Rules**: Cancellation is allowed only if order status is `Pending`, `Accepted`, or `Preparing`. The cancellation action is disabled on the client side and blocked on the server side if status is `Ready For Pickup`, `Out For Delivery`, or `Delivered`.
@@ -923,7 +944,16 @@ The primary landing screen for account operations, enabling users to edit detail
 ```
 
 ### 3. Screen Fields Table
-* This screen contains no input fields, only navigational links.
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| User Avatar | Image | Read-only | Valid asset/URL path | `👤 John Doe` | Visual avatar placeholder |
+| Customer Name | Label | Read-only | Min 3 characters | `John Doe` | Displays customer's full name |
+| Customer Contact Details | Label | Read-only | Combined email and mobile format | `john@example.com \| 9876543210` | Displays email and phone number |
+| Edit Profile Link | Link | Yes | Navigates to Screen 8.1 | `[ Edit Profile ]` | Trigger for profile editing |
+| Food Collection Link | Link | Yes | Navigates to Screen 8.2 | `[ Food Collection ]` | Trigger for saved foods |
+| Recent Orders History Link | Link | Yes | Navigates to Screen 8.3 | `[ Recent Orders History ]` | Trigger for order history |
+| Saved Address Book Link | Link | Yes | Navigates to Screen 8.4 | `[ Saved Address Book ]` | Trigger for address list |
+| Logout Button | Button | Yes | Destructive click trigger | `[ LOGOUT ]` | Invalidates auth token and resets session |
 
 ### 4. Validations
 * Session check: Redirect to Login Screen if auth token is invalid or expired.
@@ -1030,7 +1060,13 @@ Displays food items saved by the customer. Allows quick access to food detail vi
 ```
 
 ### 3. Screen Fields Table
-* This screen contains no input fields, only action clicks.
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Back Button | Link | Yes | Navigates back to Screen 8 | `[←]` | Returns to main profile |
+| Food Card Details | Container | Read-only | Valid mapping to food catalog item | Margherita Pizza Card | Contains name, category, price, and image |
+| Saved Toggle Heart | Icon Toggle | Yes | Boolean (active/inactive state) | `♥` (Active heart) | Tapping sets to unchecked and triggers removal |
+| Remove Action | Button | Yes | API delete mapping | `[ Remove ]` | Removes item from user collections database |
+| View Details Action | Button | Yes | Navigates to Screen 5 | `[View Details]` | Opens details panel for the food item |
 
 ### 4. Validations
 * Item availability status checks are updated when details are loaded.
@@ -1079,7 +1115,10 @@ Lists the customer's order history, filtered by order status (Delivered, Cancell
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Status Filter | Toggle | No | All / Delivered / Cancelled | `Delivered` | Controls history listing |
+| Back Button | Link | Yes | Navigates back to Screen 8 | `[←]` | Returns to main profile screen |
+| Status Filter Toggle | Selector | Yes | Must be ALL, DELIVERED, or CANCELLED | `Delivered` | Filters recent order history records |
+| Order Item Row | Container | Read-only | Valid matching past order data | Order card showing #5521 details | Holds ID, price, date, summary, and action link |
+| View Order Details Link| Link | Yes | Navigates to Screen 8.3.1 | `[View Order Details]` | Opens completed detail receipt panel |
 
 ### 4. Validations
 * Query constraint: Limit history load payload to exactly 10 records per request page.
@@ -1139,9 +1178,20 @@ Displays detailed receipts for completed orders, providing total cost breakdowns
 ```
 
 ### 3. Screen Fields Table
-* Clicking "REVIEW ORDER" triggers the rating modal overlay.
-* Review Modal Fields:
+#### Base Screen Fields
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Back Button | Link | Yes | Navigates to Screen 8.3 | `[←]` | Returns to list history view |
+| Order ID Header | Label | Read-only | Unique alphanumeric code | `Order #5521 Details` | Top bar title details |
+| Delivery Address Text | Label | Read-only | Multi-line text | `Flat 101, Oakwood Apartments...` | Destination address |
+| Receipt Item Row | Label | Read-only | Text list | `• Margherita Pizza (2) - ₹758` | Item names and billing values |
+| Billing Adjustment Line| Label | Read-only | Text and decimal details | `• Packaging / GST / Coupons - -₹31` | Surcharges and discounts |
+| Grand Total Display | Label | Read-only | Decimal currency format | `₹727` | Total amount paid |
+| Payment Method Display | Label | Read-only | UPI / Card / COD / Wallet | `Payment Method: COD` | Settled payment channel |
+| Rate Experience Star | Icon Selector | Yes | Integer between 1 and 5 stars | `★ ★ ★ ★ ★` | Rating star touch trigger |
+| Review Order Trigger | Button | Yes | Opens review modal popup | `[ REVIEW ORDER ]` | Launches rating dialog |
 
+#### Review Modal Overlay Fields
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Rating Score | Number | Yes | Integer between 1 and 5 | `5` | Graphical star selection |
@@ -1203,7 +1253,15 @@ Lists saved delivery locations. Allows setting default locations, triggering mod
 ```
 
 ### 3. Screen Fields Table
-* This screen contains no input fields, only list management actions.
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Back Button | Link | Yes | Navigates back to Screen 8 | `[←]` | Returns to main profile |
+| Address Tag Label | Label | Read-only | Alphanumeric, max 20 chars | `Home` | Shows tag label (e.g. Home, Office) |
+| Default Address Badge | Label | Read-only | Combined display element | `[Default]` | Shown on user's priority delivery address |
+| Address Text Detail | Label | Read-only | Multi-line address summary | `Flat 101, Oakwood Apartments, MG Road...` | Shows full structured street text |
+| Edit Address Button | Button | Yes | Navigates to Screen 8.4.1 | `[ Edit ]` | Starts edit flow for the selected address ID |
+| Delete Address Button | Button | Yes | Destructive action confirmation | `[ Delete ]` | Removes location from DB with warning prompt |
+| Add New Address Button | Button | Yes | Navigates to Screen 6.3.1 | `[+ Add New Address]` | Opens creation wizard |
 
 ### 4. Validations
 * Address deletion confirmation required via a prompt alert check.
