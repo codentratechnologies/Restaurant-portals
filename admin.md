@@ -1437,112 +1437,12 @@ This section allows the admin to define **Customization Options** directly for t
 - **Customer App**: Customer ordering interface reads customizations from the food item API response and renders them as checkbox lists.
 - **Branch/POS Interface**: Kitchen order tickets and branch order summaries read saved add-on selections from completed order records.
 
-#### 10. Global Form Validations (Sections A + B combined)
-- All Section A required fields must be valid before the form can be submitted.
-- All Section B customization options (if any are added) must have a valid label and non-negative price.
-- The `[Save Food Item]` button triggers validation across both sections simultaneously and displays a consolidated inline error summary if any validation fails.
-- On successful save, admin is redirected to the Food Catalog Dashboard (Screen 5.1) with a success toast: _"Food item created successfully."_
-── After clicking [+ Add Group] — Group Card appears: ───────────────
-
-┌─────────────────────────────────────────────────────────────────────┐
-│  ── Section B: Customize Food Item ─────────────────────────────── │
-│                                                    [+ Add Group]    │
-├──────────────────────────────────────────────────┬──────────────────┤
-│  📂 Group 1                                       │ [▲] [▼]  [🗑 Delete] │
-├──────────────────────────────────────────────────┴──────────────────┤
-│  Group Name *  [Extra Toppings               ]                      │
-│                                                                     │
-│  ┌─────────────────────────────────────────────────────────────┐   │
-│  │ Options                                              [+ Add Option] │
-│  ├───────────────┬──────────────────────────┬──────────────────┤   │
-│  │ Option Label  │ Price Add-on (₹)         │ Actions          │   │
-│  ├───────────────┼──────────────────────────┼──────────────────┤   │
-│  │ Add Cheese    │ 30.00                    │ [🗑]              │   │
-│  │ Add Mushrooms │ 25.00                    │ [🗑]              │   │
-│  │ Add Olives    │ 20.00                    │ [🗑]              │   │
-│  └───────────────┴──────────────────────────┴──────────────────┘   │
-└─────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────────┐
-│  📂 Group 2                                                              │
-├──────────────────────────────────────────────────────────────────── │
-│  Group Name *  [Add-ons                      ]                      │
-│                                                                     │
-│  ┌─────────────────────────────────────────────────────────────┐   │
-│  │ Options                                              [+ Add Option] │
-│  ├───────────────┬──────────────────────────┬──────────────────┤   │
-│  │ Option Label  │ Price Add-on (₹)         │ Actions          │   │
-│  ├───────────────┼──────────────────────────┼──────────────────┤   │
-│  │ Extra Sauce   │ 0.00                     │ [🗑]              │   │
-│  │ Extra Butter  │ 15.00                    │ [🗑]              │   │
-│  └───────────────┴──────────────────────────┴──────────────────┘   │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-#### 4. Customization Group — Interaction Behavior
-| Action | Trigger | Behavior |
-|---|---|---|
-| **Add Group** | Click `[+ Add Group]` | Appends a new blank Customization Group card at the bottom of the section. |
-| **Delete Group** | Click `[🗑 Delete]` on group card header | Removes the entire group and all its options. Triggers a confirmation tooltip: _"Delete this group? This cannot be undone."_ with `[Cancel]` / `[Confirm]` |
-| **Reorder Group** | Click `[▲]` / `[▼]` arrows on group card header | Moves the group up or down in display order. Order is reflected in the customer-facing UI. |
-| **Add Option** | Click `[+ Add Option]` inside an options table | Appends a new blank option row inline within the group's options table. |
-| **Delete Option** | Click `[🗑]` on option row | Removes that option row immediately (no confirmation required). |
-
-#### 5. Section B — Customization Group Fields Table
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
-| Group Name | Text | Yes | Min 2, max 80 characters | `Extra Toppings` | Label shown to customer as the add-on category heading |
-| Option Label | Text | Yes (per option) | Min 1, max 60 characters, Unique within group | `Add Cheese` | Text label shown to customer for this add-on option |
-| Option Price Add-on | Currency | Yes (per option) | Numeric ≥ 0 | `30.00` | Additional charge added to the item's Base Price when this option is selected. Enter `0` for free add-ons |
-
-#### 6. Section B — Validations
-- **Group Name Uniqueness**: Group names must be unique within a single food item.
-- **Option Minimum**: Each group must have at least **1 option** before the food item can be saved.
-- **Option Label Uniqueness**: Option labels must be unique within their parent group.
-- **Price Non-Negative**: Option price add-on must be `≥ 0`. Negative prices are rejected.
-- **Empty Group Prevention**: A group with a filled Group Name but zero options will block the save action with an inline error: _"Please add at least one option to '{Group Name}'"_.
-- **No Groups = No Customization**: Having zero groups is valid — it means the item has no customer-facing add-ons (e.g., a plain soft drink). The customer interface will not show a customization panel for such items.
-
-#### 7. Customer-Side Rendering Contract
-> This section documents how the admin-configured customization data is consumed on the customer-facing interface.
-
-| Admin Configuration | Customer-Facing Rendering |
-|---|---|
-| Every customization group | Rendered as a **checkbox list** — customer can tick any combination of options |
-| Option `Price Add-on = 0` | Displayed as a free add-on (e.g., `Extra Sauce — Free`) |
-| Option `Price Add-on > 0` | Displayed with the extra charge next to the label (e.g., `Add Cheese (+₹30)`) |
-| Group ordering | Customer sees groups in the same top-to-bottom order as configured by admin |
-| Item with zero groups | No "Customize" section is shown to the customer; item is directly added to cart |
-
-#### 8. Calling Section (Branch / POS Context)
-> In non-customer contexts (e.g., Branch POS screen, Kitchen display, Waiter app), the customization data is used for **calling/order confirmation** purposes:
-- When an order is placed, all selected add-on option labels for each group are stored with the order line item.
-- Branch-side screens (e.g., Kitchen Order Tickets, POS Order Summary) **display the selected add-ons** alongside the food item name so kitchen staff know exactly what extras to include.
-- Example kitchen ticket display:
-  ```
-  Margherita Pizza  × 1
-    › Extra Toppings: Add Cheese, Add Mushrooms
-    › Add-ons: Extra Sauce
-  ```
-- The branch POS does **not** manage customization setup — only admin does.
-
-#### 9. Dependencies
-- **Data Dependencies**: Relies on categories master mapping tables (e.g. Starters, Sides, Desserts) to resolve Category dropdown in Section A.
-- **Customer App**: Customer ordering interface reads customization groups from the food item API response and renders them as checkbox lists.
-- **Branch/POS Interface**: Kitchen order tickets and branch order summaries read saved add-on selections from completed order records.
-
-### 10. Global Form Validations (Sections A + B combined)
-- All Section A required fields must be valid before the form can be submitted.
-- All Section B customization groups (if any are added) must each have at least one valid option.
-- The `[Save Food Item]` button triggers validation across both sections simultaneously and displays a consolidated inline error summary if any validation fails.
-- On successful save, admin is redirected to the Food Catalog Dashboard (Screen 5.1) with a success toast: _"Food item created successfully."_
-
 ---
 
 ## Screen 5.3: Update Food Item Screen
 
 ### 1. Overview
-Edit existing menu item details. The screen mirrors the **Create Food Item Screen (5.2)** in structure — it contains the same two sections: **Section A — Item Details & Image** (all fields pre-populated with the current item's saved data) and **Section B — Customize Food Item** (the Customization Builder, pre-populated with all previously saved customization groups and options). Admins can add, edit, reorder, or delete customization groups and their options, as well as add new groups.
+Edit existing menu item details. The screen mirrors the **Create Food Item Screen (5.2)** in structure — it contains the same two sections: **Section A — Item Details & Image** (all fields pre-populated with the current item's saved data) and **Section B — Customize Food Item** (pre-populated with all previously saved customization options). Admins can add, edit, or delete customization options.
 
 ### 2. Screen Preview
 ```text
@@ -1561,21 +1461,14 @@ Edit existing menu item details. The screen mirrors the **Create Food Item Scree
 │                                                                     │
 ├─────────────────────────────────────────────────────────────────────┤
 │  ── Section B: Customize Food Item ──────────────────────────────── │
-│                                                    [+ Add Group]    │
-├──────────────────────────────────────────────────┬──────────────────┤
-│  📂 Group 1: Extra Toppings                       │ [▲] [▼] [🗑 Delete] │
-├──────────────────────────────────────────────────┴──────────────────┤
-│  Group Name *  [Extra Toppings               ]                      │
-│  Selection Type *  ○ Single   ◉ Multi                               │
-│  Required  [Toggle: OFF]                                            │
-│  Min Selections: [0]    Max Selections: [5]                         │
-│  ┌─────────────────────────────────────────────────────────────┐   │
-│  │ Options                                              [+ Add Option] │
-│  ├───────────────┬──────────────────────────┬──────────────────┤   │
-│  │ Add Cheese    │ 30.00                    │ [🗑]              │   │
-│  │ Add Mushrooms │ 25.00                    │ [🗑]              │   │
-│  │ Add Olives    │ 20.00                    │ [🗑]              │   │
-│  └───────────────┴──────────────────────────┴──────────────────┘   │
+│                                                     [+ Add Option]  │
+├─────────────────────────────────────────────────────────────────────┤
+│  Option Label                  │ Price Add-on (₹)   │ Actions       │
+├────────────────────────────────┼────────────────────┼───────────────┤
+│  [Add Cheese                 ] │ [30.00          ]  │ [🗑]           │
+│  [Add Mushrooms              ] │ [25.00          ]  │ [🗑]           │
+│  [Add Olives                 ] │ [20.00          ]  │ [🗑]           │
+└────────────────────────────────┴────────────────────┴───────────────┘
 ├─────────────────────────────────────────────────────────────────────┤
 │                                          [Cancel] [Save Changes]    │
 └─────────────────────────────────────────────────────────────────────┘
@@ -1591,27 +1484,27 @@ Edit existing menu item details. The screen mirrors the **Create Food Item Scree
 | Description | Text Area | No | Max 500 characters | `Spiced cottage cheese...` | Item description |
 | Item Image | File | No | PNG or JPG format, size < 2MB | `paneer_tikka.png` | Optional — replaces current thumbnail only if a new file is uploaded |
 
-### 4. Section B — Customization Builder (Update Mode)
-The Customization Builder in Update mode follows the **same field definitions, interaction behaviors, and validations** as described in [Screen 5.2 — Section B](#section-b-customize-food-item-customization-builder), with the following update-specific differences:
-
-| Behavior | Create Mode (Screen 5.2) | Update Mode (Screen 5.3) |
+### 4. Section B — Customize Food Item (Customization Option Builder)
+#### 1. Overview
+In the Update/Edit Screen, Section B pre-loads all previously saved customization options for the food item. The admin can edit existing option labels and price add-ons, add new options inline, or delete options.
+#### 2. Interaction Behavior
+| Action | Trigger | Behavior |
 |---|---|---|
-| Initial State | All groups blank / empty | All previously saved groups and options pre-loaded |
-| Existing Options | N/A | Editable inline — admin can change label or price add-on of an existing option |
-| Group Deletion | Removes unsaved group | Removes group from the database on save |
-| Option Deletion | Removes unsaved option | Removes option from the database on save. Historical order records retain the option label as a text snapshot |
-| New Group Addition | First group on item | Appended below existing groups |
-
-### 5. Update-Specific Validations
+| **Add Option** | Click `[+ Add Option]` | Appends a new blank option row inline within the options table. |
+| **Delete Option** | Click `[🗑]` on option row | Removes that option row immediately (no confirmation required). |
+#### 3. Section B — Customization Option Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Option Label | Text | Yes (per option) | Min 1, max 60 characters, Unique | `Add Cheese` | Text label shown to customer for this add-on option |
+| Option Price Add-on | Currency | Yes (per option) | Numeric ≥ 0 | `30.00` | Additional charge added to the item's Base Price when this option is selected. Enter `0` for free add-ons |
+#### 4. Validations
+- **Option Minimum**: If customizations are added, each must have a valid label and price.
+- **Option Label Uniqueness**: Option labels must be unique within the food item.
+- **Price Non-Negative**: Option price add-on must be `≥ 0`. Negative prices are rejected.
+#### 5. Update-Specific Validations
 - Item image upload is optional for updates — if no new file is selected, the existing image is retained.
 - Modifying `Base Price` only affects future orders; historical order items tables retain the checkout price details captured at order time.
 - Deleting a customization option that was previously available does **not** retroactively alter past order records; the selected option label is stored as a text snapshot on the order line item.
-- Removing all options from a group is not permitted — the group must retain at least one option or be deleted entirely.
-
-### 6. Dependencies
-- **Data Dependencies**: Relies on categories configuration tables to resolve Category dropdown in Section A.
-- **Customer App & Branch POS**: Changes to customization groups take effect immediately for new orders placed after the save. In-progress orders are not affected.
-
 ---
 
 ## Screen 5.4: View Food Item Slide-out Drawer
@@ -1620,40 +1513,6 @@ The Customization Builder in Update mode follows the **same field definitions, i
 Redesigned detailed drawer panel sliding from the right edge. Displays CDN image preview, item configurations, and a mapping table showing which branch locations have this item active on their menu.
 
 ### 2. Screen Preview
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  Paneer Tikka Detail View                                [X]│
-├─────────────────────────────────────────────────────────────┤
-│  [Image: Paneer Tikka CDN URL]                             │
-│  Name: Paneer Tikka | Price: ₹279.00 | Tag: 🟢 Veg          │
-│  Category: Starters                                         │
-│  Description: Spiced cottage cheese grilled in tandoor.     │
-│                                                             │
-│  Assigned Locations Mappings                                │
-│  ┌─────────────┬─────────────────────┬──────────────────┐   │
-│  │ Branch Code │ Branch Name         │ Branch Status    │   │
-│  ├─────────────┼─────────────────────┼──────────────────┤   │
-│  │ B001        │ MG Road Branch      │ ● Active         │   │
-│  │ B004        │ Indiranagar Branch  │ ● Active         │   │
-│  └─────────────┴─────────────────────┴──────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 3. Screen Fields Table
-| Field Name | Type | Required | Validation | Example | Notes |
-|---|---|---|---|---|---|
-| Item Name | Text | Read-only | Min 3 chars | `Paneer Tikka` | Food item title |
-| Base Price | Currency | Read-only | Positive decimal | `₹279.00` | Current base pricing |
-| Category Label | Text | Read-only | Min 3 chars | `Starters` | Category classification |
-| Description | Text | Read-only | Max 500 chars | `Spiced cottage cheese...` | Description notes |
-| Branch Table: Code | Text | Read-only | Valid alphanumeric code | `B001` | Mapped branch code |
-| Branch Table: Name | Text | Read-only | Min 3 chars | `MG Road Branch` | Mapped branch name |
-| Branch Table: Status| Badge | Read-only | 'Active' or 'Inactive' badge | `Active` | Branch status badge |
-| Customization Options Count | Number | Read-only | Integer ≥ 0 | `3` | Badge count showing total number of customization options configured for this item |
-| Customization Option: Label | Text | Read-only | Min 1 chars | `Add Cheese` | Name of configured customization option |
-| Customization Option: Price | Currency | Read-only | Numeric ≥ 0 | `₹30.00` | Additional charge added to the item's Base Price when this option is selected |
-
-### 4. Drawer Preview — With Customization Options
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  Paneer Tikka Detail View                                [X]│
@@ -1681,6 +1540,20 @@ Redesigned detailed drawer panel sliding from the right edge. Displays CDN image
 │  └─────────────┴─────────────────────┴──────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+### 3. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Item Name | Text | Read-only | Min 3 chars | `Paneer Tikka` | Food item title |
+| Base Price | Currency | Read-only | Positive decimal | `₹279.00` | Current base pricing |
+| Category Label | Text | Read-only | Min 3 chars | `Starters` | Category classification |
+| Description | Text | Read-only | Max 500 chars | `Spiced cottage cheese...` | Description notes |
+| Branch Table: Code | Text | Read-only | Valid alphanumeric code | `B001` | Mapped branch code |
+| Branch Table: Name | Text | Read-only | Min 3 chars | `MG Road Branch` | Mapped branch name |
+| Branch Table: Status| Badge | Read-only | 'Active' or 'Inactive' badge | `Active` | Branch status badge |
+| Customization Options Count | Number | Read-only | Integer ≥ 0 | `3` | Badge count showing total number of customization options configured for this item |
+| Customization Option: Label | Text | Read-only | Min 1 chars | `Add Cheese` | Name of configured customization option |
+| Customization Option: Price | Currency | Read-only | Numeric ≥ 0 | `₹30.00` | Additional charge added to the item's Base Price when this option is selected |
 
 ### 5. Validations
 - Mapped branch list queries active `branch_menus` tables to generate locations data dynamically.
