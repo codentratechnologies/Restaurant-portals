@@ -557,12 +557,20 @@ Manages cart items, applies promotional coupons, reviews estimated delivery time
 | Delete Item Button | Button | Yes | Destructive click trigger | `[Delete]` | Removes item from active cart |
 | Add More Items Link| Link | Yes | Navigates to Screen 4 | `[+ Add More Items]` | Redirects user to browse menu |
 
-#### Checkout & Actions Table
+#### Coupon Applied & Inputs Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Coupon Code Input | Text | No | Alphanumeric, max 15 chars | `DINE50` | User input field for promo codes |
 | Apply Coupon Button| Button | Yes | Valid code constraint | `[Apply]` | Triggers coupon discount check |
+
+#### Delivery Information Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
 | Delivery ETA Display| Label | Read-only | Time duration format | `32 mins` | Approximate delivery timeline |
+
+#### Checkout Action Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
 | Checkout Button | Button | Yes | Cart must contain >= 1 available item | `[ PROCEED TO CHECKOUT ]` | Opens checkout mapping flow |
 
 #### Billing Summary Table
