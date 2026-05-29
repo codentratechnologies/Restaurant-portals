@@ -1201,6 +1201,9 @@ Displays food items saved by the customer. Allows quick access to food detail vi
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Food Card Details | Container | Read-only | Valid mapping to food catalog item | Margherita Pizza Card | Contains name, category, price, and image |
+| Food Name Display | Label | Read-only | Matches menu catalog | `Margherita Pizza` | Displays saved item name |
+| Food Category Display| Label | Read-only | Category name and type tag | `Pizza \| Veg` | Shows food category classification and veg/non-veg status |
+| Food Price Display | Label | Read-only | Pos. Decimal currency | `₹299` | Displays base price of menu item |
 | Saved Toggle Heart | Icon Toggle | Yes | Boolean (active/inactive state) | `♥` (Active heart) | Tapping sets to unchecked (heart outlined `♡`) and triggers removal |
 | View Details Action | Button | Yes | Navigates to Screen 5 | `[View Details]` | Opens details panel for the food item |
 
