@@ -47,7 +47,8 @@
 13. [Status Management System](#status-management-system)
 14. [Payment & Refund Flows](#payment--refund-flows)
 15. [Branch Allocation Logic](#branch-allocation-logic)
-16. [Suggested Tech Notes](#suggested-tech-notes)
+16. [Quick Reorder Flow](#quick-reorder-flow)
+17. [Suggested Tech Notes](#suggested-tech-notes)
 
 ---
 
@@ -343,7 +344,7 @@ The primary landing surface where users browse available food items, select cate
 | Food Item Add Button | Button | Yes | Opens customization sheet | `[Add]` | Launches Screen 5.1 customization |
 | View Cart Bar | Floating Bar | No | Visible if cart items > 0 | `View Cart (2 Items) - ₹488` | Navigates to Screen 6 |
 | Track Order Bar | Floating Bar | No | Visible if active order exists | `Active Order Tracking` | Navigates to Screen 7 |
-| Bottom Navigation | Navigation Tab| Yes | Home, Reorder, Profile | [Home] | Swaps active client viewports |
+| Bottom Navigation | Navigation Tab| Yes | Home, Reorder, Profile | [Home] | Swaps active client viewports. Reorder routes to Screen 8.3; Profile routes to Screen 8. |
 
 ### 4. Validations
 * Item availability is queried real-time against active branch mapping inventory.
@@ -1070,6 +1071,8 @@ The primary landing screen for account operations, enabling users to edit detail
 │  [ Saved Address Book                ] › │
 │                                          │
 │  [               LOGOUT              ]   │
+├──────────────────────────────────────────┤
+│  [Home]          [Reorder]    [Profile]  │
 └──────────────────────────────────────────┘
 ```
 
@@ -1084,6 +1087,7 @@ The primary landing screen for account operations, enabling users to edit detail
 | Recent Orders History Link | Link | Yes | Navigates to Screen 8.3 | `[ Recent Orders History ]` | Trigger for order history |
 | Saved Address Book Link | Link | Yes | Navigates to Screen 8.4 | `[ Saved Address Book ]` | Trigger for address list |
 | Logout Button | Button | Yes | Destructive click trigger | `[ LOGOUT ]` | Invalidates auth token and resets session |
+| Bottom Navigation | Navigation Tab | Yes | Home, Reorder, Profile | `[Profile]` | Swaps active client viewports. Home routes to Screen 4; Reorder routes to Screen 8.3. |
 
 ### 4. Validations
 * Session check: Redirect to Login Screen if auth token is invalid or expired.
@@ -1239,14 +1243,16 @@ Lists the customer's order history, filtered by order status (Delivered, Cancell
 │  │ Order #5521               ₹727     │  │
 │  │ Date: 2026-05-29 | Items: Pizza (2)│  │
 │  │ Status: Delivered                  │  │
-│  │ [View Order Details]               │  │
+│  │ [View Order Details] [Reorder Now] │  │
 │  └────────────────────────────────────┘  │
 │  ┌────────────────────────────────────┐  │
 │  │ Order #5102               ₹340     │  │
 │  │ Date: 2026-05-12 | Items: Burger(1)│  │
 │  │ Status: Cancelled                  │  │
-│  │ [View Order Details]               │  │
+│  │ [View Order Details] [Reorder Now] │  │
 │  └────────────────────────────────────┘  │
+├──────────────────────────────────────────┤
+│  [Home]          [Reorder]    [Profile]  │
 └──────────────────────────────────────────┘
 ```
 
@@ -1268,9 +1274,12 @@ Lists the customer's order history, filtered by order status (Delivered, Cancell
 | Items Summary Display| Label | Read-only | Combined items description | `Pizza (2)` | Short text summarizing items in order |
 | Order Status Display | Label | Read-only | Delivered / Cancelled status pill | `Delivered` | Visual state classification of completed order |
 | View Order Details Link| Link | Yes | Navigates to Screen 8.3.1 | `[View Order Details]` | Opens completed detail receipt panel |
+| Reorder Now Button | Button | Yes | Triggers Quick Reorder Flow | `[Reorder Now]` | Initiates stock/branch availability validation and copies items to cart |
+| Bottom Navigation | Navigation Tab | Yes | Home, Reorder, Profile | `[Reorder]` | Swaps active client viewports. Home routes to Screen 4; Profile routes to Screen 8. |
 
 ### 4. Validations
 * Query constraint: Limit history load payload to exactly 10 records per request page.
+* Quick Reorder availability verification: Check if items in selected past order are active and in stock at assigned branch.
 
 ### 5. Dependencies
 * **Order Engine Database**: Retrieves customer order history records.
@@ -1323,6 +1332,7 @@ Displays detailed receipts for completed orders, providing total cost breakdowns
 │  [ ★ ★ ★ ★ ★ ]                           │
 │                                          │
 │  [            REVIEW ORDER           ]   │
+│  [            REORDER NOW            ]   │
 └──────────────────────────────────────────┘
 ```
 
@@ -1339,6 +1349,7 @@ Displays detailed receipts for completed orders, providing total cost breakdowns
 | Payment Method Display | Label | Read-only | UPI / Card / COD / Wallet | `Payment Method: COD` | Settled payment channel |
 | Rate Experience Star | Icon Selector | Yes | Integer between 1 and 5 stars | `★ ★ ★ ★ ★` | Rating star touch trigger |
 | Review Order Trigger | Button | Yes | Opens review modal popup | `[ REVIEW ORDER ]` | Launches rating dialog |
+| Reorder Now Button | Button | Yes | Triggers Quick Reorder Flow | `[REORDER NOW]` | Initiates stock/branch availability validation and copies items to cart |
 
 #### Review Modal Overlay Fields
 | Field Name | Type | Required | Validation | Example | Notes |
@@ -1685,6 +1696,107 @@ Step 6: Verify branch B has all ordered menu items in stock (is_available = true
         If no: Loop to next nearest branch within 5.0 KM.
 Step 7: If no branches meet criteria: Abort checkout, return "No branches available".
 ```
+
+---
+
+# Quick Reorder Flow
+
+The Quick Reorder flow enables customers to duplicate a previous order's exact items and customization choices and load them directly into the active cart for checkout in a minimized number of taps.
+
+### Step-by-Step Flow Logic
+
+```mermaid
+graph TD
+    Start[User clicks 'Reorder Now'] --> GetLocation[Get Customer Location & Nearest assigned branch B]
+    GetLocation --> CheckBranch{Is branch B operational?}
+    CheckBranch -- No --> ErrorBranch[Toast Error: Branch unavailable]
+    CheckBranch -- Yes --> GetItems[Retrieve items & customizations from past order]
+    
+    GetItems --> CheckAvailability{Are items available at branch B?}
+    CheckAvailability -- None --> ErrorStock[Toast Error: All items are out of stock]
+    CheckAvailability -- All --> CheckCart{Is current cart empty?}
+    CheckAvailability -- Partial --> PromptPartial[Prompt: Some items unavailable. Reorder remaining?]
+    
+    PromptPartial -- Cancel --> End[Cancel Flow]
+    PromptPartial -- Proceed --> CheckCart
+    
+    CheckCart -- Yes --> LoadCart[Clear cart & add available items with same customizations]
+    CheckCart -- No --> PromptReplace[Prompt: Replace current cart items?]
+    PromptReplace -- Cancel --> End
+    PromptReplace -- Confirm --> LoadCart
+    
+    LoadCart --> RouteCheckout[Navigate to Screen 6: Add To Cart Screen / Checkout]
+```
+
+### 1. Branch Allocation & Verification
+* The system retrieves the coordinates of the customer's active delivery address or current GPS location.
+* It calculates the distance to assigned branches using the **Branch Allocation Logic**. The closest active branch within 5 KM is designated as the checkout branch $B$.
+
+### 2. Inventory Availability Validation
+* **Item Catalog Matching**: For each item in the historical order, the app queries the current active menu catalog for branch $B$.
+* **Customization Validation**: The system validates if all customized sub-options (e.g., Extra Cheese, Wheat Base) are also available and active.
+* **Stock Check**: If an item or critical option is marked `is_available = false`, it is classified as unavailable.
+
+### 3. Cart Interaction Logic
+* **Cart Replacement Prompt**: If the user's current shopping cart contains other items, a modal dialog presents: *"Your cart has items. Reordering will replace your current cart. Do you want to proceed?"*.
+* **Available Items Only Selection**: If the inventory check returns a partial list of available items, a modal prompt displays: *"The following items from your past order are currently unavailable: [Item Name]. Would you like to proceed with the remaining available items?"*
+  * If the user confirms, the system adds only the available items to the cart and raises an Emerald Green toast alert: *"Available items successfully added to cart!"*.
+
+### 4. Routing & Checkout Redirection
+* Once the items are loaded into the cart database/state, the app overrides the current cart viewport and routes the user directly to **Screen 6: Add To Cart Screen** (Cart/Checkout Summary).
+* The user's applied coupon and previous payment methods are NOT auto-selected. The user reviews the cart details, chooses their coupon/payment method, and taps "Place Order".
+
+### 5. API Recommendations
+* **Endpoint**: `POST /api/v1/orders/reorder`
+* **Request Payload**:
+  ```json
+  {
+    "customerId": "cust_82839120",
+    "pastOrderId": "order_5521",
+    "deliveryAddressId": "addr_9012"
+  }
+  ```
+* **Sample Response (Success - All available)**:
+  ```json
+  {
+    "success": true,
+    "message": "Items copied to cart successfully.",
+    "cart": {
+      "items": [
+        {
+          "foodId": "food_9921",
+          "quantity": 2,
+          "customizations": [
+            { "optionId": "opt_cheese", "name": "Extra Cheese" }
+          ]
+        }
+      ]
+    }
+  }
+  ```
+* **Sample Response (Partial Availability)**:
+  ```json
+  {
+    "success": false,
+    "errorCode": "PARTIAL_AVAILABILITY",
+    "message": "Some items are unavailable.",
+    "unavailableItems": [
+      {
+        "foodId": "food_8812",
+        "name": "Spicy Paneer Burger"
+      }
+    ],
+    "availableItems": [
+      {
+        "foodId": "food_9921",
+        "quantity": 2,
+        "customizations": [
+          { "optionId": "opt_cheese", "name": "Extra Cheese" }
+        ]
+      }
+    ]
+  }
+  ```
 
 ---
 
