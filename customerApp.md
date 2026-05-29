@@ -796,6 +796,9 @@ Enables customers to select an active delivery address from their saved address 
 |---|---|---|---|---|---|
 | Back Button | Link | Yes | Navigates back to Screen 6 | `[←]` | Returns to cart view |
 | Address Selector | Radio | Yes | Active address ID | `addr_99120` | Radio list items mapped from addresses database |
+| Address Tag Display | Label | Read-only | Alphanumeric, max 20 chars | `Home` | Shows address category tag |
+| Default Badge Display| Label | Read-only | Combined display condition | `[Default]` | Visible on the user's default delivery address |
+| Address Text Display | Label | Read-only | Combined multi-line text | `Flat 101, Oakwood Apartments, MG Road...` | Shows full formatted address string |
 | Add New Address Link | Link | Yes | Navigates to Screen 6.3.1 | `[+ Add New Address]` | Opens new address mapping |
 
 #### Select Action Table
