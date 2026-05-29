@@ -1677,14 +1677,12 @@
    | Coupon Code | Text | Yes | Alphanumeric, uppercase, min 4 | `SUMMER20` | Customer-facing code |
    | Status | Dropdown | Yes | Active, Inactive | `Active` | Initial status |
    | Discount Type | Dropdown | Yes | Flat, Percentage | `Percentage` | Determines calculation |
-   | Discount Value | Number | Yes | >0 | `20` | Flat amt or % value |
    | Max Discount Amount| Currency | No | >0 | `₹150` | Ceiling for % discounts |
 
    #### Conditions & Targeting Fields
    | Field Name | Type | Required | Validation | Example | Notes |
    |---|---|---|---|---|---|
    | Minimum Order Value | Currency | No | >=0 | `₹500` | Minimum cart total |
-   | Usage Limit | Number | No | >0 | `1000` | Max total redemptions |
    | Valid From | Date | Yes | Cannot be in past | `2026-06-01` | Start date |
    | Valid Until | Date | Yes | >= Valid From | `2026-06-30` | End date |
    | Target Audience | Dropdown | No | All, New Users, Loyalty | `Loyalty` | Personalization cohort |
@@ -1740,14 +1738,12 @@
    | Coupon Code | Label | — | Locked, non-editable | `SUMMER20` | Permanently locked to preserve history |
    | Status | Dropdown | Yes | Active, Inactive | `Active` | Toggle coupon on or off |
    | Discount Type | Dropdown | Yes | Flat, Percentage | `Percentage` | Determines discount calculation |
-   | Discount Value | Number | Yes | >0 | `20` | Flat amount or percentage value |
    | Max Discount Amount | Currency | No | >0 | `₹150` | Ceiling cap for percentage discounts |
 
    #### Conditions & Targeting Fields
    | Field Name | Type | Required | Validation | Example | Notes |
    |---|---|---|---|---|---|
    | Minimum Order Value | Currency | No | >=0 | `₹500` | Minimum cart total to apply coupon |
-   | Usage Limit | Number | No | >0 | `1000` | Max total redemptions across all users |
    | Valid From | Date | Yes | Cannot be in past | `2026-06-01` | Campaign start date |
    | Valid Until | Date | Yes | >= Valid From | `2026-06-30` | Campaign end / expiry date |
    | Target Audience | Dropdown | No | All, New Users, Loyalty Tier 1, Loyalty Tier 2 | `Loyalty Tier 1 & 2` | Restricts coupon to a user cohort |
@@ -1819,19 +1815,16 @@
    | Back Button | Link | — | Navigates back to Coupon Dashboard | `‹ Back to Coupons` | Preserves previously applied dashboard filters |
    | Coupon Title | Label | Read-only | Coupon Code value | `SUMMER20` | Main page heading |
    | Status Badge | Badge | Read-only | Active or Inactive | `● Active` | Color-coded: Green for Active, Red for Inactive |
-   | Discount Summary | Label | Read-only | Format: `{Type} · {Value} Off · Max {Cap}` | `Percentage Discount · 20% Off · Max ₹150` | Quick summary sub-heading |
+   | Discount Summary | Label | Read-only | Format: `{Type} · {Value} Off | `Percentage Discount · 20% Off  | Quick summary sub-heading |
 
    #### Coupon Details & Usage Fields
    | Field Name | Type | Required | Validation | Example | Notes |
    |---|---|---|---|---|---|
    | Coupon Code | Text | Read-only | Alphanumeric | `SUMMER20` | Unique coupon identifier |
    | Discount Type | Text | Read-only | Flat or Percentage | `Percentage` | Method of discount calculation |
-   | Discount Value | Text | Read-only | >0 | `20%` | The configured discount value |
    | Max Discount Amount | Currency | Read-only | >0 | `₹150` | Cap on percentage discounts |
    | Minimum Order Value | Currency | Read-only | >=0 | `₹500` | Minimum cart requirement |
-   | Usage Limit | Number | Read-only | >0 | `1000` | Configured max redemptions |
    | Times Redeemed | Number | Read-only | Integer >= 0 | `342` | Live count of redemptions so far |
-   | Remaining Usage | Number | Read-only | Integer >= 0 | `658` | Computed: Usage Limit minus Times Redeemed |
    | Valid From | Date | Read-only | Valid date | `2026-06-01` | Campaign start date |
    | Valid Until | Date | Read-only | Valid date | `2026-06-30` | Campaign expiry date |
    | Target Audience | Text | Read-only | All, New Users, Loyalty tier | `Loyalty Tier 1 & 2` | User cohort restriction |
