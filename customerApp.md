@@ -839,7 +839,7 @@ Enables customers to select an active delivery address from their saved address 
 ## Screen 6.3.1: Add Address Screen
 
 ### 1. Overview
-Allows the customer to add a new address to their address book. Integrates GPS geo-location to resolve user locations accurately.
+Allows the customer to add a new address to their address book. Integrates GPS geo-location to resolve user locations accurately. Supports setting the address type tag and choosing if it should be the default address.
 
 ### 2. Screen Preview
 ```text
@@ -850,6 +850,7 @@ Allows the customer to add a new address to their address book. Integrates GPS g
 │                                          │
 │  [x] Use Current Location                │
 │                                          │
+│  [ Address Tag (e.g., Home, Office) ]   │
 │  [ Flat / House / Office Number      ]   │
 │  [ Building Name / Tower             ]   │
 │  [ Nearby Landmark                   ]   │
@@ -857,6 +858,8 @@ Allows the customer to add a new address to their address book. Integrates GPS g
 │  [ Pincode                           ]   │
 │  [ City                              ]   │
 │  [ State                             ]   │
+│                                          │
+│  [ ] Set as Default Address              │
 │                                          │
 │  [            SAVE ADDRESS           ]   │
 └──────────────────────────────────────────┘
@@ -875,6 +878,7 @@ Allows the customer to add a new address to their address book. Integrates GPS g
 #### Address Form Details Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
+| Address Tag | Text | Yes | Min 2, max 20 chars | `Home` | e.g. Home, Office, Gym, Parents |
 | House Number | Text | Yes | Min 1 character | `Flat 101` | Flat, unit, or villa number |
 | Building Name | Text | Yes | Min 3 characters | `Oakwood Apartments` | Building/apartment name |
 | Landmark | Text | No | Max 100 characters | `Opposite Central Mall` | Local helper guide |
@@ -882,6 +886,7 @@ Allows the customer to add a new address to their address book. Integrates GPS g
 | Pincode | Text | Yes | Exactly 6 digits | `560001` | Postal postal code |
 | City | Text | Yes | Min 2 characters | `Bangalore` | User selected city |
 | State | Text | Yes | Min 2 characters | `Karnataka` | User selected state |
+| Set as Default | Checkbox | No | Boolean | `true` | When true, marks as default address in DB |
 
 #### Save Action Table
 | Field Name | Type | Required | Validation | Example | Notes |
@@ -905,6 +910,7 @@ Allows the customer to add a new address to their address book. Integrates GPS g
   ```json
   {
     "customerId": "cust_82839120",
+    "tag": "Home",
     "flatNo": "Flat 101",
     "buildingName": "Oakwood Apartments",
     "landmark": "Opposite Central Mall",
@@ -913,7 +919,8 @@ Allows the customer to add a new address to their address book. Integrates GPS g
     "city": "Bangalore",
     "state": "Karnataka",
     "latitude": 12.9716,
-    "longitude": 77.5946
+    "longitude": 77.5946,
+    "isDefault": true
   }
   ```
 * **Sample Response**:
