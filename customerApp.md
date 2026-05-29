@@ -789,12 +789,18 @@ Enables customers to select an active delivery address from their saved address 
 └──────────────────────────────────────────┘
 ```
 
-### 3. Screen Fields Table
+### 3. Screen Fields Specification
+
+#### Address Book Selector Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Back Button | Link | Yes | Navigates back to Screen 6 | `[←]` | Returns to cart view |
 | Address Selector | Radio | Yes | Active address ID | `addr_99120` | Radio list items mapped from addresses database |
 | Add New Address Link | Link | Yes | Navigates to Screen 6.3.1 | `[+ Add New Address]` | Opens new address mapping |
+
+#### Select Action Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
 | Confirm Address Button | Button | Yes | Requires active selection | `[ CONFIRM ADDRESS ]` | Selects destination point and returns to cart |
 
 ### 4. Validations
