@@ -1677,14 +1677,12 @@
    | Coupon Code | Text | Yes | Alphanumeric, uppercase, min 4 | `SUMMER20` | Customer-facing code |
    | Status | Dropdown | Yes | Active, Inactive | `Active` | Initial status |
    | Discount Type | Dropdown | Yes | Flat, Percentage | `Percentage` | Determines calculation |
-   | Discount Value | Number | Yes | >0 | `20` | Flat amt or % value |
-   | Max Discount Amount| Currency | No | >0 | `₹150` | Ceiling for % discounts |
+   | Discount Value | Number | Yes | >0 | `20` | Flat amt or % value 
 
    #### Conditions & Targeting Fields
    | Field Name | Type | Required | Validation | Example | Notes |
    |---|---|---|---|---|---|
    | Minimum Order Value | Currency | No | >=0 | `₹500` | Minimum cart total |
-   | Usage Limit | Number | No | >0 | `1000` | Max total redemptions |
    | Valid From | Date | Yes | Cannot be in past | `2026-06-01` | Start date |
    | Valid Until | Date | Yes | >= Valid From | `2026-06-30` | End date |
    | Target Audience | Dropdown | No | All, New Users, Loyalty | `Loyalty` | Personalization cohort |
