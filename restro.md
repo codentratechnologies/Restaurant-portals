@@ -19,6 +19,7 @@
    - [Screen 1.1: Branch Dashboard (Home)](#screen-11-branch-dashboard-home)
 3. [Module 2 — Menu Module](#module-2--menu-module)
    - [Screen 2.1: Menu Availability (List View)](#screen-21-menu-availability-list-view)
+   - [Screen 2.2: View Food Screen](#screen-22-view-food-screen)
 4. [Module 3 — Order Management Module](#module-3--order-management-module)
    - [Screen 3.1: Order Queue Screen (Live Pending Queue)](#screen-31-order-queue-screen-live-pending-queue)
    - [Screen 3.2: Rejection Reason Dialog (Reject Flow Modal)](#screen-32-rejection-reason-dialog-reject-flow-modal)
@@ -206,18 +207,18 @@ $$\text{Cancellation Rate \%} = \left( \frac{\text{Total Cancelled Orders}}{\tex
 ├──────────────┬─────────────────────────────────────────────────────────┤
 │ ○ Dashboard  │  🔍 [ Search food item...   ]   Category: [ All Categories ▼ ]   Status: [ All Statuses ▼ ]│
 │ ▶ Menu       │                                                         │
-│ ○ Orders     │ ┌──────────┬─────────────────┬────────┬───────────┬──────────┐ │
-│ ○ Reviews    │ │ Item ID  │ Food Name       │ Price  │ Status    │ Category │ │
-│ ○ Profile    │ ├──────────┼─────────────────┼────────┼───────────┼──────────┤ │
-│              │ │ food_101 │ Veg Pizza       │ ₹299   │ [o] On    │ Pizza    │ │
-│              │ │ food_102 │ Garlic Bread    │ ₹120   │ [x] Off   │ Sides    │ │
-│              │ └──────────┴─────────────────┴────────┴───────────┴──────────┘ │
+│ ○ Orders     │ ┌────────┬──────────────┬──────┬────────┬─────────┬────────┐ │
+│ ○ Reviews    │ │ Item ID│ Food Name    │ Price│ Status │ Category│ Action │ │
+│ ○ Profile    │ ├────────┼──────────────┼──────┼────────┼─────────┼────────┤ │
+│              │ │food_101│ Veg Pizza    │ ₹299 │ [o] On │ Pizza   │ [View] │ │
+│              │ │food_102│ Garlic Bread │ ₹120 │ [x] Off│ Sides   │ [View] │ │
+│              │ └────────┴──────────────┴──────┴────────┴─────────┴────────┘ │
 │              │ Showing 1-10 of 84 items             [<] [1] [2] [3] [>]│
 └──────────────┴─────────────────────────────────────────────────────────┘
 ```
 
 #### 3. UI/UX Layout Description
-*   **Main Grid**: Multi-column list with unique food ID, name, locked master prices, Green/Red availability status, and category labels.
+*   **Main Grid**: Multi-column list with unique food ID, name, locked master prices, Green/Red availability status, category labels, and row actions.
 *   **Search & Filters**: Persistent header bar containing search queries, a dropdown selection list to group items by category, and a dropdown selection list to filter by availability status (All, Available, Unavailable).
 *   **Modals**: Confirmation modal displays if toggle is turned off: "Disable this item? This will instantly remove it from the Customer App."
 
@@ -238,6 +239,7 @@ $$\text{Cancellation Rate \%} = \left( \frac{\text{Total Cancelled Orders}}{\tex
 | Table Column: Price | Currency | Read-only | Positive decimal | `₹299` | Branch selling price |
 | Table Column: Status | Toggle Switch | Yes | Boolean (true/false) | `true` | Changes availability state |
 | Table Column: Category | Text | Read-only | Must exist in categories catalog | `Pizza` | Food item category label |
+| Table Column: Action | Link / Action | Yes | — | `[View]` | Opens the Detailed View Food Screen (Screen 2.2) |
 
 #### 5. Validations
 *   **Optimistic UI Rollback**: If menu toggle status change API returns a network error, the toggle must slide back to its previous status and prompt warning toast.
@@ -295,6 +297,102 @@ CREATE TABLE branch_food_mapping (
 
 #### 17. Suggested Tech Notes
 *   Store mapping database records in Redis hash fields for sub-millisecond retrieval on customer app queries.
+
+---
+
+## Screen 2.2: View Food Screen
+
+### 1. Overview
+*   **Screen Purpose**: Displays full item configuration details (such as image, description, category, base price, and customization options) mapped from the master catalog, along with branch-level status settings.
+*   **Business Objective**: Allow branch operators to inspect the details and customization configurations of catalog items, and manage branch-level availability state settings.
+*   **User Workflow**: Click `[View]` on Menu Availability list (Screen 2.1) ➔ Inspect details and admin-configured customizations ➔ Toggle availability or click `[← Back]` to return.
+
+### 2. Screen Preview (Text Wireframe)
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│ [🍽 DineOs]   View Food Item Details                             [←]   │
+├──────────────┬─────────────────────────────────────────────────────────┤
+│ ○ Dashboard  │  Food Details: Paneer Tikka (ID: food_204)              │
+│ ▶ Menu       │                                                         │
+│ ○ Orders     │  ┌────────────────────────┬───────────────────────────┐ │
+│ ○ Reviews    │  │ [ IMAGE PREVIEW ]      │ Status: [● Available]     │ │
+│ ○ Profile    │  │                        │ Base Price: ₹249.00       │ │
+│              │  │ paneer_tikka.png       │ Category: Starters        │ │
+│              │  └────────────────────────┴───────────────────────────┘ │
+│              │  Description:                                           │
+│              │  Spiced cottage cheese cubes grilled in tandoor.        │
+│              │                                                         │
+│              │  Customization Options & Prices:                        │
+│              │  ┌──────────────────────────────────────┬─────────────┐ │
+│              │  │ Option Label                         │ Price (₹)   │ │
+│              │  ├──────────────────────────────────────┼─────────────┤ │
+│              │  │ Add Cheese                           │ +₹30.00     │ │
+│              │  │ Add Mushrooms                        │ +₹25.00     │ │
+│              │  │ Add Olives                           │ +₹20.00     │ │
+│              │  └──────────────────────────────────────┴─────────────┘ │
+│              │  [ Toggle Availability ]                                │
+│              │                                                         │
+│              │  [← Back to Menu Manager]                               │
+│              └─────────────────────────────────────────────────────────┘
+└──────────────┴─────────────────────────────────────────────────────────┘
+```
+
+### 3. UI/UX Layout Description
+*   **Split Info Block**: Top section splits into a product image box (left) and key identifiers/status details (right).
+*   **Customizations Table**: Lists all options configured by the admin, highlighting option labels and prices.
+*   **Availability Toggle**: Brightly colored action button (Green `#16A34A` for Available state, Red `#DC2626` for Unavailable state).
+*   **Navigation Actions**: Top-right dismiss/back arrow button (`[←]`) and footer text link (`[← Back to Menu Manager]`).
+
+### 4. Screen Fields Table
+| Field Name | Type | Required | Validation | Example | Notes |
+|---|---|---|---|---|---|
+| Back Button | Link / Icon | Yes | Navigates back to Screen 2.1 | `[←]` | Pinned to top-right corner. |
+| Item ID Display | Label | Yes | Unique alphanumeric code | `food_204` | Displayed in title area. |
+| Food Item Name | Label | Yes | Min 3 characters | `Paneer Tikka` | Displays master item name. |
+| Item Image | Image | Yes | Valid asset/URL path | `paneer_tikka.png` | Product photo display. |
+| Availability Status | Badge | Yes | 'Available' or 'Unavailable' | `● Available` | Shows the active status badge. |
+| Base Price | Label | Yes | Positive decimal currency | `₹249.00` | Item's default base selling price. |
+| Category Label | Label | Yes | Valid category name | `Starters` | Item category name. |
+| Description | Text block | No | Max 500 characters | `Spiced cottage cheese...` | Detailed product text. |
+| Customization Options Table | Table | No | Renders array of options | Renders option rows | Shows option labels and price additions. |
+| Table Column: Option Label | Label | Yes | Min 1 characters | `Add Cheese` | Name of configured add-on. |
+| Table Column: Price Add-on | Label | Yes | Currency (decimal) | `+₹30.00` | Sourced price adder. |
+| Toggle Availability Button | Button | Yes | Requires active auth token | `[ Toggle Availability ]` | Toggles availability state. |
+| Back Text Link | Link | Yes | Navigates back to Screen 2.1 | `[← Back to Menu Manager]` | Returns to list view. |
+
+### 5. Validations
+*   **Optimistic UI Updates**: Toggling availability state changes state on client instantly; rolls back and displays warning toast if database API responds with an error.
+*   **Customizations Read-Only**: Branch operators cannot edit customization names or prices. These fields are strictly read-only and sourced from the admin master menu configuration.
+
+### 6. Dependencies
+*   **Admin Portal Catalog Configurations**: Sourced to display master item description, price, and customization options setup (defined in `admin.md` Screen 5.2/5.3).
+*   **Branch Menu Mapping Database**: Sourced to retrieve the branch-specific `is_available` state.
+
+### 7. API Requirement Suggestions
+*   **GET** `/api/v1/restaurant/menu/details?branch_id=br_mg_road&food_item_id=food_204`
+    *   *Response*:
+        ```json
+        {
+          "status": "success",
+          "data": {
+            "id": "food_204",
+            "name": "Paneer Tikka",
+            "category": "Starters",
+            "base_price": 249.00,
+            "is_available": true,
+            "image_url": "https://cdn.dineos.com/paneer_tikka.png",
+            "description": "Spiced cottage cheese cubes grilled in tandoor.",
+            "customizations": [
+              { "label": "Add Cheese", "price": 30.00 },
+              { "label": "Add Mushrooms", "price": 25.00 },
+              { "label": "Add Olives", "price": 20.00 }
+            ]
+          }
+        }
+        ```
+*   **POST** `/api/v1/restaurant/menu/toggle`
+    *   *Payload*: `{"branch_id": "br_mg_road", "food_item_id": "food_204", "is_available": false}`
+    *   *Response*: `{"status": "success", "updated_status": false}`
 
 ---
 
