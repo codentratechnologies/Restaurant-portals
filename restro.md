@@ -856,10 +856,11 @@ Row selection or click on the `[View]` button on any tab triggers a slide-out dr
 | Customer Name | Text (Read-only) | Yes | Min 2 characters | `Amit Kumar` | Customer display name |
 | Customer Phone | Phone (Read-only) | Yes | Valid E.164 phone standard | `+91 9876543210` | Customer contact mobile number |
 | Customer Address | Text (Read-only) | Yes* | Min 10 characters | `123, Main Street, Bangalore` | Pinned delivery location (hidden for Takeaway/Dine-in orders) |
-| Item Table: Name | Text (Read-only) | Yes | Min 3 characters | `Veg Margherita Pizza (+Extra Cheese)` | Name of ordered item and selected customizations |
-| Item Table: Price | Currency (Read-only) | Yes | Positive decimal | `₹379.00` | Unit selling price of item, inclusive of selected customizations |
+| Item Table: Name | Text (Read-only) | Yes | Min 3 characters | `Veg Margherita Pizza` | Name of ordered base item |
+| Item Table: Customizations | Text (Read-only) | No | List of selected customizations and prices | `+ Extra Cheese (+₹60.00)` | Selected add-on options showing their pricing additions |
+| Item Table: Price | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Unit selling base price of item |
 | Item Table: Qty | Number (Read-only) | Yes | Integer >= 1 | `2` | Ordered quantity |
-| Item Table: Subtotal | Currency (Read-only) | Yes | Positive decimal | `₹758.00` | Subtotal amount for the item line (Price * Qty) |
+| Item Table: Subtotal | Currency (Read-only) | Yes | Positive decimal | `₹758.00` | Subtotal amount for the item line, calculated as: `(Base Price + Customizations Price) * Qty` |
 | Subtotal (Item Total) | Currency (Read-only) | Yes | Positive decimal | `₹758.00` | Total price of all items, inclusive of selected customizations, before tax, packaging, and coupon discount |
 | Packaging Charge | Currency (Read-only) | Yes | Positive decimal | `₹30.00` | Packaging charges applied to the order |
 | Applied Coupon Code | Text (Read-only) | No | Alphanumeric | `DINE50` | Displays applied coupon code (hidden if none applied) |
