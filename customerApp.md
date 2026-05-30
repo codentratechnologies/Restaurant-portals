@@ -1352,13 +1352,15 @@ Lists the customer's order history, filtered by order status (Delivered, Cancell
 ## Screen 8.3.1: Recent Order Detail Screen
 
 ### 1. Overview
-Displays detailed receipts for completed orders, providing total cost breakdowns, delivery address records, and a rating module.
+Displays detailed receipts for completed orders, providing total cost breakdowns, customer information, delivery address records, and a rating module.
 
 ### 2. Screen Preview
 ```text
 ┌──────────────────────────────────────────┐
 │  [←] Order #5521 Details                 │
 ├──────────────────────────────────────────┤
+│  Customer: John Doe (9876543210)         │
+│                                          │
 │  Delivered to:                           │
 │  Flat 101, Oakwood Apartments, MG Road   │
 │                                          │
@@ -1384,6 +1386,8 @@ Displays detailed receipts for completed orders, providing total cost breakdowns
 |---|---|---|---|---|---|
 | Back Button | Link | Yes | Navigates to Screen 8.3 | `[←]` | Returns to list history view |
 | Order ID Header | Label | Read-only | Unique alphanumeric code | `Order #5521 Details` | Top bar title details |
+| Customer Name | Label | Read-only | Min 3 characters | `John Doe` | Customer name display |
+| Customer Contact Details | Label | Read-only | 10-digit number | `9876543210` | Customer contact mobile number |
 | Delivery Address Text | Label | Read-only | Multi-line text | `Flat 101, Oakwood Apartments...` | Destination address |
 | Receipt Item Row | Label | Read-only | Text list | `• Margherita Pizza (2) - ₹758` | Item names and billing values |
 | Billing Adjustment Line| Label | Read-only | Text and decimal details | `• Packaging / GST / Coupons - -₹31` | Surcharges and discounts |
