@@ -318,11 +318,15 @@ CREATE TABLE branch_food_mapping (
 │ ▶ Orders     │ ┌──────────────────────────┐ ┌────────────────────────┐ │
 │   - Queue    │ │ 🚨 #ORD-99018 [Pending]  │ │ 🚨 #ORD-99019 [Pending]  │ │
 │   - List     │ │ Time Received: 12:44 PM  │ │ Time Received: 12:45 PM  │ │
-│ ○ Reviews    │ │ Timer Remaining: 01:45   │ │ Timer Remaining: 02:00   │ │
-│ ○ Profile    │ │ 1x Veg Margherita Pizza  │ │ 2x Spicy Chicken Burgers │ │
-│              │ │ Subtotal: ₹284.76        │ │ Subtotal: ₹360.00        │ │
-│              │ │ Tax: ₹14.24              │ │ Tax: ₹18.00              │ │
-│              │ │ Total Bill: ₹299 | Prep. │ │ Total Bill: ₹378 | COD   │ │
+│   - Reviews  │ │ Timer Remaining: 01:45   │ │ Timer Remaining: 02:00   │ │
+│   - Profile  │ │ 2x Veg Margherita Pizza  │ │ 2x Spicy Chicken Burgers │ │
+│              │ │  + Extra Cheese (+₹60)   │ │  (No Customization)      │ │
+│              │ │  + Extra Sauce (+₹20)    │ │                          │ │
+│              │ │ Item Total: ₹758.00      │ │ Item Total: ₹360.00      │ │
+│              │ │ Pkg Chg: ₹30.00          │ │ Pkg Chg: ₹0.00           │ │
+│              │ │ Tax: ₹39.40              │ │ Tax: ₹18.00              │ │
+│              │ │ Coupon: DINE50 (-₹100)   │ │ Coupon: None             │ │
+│              │ │ Total Bill: ₹727.40      │ │ Total Bill: ₹378.00      │ │
 │              │ ├──────────────────────────┤ ├────────────────────────┤ │
 │              │ │ [❌ Reject]  [✅ Accept] │ │ [❌ Reject]  [✅ Accept] │ │
 │              │ └──────────────────────────┘ └────────────────────────┘ │
@@ -330,7 +334,7 @@ CREATE TABLE branch_food_mapping (
 ```
 
 #### 3. UI/UX Layout Description
-*   **Order Cards Grid**: Distinct card outlines for each order. Border changes to flashing Amber/Red when remaining response timer drops below 60 seconds.
+*   **Order Cards Grid**: Distinct card outlines for each order. Border changes to flashing Amber/Red when remaining response timer drops below 60 seconds. Displays item customization lines directly below the respective food item, and includes itemized breakdowns for subtotal (item total), package charges, taxes, applied coupon code, and discount amount.
 *   **Action Row**: Prominent Red button `[Reject]` and Green button `[Accept]` at card footer.
 *   **Alert Banner**: Full page overlay screen if browser volume permissions are disabled, prompting the operator: "Click here to enable sound notifications."
 
@@ -341,10 +345,13 @@ CREATE TABLE branch_food_mapping (
 | Order Ticket: Status | Badge (Read-only) | Yes | Value must be 'Pending' | `Pending` | Order queue status badge. |
 | Order Ticket: Time Received | DateTime (Read-only) | Yes | Valid timestamp | `12:44 PM` | Timestamp when order checkout was completed. |
 | Order Ticket: Timer Remaining | Number (Countdown) | Yes | Computed dynamically: `(created_at + 5 mins) - current_time` | `01:45` | Time remaining in MM:SS before order triggers auto-rejection. |
-| Order Ticket: Items List | Array of Objects | Yes | Must contain at least 1 food item | `1x Veg Margherita Pizza` | List of items, quantities, and user modifier choices. |
-| Order Ticket: Subtotal | Currency (Read-only) | Yes | Positive decimal | `₹284.76` | Total price of all food items before tax. |
-| Order Ticket: Tax Amount | Currency (Read-only) | Yes | Positive decimal | `₹14.24` | Computed tax amount applied to the order. |
-| Order Ticket: Total Bill | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Final payable amount (Subtotal + Tax Amount). |
+| Order Ticket: Items List | Array of Objects | Yes | Must contain at least 1 food item | `2x Veg Margherita Pizza` | List of items, quantities, and selected customizations showing customization price additions (e.g. `+ Extra Cheese (+₹60)`). |
+| Order Ticket: Item Total (Subtotal) | Currency (Read-only) | Yes | Positive decimal | `₹758.00` | Total price of all food items inclusive of selected customizations, before tax, packaging, and coupon discount. |
+| Order Ticket: Packaging Charge | Currency (Read-only) | Yes | Positive decimal | `₹30.00` | Packaging charges applied to the order. |
+| Order Ticket: Tax Amount | Currency (Read-only) | Yes | Positive decimal | `₹39.40` | Computed tax amount applied to the order. |
+| Order Ticket: Applied Coupon Code | Text (Read-only) | No | Alphanumeric | `DINE50` | Sourced from customer checkout. Displays applied coupon code (hidden if none applied). |
+| Order Ticket: Coupon Discount | Currency (Read-only) | No | Positive decimal | `₹100.00` | Coupon discount subtracted from the bill (hidden if none applied). |
+| Order Ticket: Total Bill | Currency (Read-only) | Yes | Positive decimal | `₹727.40` | Final payable amount calculated as: `Item Total (Subtotal) + Packaging Charge + Tax Amount - Coupon Discount`. |
 | Order Ticket: Payment Method | Badge (Read-only) | Yes | Value must be 'COD' or 'Online' | `Prepaid` (Online) | Specifies payment channel. |
 | Action: Accept | Button | Yes | Requires active auth token | `[Accept]` | Sends POST to `/accept` endpoint immediately without prompting for cooking or preparation time; transitions status to `Accepted`. |
 | Action: Reject | Button | Yes | Requires active auth token | `[Reject]` | Opens the Rejection Reason dialog modal to log cancellation. |
@@ -352,6 +359,9 @@ CREATE TABLE branch_food_mapping (
 #### 5. Validations
 *   **Shift Operation Lock**: Rejects/Accepts cannot be submitted if branch manager has marked the overall branch state as offline.
 *   **Direct Order Acceptance**: Accepting an order must not prompt the operator for any cooking time or preparation time. The action executes immediately upon button click.
+*   **Total Bill Formula Verification**: The final bill calculation must be verified client-side and server-side using the formula:
+    $$\text{Total Bill} = \text{Item Total (including customizations)} + \text{Packaging Charge} + \text{Tax} - \text{Coupon Discount}$$
+    where $\text{Item Total}$ is calculated as the sum of $(\text{Base Price} + \sum\text{Customization Option Prices}) \times \text{Quantity}$ for each item.
 
 #### 6. Dependencies
 *   **Customer Checkouts**: Generates the incoming order queues.
@@ -374,11 +384,24 @@ CREATE TABLE branch_orders (
     status VARCHAR(50) DEFAULT 'Pending',
     payment_method VARCHAR(20) CHECK (payment_method IN ('COD', 'Online')),
     payment_status VARCHAR(20) DEFAULT 'Pending',
-    subtotal_amount DECIMAL(10,2) NOT NULL,
+    subtotal_amount DECIMAL(10,2) NOT NULL, -- Total of items with customization add-ons included
+    package_charge_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     tax_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    total_amount DECIMAL(10,2) NOT NULL,
+    coupon_code VARCHAR(50),
+    coupon_discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total_amount DECIMAL(10,2) NOT NULL, -- Total Bill: subtotal_amount + package_charge_amount + tax_amount - coupon_discount_amount
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Mappings of ordered items and their customization snapshots
+CREATE TABLE branch_order_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID REFERENCES branch_orders(id) ON DELETE CASCADE,
+    food_item_id UUID NOT NULL,
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    base_price DECIMAL(10,2) NOT NULL,
+    customizations JSONB -- Snapshot: [{"label": "Extra Cheese", "price": 60.00}]
 );
 ```
 
@@ -706,13 +729,16 @@ Row selection or click on the `[View]` button on any tab triggers a slide-out dr
 | Customer Name | Text (Read-only) | Yes | Min 2 characters | `Amit Kumar` | Customer display name |
 | Customer Phone | Phone (Read-only) | Yes | Valid E.164 phone standard | `+91 9876543210` | Customer contact mobile number |
 | Customer Address | Text (Read-only) | Yes* | Min 10 characters | `123, Main Street, Bangalore` | Pinned delivery location (hidden for Takeaway/Dine-in orders) |
-| Item Table: Name | Text (Read-only) | Yes | Min 3 characters | `Veg Pizza` | Name of ordered item |
-| Item Table: Price | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Unit selling price of item |
-| Item Table: Qty | Number (Read-only) | Yes | Integer >= 1 | `1` | Ordered quantity |
-| Item Table: Subtotal | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Subtotal amount for the item line |
-| Subtotal | Currency (Read-only) | Yes | Positive decimal | `₹284.76` | Total price before tax and delivery fees |
-| Tax Amount | Currency (Read-only) | Yes | Positive decimal | `₹14.24` | Computed SGST/CGST tax |
-| Total Bill | Currency (Read-only) | Yes | Positive decimal | `₹299.00` | Grand total payable (Subtotal + Tax) |
+| Item Table: Name | Text (Read-only) | Yes | Min 3 characters | `Veg Margherita Pizza (+Extra Cheese)` | Name of ordered item and selected customizations |
+| Item Table: Price | Currency (Read-only) | Yes | Positive decimal | `₹379.00` | Unit selling price of item, inclusive of selected customizations |
+| Item Table: Qty | Number (Read-only) | Yes | Integer >= 1 | `2` | Ordered quantity |
+| Item Table: Subtotal | Currency (Read-only) | Yes | Positive decimal | `₹758.00` | Subtotal amount for the item line (Price * Qty) |
+| Subtotal (Item Total) | Currency (Read-only) | Yes | Positive decimal | `₹758.00` | Total price of all items, inclusive of selected customizations, before tax, packaging, and coupon discount |
+| Packaging Charge | Currency (Read-only) | Yes | Positive decimal | `₹30.00` | Packaging charges applied to the order |
+| Applied Coupon Code | Text (Read-only) | No | Alphanumeric | `DINE50` | Displays applied coupon code (hidden if none applied) |
+| Coupon Discount | Currency (Read-only) | No | Positive decimal | `₹100.00` | Coupon discount subtracted from the bill (hidden if none applied) |
+| Tax Amount | Currency (Read-only) | Yes | Positive decimal | `₹39.40` | Computed SGST/CGST tax |
+| Total Bill | Currency (Read-only) | Yes | Positive decimal | `₹727.40` | Grand total payable calculated as: `Subtotal + Packaging Charge + Tax - Coupon Discount` |
 | Payment Method | Badge (Read-only) | Yes | COD or Prepaid | `Prepaid` | Mode of payment |
 | Payment Status | Badge (Read-only) | Yes | Paid, Pending, Refunded, or Failed | `Paid` | Payment status details |
 | Delivery Agent | Text (Read-only) | Yes* | Mapped courier name | `Mike` | Courier agent name (shown only when assigned) |
