@@ -21,7 +21,7 @@
    - [Screen 2: Delivery Request Overlay](#screen-2-delivery-request-overlay)
    - [Screen 3: Restaurant Pickup Screen](#screen-3-restaurant-pickup-screen)
    - [Screen 4: Customer Delivery & Dropoff Screen](#screen-4-customer-delivery--dropoff-screen)
-   - [Screen 5: Earnings Ledger & History Screen](#screen-5-earnings-ledger--history-screen)
+   - [Screen 5: Salary & Tips Ledger Screen](#screen-5-salary--tips-ledger-screen)
 5. [Real-Time Tracking & Telemetry Flow](#real-time-tracking--telemetry-flow)
 6. [Role & Permission Logic](#role--permission-logic)
 
@@ -39,7 +39,7 @@ To align with DineOs standards, the Delivery Partner Mobile App operates under t
 
 ### Design Tokens
 * **Primary Color**: `#3B82F6` (Electric Blue) — Brand voice for delivery actions, navigation highlights, online status indicators.
-* **Success Color**: `#10B981` (Emerald Green) — Delivery complete buttons, checkmarks, positive earnings.
+* **Success Color**: `#10B981` (Emerald Green) — Delivery complete buttons, checkmarks, tips collected.
 * **Warning Color**: `#F59E0B` (Amber Orange) — Countdown timers, pending orders, cash collection alerts.
 * **Danger Color**: `#EF4444` (Coral Red) — Decline requests, offline indicators, cancellations.
 * **Neutral Background**: `#0F172A` (Dark Mode Canvas / Night Riding Comfort), `#F8FAFC` (Light Mode Canvas).
@@ -82,7 +82,7 @@ The following map defines the synchronized states between the order entity and t
 ## Screen 1: Home & Duty Status Screen
 
 ### 1. Overview
-Allows the delivery partner to toggle their operational availability ("On Duty" or "Off Duty"). When on duty, the app tracks and streams coordinates, displays summaries of today's earnings, and awaits assignments.
+Allows the delivery partner to toggle their operational availability ("On Duty" or "Off Duty"). When on duty, the app tracks and streams coordinates, displays summaries of today's shift details (such as hours online, deliveries completed, and tips collected), and awaits assignments.
 
 ### 2. Screen Preview
 ```text
@@ -92,12 +92,12 @@ Allows the delivery partner to toggle their operational availability ("On Duty" 
 │  Welcome, Rajesh Kumar!                  │
 │  Duty State: [● On Duty] (Toggle Offline)│
 │                                          │
-│  Today's Overview:                       │
+│  Today's Shift:                          │
 │  ┌────────────────────────────────────┐  │
 │  │ Deliveries: 8 | Hours Online: 4.5h │  │
-│  │ Base Earnings: ₹640.00             │  │
-│  │ Tips Collected: ₹120.00            │  │
-│  │ Total Earnings: ₹760.00            │  │
+│  │ Monthly Fixed Salary: ₹15,000.00   │  │
+│  │ Today's Tips: ₹120.00              │  │
+│  │ Attendance: PRESENT (Active)       │  │
 │  └────────────────────────────────────┘  │
 │                                          │
 │  Waiting for incoming orders...          │
@@ -108,7 +108,7 @@ Allows the delivery partner to toggle their operational availability ("On Duty" 
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Duty Toggle | Switch | Yes | Boolean | `true` | When true, transitions state to Online (Idle) and starts GPS tracking |
-| Today's Overview Card | Container | Read-only | Renders daily analytics | Today's card | Aggregated distance, earnings, and delivery count |
+| Today's Overview Card | Container | Read-only | Renders daily analytics | Today's card | Aggregated shift hours, deliveries count, monthly salary reference, and tips collected |
 | Status Header | Badge | Read-only | Online / Offline | `[ONLINE]` | Electric Blue `#3B82F6` if online, else Slate Gray |
 
 ### 4. Validations
@@ -141,8 +141,8 @@ A persistent overlay sheet that interrupts the screen when the backend assigns a
 │  Dropoff:                                │
 │  Oakwood Apts, MG Road (1.2 KM)          │
 │                                          │
-│  Estimated Earnings: ₹65.00              │
-│                                          │
+│  Order Type: Prepaid (Fixed Salary Rider)│
+│  Estimated Tips: ₹20.00                  │
 │                                          │
 │   [ DECLINE (X) ]      [ ACCEPT (✓) ]    │
 └──────────────────────────────────────────┘
@@ -154,7 +154,7 @@ A persistent overlay sheet that interrupts the screen when the backend assigns a
 | Timer Countdown | Progress Indicator | Yes | Integer between 30 and 0 seconds | `0:24` | Triggers auto-rejection when 0 reached |
 | Restaurant Details | Label | Yes | Min 3 characters | `MG Road Branch` | Name and address of branch |
 | Dropoff Location | Label | Yes | Min 10 characters | `Oakwood Apts` | Target dropoff address and distance from driver |
-| Estimated Earnings | Label | Yes | Positive currency | `₹65.00` | Calculated payout for the delivery trip |
+| Estimated Tips | Label | Yes | Non-negative currency | `₹20.00` | Customer-provided tip amount for this order |
 | Accept Button | Button | Yes | Requires active online status | `[ ACCEPT (✓) ]` | Accepts order; navigates to Screen 3 |
 | Decline Button | Button | Yes | — | `[ DECLINE (X) ]` | Declines request; dismisses modal |
 
@@ -259,27 +259,29 @@ Guides the driver to the customer dropoff address, handles Cash on Delivery (COD
 
 ---
 
-## Screen 5: Earnings Ledger & History Screen
+## Screen 5: Salary & Tips Ledger Screen
 
 ### 1. Overview
-Provides historical delivery audits, itemizing pay records, distance rates, tips collected, and weekly totals.
+Provides historical payroll records (monthly base salary) and itemized customer tips collected per delivery.
 
 ### 2. Screen Preview
 ```text
 ┌──────────────────────────────────────────┐
-│  [←] Earnings Ledger                     │
+│  [←] Salary & Tips Ledger                │
 ├──────────────────────────────────────────┤
-│  Weekly Total: ₹3,840.00                 │
-│  Period: 2026-05-24 to 2026-05-30        │
+│  Monthly Base Salary: ₹15,000.00         │
+│  Accrued Tips (This Month): ₹1,840.00    │
+│  Period: May 2026                        │
 │                                          │
 │  History Ledger:                         │
 │  ┌────────────────────────────────────┐  │
-│  │ May 29 | #ORD-99018      +₹65.00   │  │
-│  │ Status: Delivered | Tip: ₹20.00    │  │
+│  │ May 31 | Monthly Salary Payout     │  │
+│  │ Status: Paid             ₹15,000.00│  │
 │  └────────────────────────────────────┘  │
 │  ┌────────────────────────────────────┐  │
-│  │ May 28 | #ORD-98921      +₹80.00   │  │
-│  │ Status: Delivered | Tip: ₹0.00     │  │
+│  │ Order Tips History:                │  │
+│  │ • May 29 | #ORD-99018       +₹20.00│  │
+│  │ • May 28 | #ORD-98921       +₹10.00│  │
 │  └────────────────────────────────────┘  │
 └──────────────────────────────────────────┘
 ```
@@ -288,8 +290,10 @@ Provides historical delivery audits, itemizing pay records, distance rates, tips
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Back Button | Link | Yes | Navigates to Screen 1 | `[←]` | Returns to driver home screen |
-| Weekly Total | Label | Read-only | Positive currency | `₹3,840.00` | Sum of earnings for active payroll week |
-| Ledger Item Row | Container | Read-only | Valid ledger entry details | Pay card history | Holds date, order ID, payout rate, status, and tips |
+| Monthly Base Salary | Label | Read-only | Positive currency | `₹15,000.00` | Base monthly fixed salary contract |
+| Accrued Tips | Label | Read-only | Positive currency | `₹1,840.00` | Cumulative customer tips for the billing period |
+| Ledger Salary Payout Row | Container | Read-only | Valid payout status record | Salary payout card | Shows monthly salary credit transaction details |
+| Ledger Tips History Row | Container | Read-only | List of matching orders and tip amounts | Order tips card | Shows date, order ID, and tip amount |
 
 ---
 
