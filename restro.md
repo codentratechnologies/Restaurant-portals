@@ -815,7 +815,36 @@ Displays customer or kitchen cancelled orders.
 #### Detailed Order Slide-out Drawer (Activated on Row Click or View Action)
 Row selection or click on the `[View]` button on any tab triggers a slide-out drawer containing detailed order information.
 
-##### 1. Slide-out Drawer Fields Table
+##### 1. Screen Preview (Text Wireframe)
+```text
+┌────────────────────────────────────────┐
+│  Order Details                     [X] │
+├────────────────────────────────────────┤
+│  Status: Preparing                     │
+│  Customer: John Doe (9876543210)       │
+│  Deliver to: Flat 101, Oakwood Apts    │
+│                                        │
+│  Order Items:                          │
+│  ┌───────────────────────────────────┐ │
+│  │ 2x Veg Margherita Pizza   ₹758.00 │ │
+│  │   + Extra Cheese (+₹60)           │ │
+│  │   + Extra Sauce (+₹20)            │ │
+│  │ 1x Spicy Chicken Burger   ₹180.00 │ │
+│  │   (No Customization)              │ │
+│  └───────────────────────────────────┘ │
+│  Billing Summary:                      │
+│  Item Total (Subtotal):      ₹938.00   │
+│  Packaging Charges:           ₹30.00   │
+│  Tax (5% GST):                ₹48.40   │
+│  Coupon: DINE50              -₹100.00  │
+│  Grand Total:                ₹916.40   │
+│                                        │
+│  Payment Mode: Online (Paid)           │
+│  Rider: Rajesh Kumar (9988776655)      │
+└────────────────────────────────────────┘
+```
+
+##### 2. Slide-out Drawer Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Drawer Title | Text (Read-only) | Yes | Format: `Order #{ID} Details` | `Order #99018 Details` | Header title of the drawer |
