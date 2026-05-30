@@ -1372,6 +1372,7 @@ Displays detailed receipts for completed orders, providing total cost breakdowns
 │  Rate Your Experience:                   │
 │  [ ★ ★ ★ ★ ★ ]                           │
 │                                          │
+│  [          DOWNLOAD INVOICE         ]   │
 │  [            REVIEW ORDER           ]   │
 │  [            REORDER NOW            ]   │
 └──────────────────────────────────────────┘
@@ -1389,6 +1390,7 @@ Displays detailed receipts for completed orders, providing total cost breakdowns
 | Grand Total Display | Label | Read-only | Decimal currency format | `₹727` | Total amount paid |
 | Payment Method Display | Label | Read-only | UPI / Card / COD / Wallet | `Payment Method: COD` | Settled payment channel |
 | Rate Experience Star | Icon Selector | Yes | Integer between 1 and 5 stars | `★ ★ ★ ★ ★` | Rating star touch trigger |
+| Download Invoice Button | Button | Yes | Triggers PDF file download | `[DOWNLOAD INVOICE]` | Generates and downloads the PDF invoice of the order |
 | Review Order Trigger | Button | Yes | Opens review modal popup | `[ REVIEW ORDER ]` | Launches rating dialog |
 | Reorder Now Button | Button | Yes | Triggers Quick Reorder Flow | `[REORDER NOW]` | Initiates stock/branch availability validation and copies items to cart |
 
@@ -1408,24 +1410,28 @@ Displays detailed receipts for completed orders, providing total cost breakdowns
 * Star ratings display using dynamic yellow fill states (`★`). Reviews submit via popup overlays.
 
 ### 7. API Requirement Suggestions
-* **Endpoint**: `POST /api/v1/reviews/submit`
-* **Request Payload**:
-  ```json
-  {
-    "orderId": "order_5521",
-    "customerId": "cust_82839120",
-    "branchId": "br_102",
-    "rating": 5,
-    "reviewText": "Great pizza, very hot!"
-  }
-  ```
-* **Sample Response**:
-  ```json
-  {
-    "success": true,
-    "message": "Review registered and sent to restaurant portal."
-  }
-  ```
+* **Review Submission API**:
+  * **Endpoint**: `POST /api/v1/reviews/submit`
+  * **Request Payload**:
+    ```json
+    {
+      "orderId": "order_5521",
+      "customerId": "cust_82839120",
+      "branchId": "br_102",
+      "rating": 5,
+      "reviewText": "Great pizza, very hot!"
+    }
+    ```
+  * **Sample Response**:
+    ```json
+    {
+      "success": true,
+      "message": "Review registered and sent to restaurant portal."
+    }
+    ```
+* **Invoice Download API**:
+  * **Endpoint**: `GET /api/v1/orders/invoice/:orderId?customerId=cust_82839120`
+  * **Sample Response**: Streams a binary file of type `application/pdf` containing the tax invoice layout.
 
 ---
 
