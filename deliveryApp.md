@@ -698,9 +698,16 @@ Delivery Partner Login
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| View Full Profile | Clickable List Item | Yes | Navigates to Screen 5.1 | - | Redirects to full read-only detail view |
-| Edit Profile | Clickable List Item | Yes | Navigates to Screen 5.2 | - | Redirects to form modification view |
+| Page Header Title | Label | Yes | Text string | `Account & Profile` | Page header title |
+| Profile Photo | Image | Yes | Valid image URL or asset | `profile.jpg` | Avatar photo of the partner |
+| Driver Name Label | Label | Yes | Alphabetic | `Rajesh Kumar` | Sourced from authenticated session |
+| Driver ID & Mobile | Label | Yes | Alphanumeric | `ID: DRV-102 | +91 98765 43210` | Unique driver code and active contact number |
+| View Full Profile | Clickable List Item | Yes | Navigates to Screen 5.1 | `[⚙️ View Full Profile [>] ]` | Redirects to full read-only detail view |
+| Edit Profile | Clickable List Item | Yes | Navigates to Screen 5.2 | `[✏️ Edit Profile [>] ]` | Redirects to form modification view |
 | Logout Button | Button | Yes | Session status checks complete | `[🚪 LOGOUT]` | Logs the user out of the app |
+| Home Navigation Tab | Icon Button | Yes | Navigates to Home screen | `[🏠 Home]` | Returns to Screen 2 |
+| History Navigation Tab | Icon Button | Yes | Navigates to History list | `[📜 History]` | Navigates to Screen 4 |
+| Profile Navigation Tab | Icon Button | Yes | Navigates to Profile settings | `[👤 Profile]` | Active navigation tab |
 
 ### 4. Validations
 * **Logout Safety Interlocking**: Logout is disabled if the driver's active state is `Assigned` or `Delivering` (i.e. holding an active order).
@@ -750,7 +757,14 @@ Delivery Partner Login
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Back Icon | Button | Yes | Returns to Profile Home | `[←]` | Navigation control |
-| Profile Fields | Text Blocks | Yes | Read-only | `₹15,000.00` | Displays salary, shifts, and branch details |
+| Profile Photo Preview | Image | Yes | Valid image URL or asset | Photo Preview | Large thumbnail of the partner |
+| Full Name Display | Label | Yes | Alphabetic | `Name: Rajesh Kumar` | Full name of the partner |
+| Mobile Number Display | Label | Yes | 10 numeric digits | `Mobile Number: +91 98765 43210` | Active contact number |
+| Username Display | Label | Yes | Alphanumeric | `Username: rajesh_k` | Profile username |
+| Email Display | Label | Yes | Valid email format | `Email: rajesh.k@dineos.com` | Professional email address |
+| Branch Display | Label | Yes | Alphanumeric | `Branch: MG Road Branch` | Assigned branch from Admin |
+| Shift Time Display | Label | Yes | Valid shift format | `Shift Time: 10:00 AM - 10:00 PM` | Daily work hours constraint |
+| Monthly Salary Display | Label | Yes | Positive decimal currency | `Monthly Salary: ₹15,000.00` | Sourced from Admin contract details |
 
 ### 4. Validations
 * **Read-Only**: Inputs are disabled on this screen to prevent accidental updates.
@@ -813,9 +827,13 @@ Delivery Partner Login
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Full Name | Text Input | Yes | Alphabetic letters only, minimum 3 chars | `Rajesh Kumar` | Editable field |
-| Mobile Number | Text Input | Yes | 10 numeric digits only | `9876543210` | Editable field |
-| Update Button | Button | Yes | Form validations complete | `[ UPDATE PROFILE ]` | Dispatches PUT request |
+| Back Icon | Button | Yes | Returns to Profile Home | `[←]` | Navigation control |
+| Page Title Header | Label | Yes | Text string | `Edit Profile` | Page header title |
+| Full Name Input | Text Input | Yes | Alphabetic letters only, minimum 3 chars | `Rajesh Kumar` | Editable field |
+| Mobile Number Input | Text Input | Yes | 10 numeric digits only | `9876543210` | Editable field |
+| Email Display | Label | Yes | Read-only | `Email: rajesh.k@dineos.com` | Non-editable email address display |
+| Branch Display | Label | Yes | Read-only | `Branch: MG Road Branch` | Non-editable branch profile display |
+| Update Profile Button | Button | Yes | Form validations complete | `[ UPDATE PROFILE ]` | Dispatches PUT request to sync updates |
 
 ### 4. Validations
 * **Mobile**: Validates numeric input is exactly 10 digits.
