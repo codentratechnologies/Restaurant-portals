@@ -347,23 +347,25 @@ Delivery Partner Login
 ### 2. Screen Preview
 ```text
 ┌──────────────────────────────────────────┐
-│ Active Order: #ORD-99018             [🗺] │
+│ Active Order: #ORD-99018                 │
+├──────────────────────────────────────────┤
+│                                          │
+│             [ LIVE MAP VIEW ]            │
+│          (Half Screen Map Widget)        │
+│          Route: Driver -> Restaurant     │
+│                                          │
 ├──────────────────────────────────────────┤
 │  Store: MG Road Branch                   │
-│  Status: [En Route to Store]             │
-│                                          │
 │  [       ARRIVED AT RESTAURANT       ]   │
 ├──────────────────────────────────────────┤
 │  Items Verification Checklist:           │
 │  [ ] 2x Veg Margherita Pizza             │
 │      └ Extra Cheese                      │
 │  [ ] 1x Coca Cola 300ml                  │
-│                                          │
 │  [           CONFIRM PICK UP         ]   │
 ├──────────────────────────────────────────┤
 │  Customer: John Doe                      │
 │  Address: Flat 101, Oakwood Apartments   │
-│                                          │
 │  [         ARRIVED AT CUSTOMER       ]   │
 └──────────────────────────────────────────┘
 ```
@@ -371,7 +373,7 @@ Delivery Partner Login
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Map Action Icon | Button | Yes | Launches external navigation | `[🗺]` | Launches Google Maps or Apple Maps |
+| Embedded Map | Map Widget | Yes | Renders live location routes | Live Map View | Google Maps widget taking up half the screen showing driver position, restaurant location, customer destination, and active route lines |
 | Arrived Store Button | Button | Yes | Driver within 200m of restaurant coordinates | `[ ARRIVED AT RESTAURANT ]` | Updates state to `Arrived Store` |
 | Items Checklist | Checkbox List | Yes | All checkboxes checked | Checked checkboxes | Verifies items are physically received |
 | Confirm Pickup Button | Button | Yes | Checklist complete & kitchen state ready | `[ CONFIRM PICK UP ]` | Transitions order to `Picked Up` / `Out for Delivery` |
@@ -389,7 +391,7 @@ Delivery Partner Login
 ### 6. UI/UX Layout Description
 * **Progress Steps**: Visual timeline progress stepper along the top (`Assigned ➔ Arrived Restaurant ➔ Picked Up ➔ Arrived Customer`).
 * **Active CTA**: Primary actions are styled as sticky, full-width buttons at the bottom.
-* **Map Display**: Embedded map showing route path, updating dynamically as coordinates shift.
+* **Map Display**: Embedded map widget taking up the top half of the viewport showing live route path and updating dynamically as coordinates shift. Opens native navigation intent on double tap.
 
 ### 7. API Requirement Suggestions
 * **POST** `/api/v1/delivery/order/status-update`
