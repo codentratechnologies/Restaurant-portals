@@ -616,6 +616,14 @@ Delivery Partner Login
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
 | Back Icon | Button | Yes | Returns to History list | `[←]` | Navigation control |
+| Page Title Header | Label | Yes | Text string | `Delivered Order Detail` | Page header title |
+| Order ID | Label | Yes | Alphanumeric Order ID format | `Order ID: #ORD-99018` | Displays the unique delivered order identifier |
+| Restaurant Name | Label | Yes | Alphanumeric | `Restaurant: MG Road Branch` | Sourced from order branch profile |
+| Customer Name & Phone | Label | Yes | Masked phone validation | `Customer: John Doe (Masked: +91 ******45)` | Customer name and masked mobile number |
+| Delivery Address | Label | Yes | Alphanumeric | `Address: Flat 101, Oakwood Apartments` | Sourced from customer checkout profile |
+| Items Details List | Label List | Yes | Displays list of food items and billing values | `• 2x Veg Margherita Pizza (₹598.00)` | Displays item names, quantities, and subtotal prices |
+| Bill Amount | Label | Yes | Positive decimal currency | `Bill Amount: ₹727.40 (COD Paid)` | Final bill amount and payment resolution state |
+| Delivered At | Label | Yes | Valid timestamp | `Delivered At: 2026-06-01 10:15 AM` | Concluding date and time of order delivery |
 | Photo Frame | Image Container | Yes | Valid image URL | Proof photo | Display of uploaded delivery proof |
 
 ### 4. Validations
