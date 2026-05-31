@@ -296,8 +296,11 @@ Delivery Partner Login
 | Order ID | Badge | Yes | Alphanumeric | `#ORD-99018` | Shared reference ID |
 | Branch Distance | Text Label | Yes | Floating point KM | `1.5 KM` | Mapped from driver GPS to restaurant branch |
 | Dropoff Location | Text Label | Yes | Full string address | `Oakwood Apts` | Target dropoff address |
+| Items Summary | Label / Text Block | Yes | List of items and quantities | `2x Veg Pizza, 1x Coke` | Brief overview of items in the order |
 | Payment Mode | Badge | Yes | Must be COD or Prepaid | `COD` | Critical for collection awareness |
 | Collect Amount | Label | Yes | Positive decimal currency | `₹727.40` | Total bill amount including taxes |
+| Accept Button | Button | Yes | User tap trigger | `[ ACCEPT ]` | Accepts order; navigates to Screen 3 |
+| Decline Button | Button | Yes | User tap trigger | `[ DECLINE ]` | Declines request; dismisses popup |
 
 ### 4. Validations
 * **Timeout**: If the rider does not interact within 30 seconds, the app auto-declines and returns to the Idle Home state.
