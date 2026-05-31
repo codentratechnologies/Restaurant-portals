@@ -196,11 +196,9 @@ Delivery Partner Login
 │  Swipe to Go Offline:                    │
 │  ========================[<<< SWIPE]     │
 │                                          │
-│  Today's Shift Statistics:               │
+│  Today's Shift:                          │
 │  ┌────────────────────────────────────┐  │
-│  │ Deliveries: 5    | Online Hours: 6h │  │
-│  │ Cash Collected: ₹1,450.00          │  │
-│  │ Today's Earnings: ₹850.00         │  │
+│  │ Deliveries: 5 | Hours Online: 6h   │  │
 │  └────────────────────────────────────┘  │
 │                                          │
 │  Status: Idle (Waiting for orders...)   │
@@ -212,8 +210,18 @@ Delivery Partner Login
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Availability Swipe | Slider Toggle | Yes | Full swipe animation complete | `true` | Requires sliding gesture to prevent accidental toggle |
-| Statistics Panel | Card Container | Read-only | Sourced from daily ledger | Today's card | Reflects deliveries, hours, cash in hand, and tips |
+| Profile Image | Image | Yes | Valid image URL or asset | `profile.jpg` | Thumbnail of delivery partner |
+| Partner Name | Label | Yes | Alphabetic | `Rajesh Kumar` | Sourced from authenticated session |
+| Mobile Number | Label | Yes | 10 numeric digits | `+91 98765 43210` | Sourced from authenticated session |
+| Branch Name | Label | Yes | Alphanumeric | `MG Road Branch` | Assigned branch from Admin |
+| Shift Time | Label | Yes | Valid shift format | `10:00 AM - 10:00 PM` | Sourced from branch configurations |
+| Availability Swipe | Slider Toggle | Yes | Full horizontal drag completed | `true` | Changes duty state to Idle/Offline |
+| Deliveries Count | Label | Yes | Integer >= 0 | `5` | Today's completed orders |
+| Online Hours | Label | Yes | Positive decimal | `6h` | Total hours active on duty today |
+| Status Header Badge | Badge | Yes | Online / Offline | `[● ONLINE]` | Visual status indicator (Electric Blue when online) |
+| Home Navigation Tab | Icon Button | Yes | Navigates to Home screen | `[🏠 Home]` | Active navigation tab |
+| History Navigation Tab | Icon Button | Yes | Navigates to History list | `[📜 History]` | Navigates to Screen 4 |
+| Profile Navigation Tab | Icon Button | Yes | Navigates to Profile settings | `[👤 Profile]` | Navigates to Screen 5 |
 
 ### 4. Validations
 * **System Hardware Validation**: Toggling to "Online" is blocked if Location (GPS) services are disabled on the mobile phone, or if battery drops below 5% without charging.
