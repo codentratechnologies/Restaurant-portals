@@ -533,8 +533,15 @@ Delivery Partner Login
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Filter Toggle | Segmented Control| Yes | Must match: Today, Week, Month | `Today` | Triggers immediate local/API search filter |
-| Order Detail Row | Clickable Card | Yes | Navigates to Screen 4.1 | - | Clicking opens details |
+| Delivered History Header | Label | Yes | Text string | `Delivered History` | Page title header |
+| History Filter Icon | Button | Yes | User tap trigger | `[ Filter ▼ ]` | Context filter trigger (e.g., custom date range picker) |
+| Today's Count Summary | Label | Yes | Positive integer | `Today: 5 Orders` | Total orders delivered by partner today |
+| Monthly Count Summary | Label | Yes | Positive integer | `Month: 124 Orders` | Total orders delivered by partner in active month |
+| Filter Toggle | Segmented Control | Yes | Must match: Today, Week, Month | `Today` | Tab group selection to filter history results |
+| Order Card: Order ID | Label | Yes | Alphanumeric Order ID format | `#ORD-99018` | Displays historical order identifier; acts as navigation link to Screen 4.1 |
+| Order Card: Customer Name | Label | Yes | Alphabetic | `John Doe` | Mapped customer name for delivery |
+| Order Card: Order Amount | Label | Yes | Positive decimal currency | `Amount: ₹727.40 (COD)` | Historical total bill amount and payment type |
+| Order Card: Delivered Time | Label | Yes | Valid time format | `Delivered: 10:15 AM` | Timestamp when the order was completed |
 
 ### 4. Validations
 * **Rider Scope Check**: Display is restricted to order rows where `driver_id` matches the active token session.
