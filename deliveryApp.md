@@ -453,8 +453,11 @@ Delivery Partner Login
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
-| Payment Mode Selection | Radio Button | Yes | Cash or UPI QR selected | `UPI` | Determines subsequent UI and API flow |
-| QR Code Image | Component | Yes* | Displays dynamic UPI layout | Dynamic QR | Only visible if UPI is selected |
+| Collect Payment Header | Label | Yes | Alphanumeric Order ID format | `Collect Payment: #ORD-99018` | Header displaying the active order ID for verification |
+| Total Amount Due | Label | Yes | Positive decimal currency | `Total Amount Due: ₹727.40` | Displays the total bill amount that needs to be collected |
+| Payment Method Selection | Radio Options | Yes | Must select Cash or UPI | `UPI` | Radio button selection to choose the collection mode |
+| QR Code Box | Container / Image | Yes* | Valid QR image component | Dynamic QR Image | Dynamic UPI QR code containing merchant details and exact billing amount (displayed only for UPI mode) |
+| UPI Payment Status | Label | Yes* | Matches active check states | `Status: [Waiting for Payment...]` | Live network check indicator monitoring UPI transfer status |
 | Confirm Cash Button | Button | Yes* | Active only if Cash mode selected | `[ CONFIRM CASH RECEIVED ]` | Logs cash transfer validation |
 
 ### 4. Validations
