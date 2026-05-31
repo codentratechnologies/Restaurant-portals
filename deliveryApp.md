@@ -373,10 +373,15 @@ Delivery Partner Login
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
+| Active Order Header | Label | Yes | Alphanumeric Order ID format | `Active Order: #ORD-99018` | Displays the current order identifier |
 | Embedded Map | Map Widget | Yes | Renders live location routes | Live Map View | Google Maps widget taking up half the screen showing driver position, restaurant location, customer destination, and active route lines |
+| Route Status Label | Label | Yes | Text string | `Route: Driver -> Restaurant` | Dynamic status indicating current navigation destination |
+| Store Name | Label | Yes | Alphanumeric | `Store: MG Road Branch` | Displays assigned restaurant branch location |
 | Arrived Store Button | Button | Yes | Driver within 200m of restaurant coordinates | `[ ARRIVED AT RESTAURANT ]` | Updates state to `Arrived Store` |
 | Items Checklist | Checkbox List | Yes | All checkboxes checked | Checked checkboxes | Verifies items are physically received |
 | Confirm Pickup Button | Button | Yes | Checklist complete & kitchen state ready | `[ CONFIRM PICK UP ]` | Transitions order to `Picked Up` / `Out for Delivery` |
+| Customer Name | Label | Yes | Alphabetic | `Customer: John Doe` | Name of the customer receiving the delivery |
+| Customer Address | Label | Yes | Alphanumeric | `Address: Flat 101, Oakwood Apartments` | Detailed delivery address |
 | Arrived Customer Button | Button | Yes | Driver within 250m of customer address | `[ ARRIVED AT CUSTOMER ]` | Transitions order state to `Arrived` |
 
 ### 4. Validations
