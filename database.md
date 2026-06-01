@@ -1,7 +1,7 @@
 # ROMS / DineOs: Direct-to-Database Specification
-## PostgreSQL + Firebase Firestore Real-Time & Event Architecture
+## PostgreSQL + Firebase (Auth, Firestore, FCM) Real-Time Architecture
 
-This document details the database specification and real-time operational flows for ROMS / DineOs. It details how the system leverages **PostgreSQL** for transactional persistence and **Firebase (Firestore & Cloud Messaging)** for live notifications, delivery PIN handshakes, kitchen alerts, and driver GPS coordinates without relying on client-facing REST APIs.
+This document details the database specification, authentication integration, and real-time operational flows for ROMS / DineOs. It details how the system leverages **Firebase Authentication** for identity management, **Firebase Firestore & Cloud Messaging** for real-time mobile logistics, and **PostgreSQL** for transactional persistence without client-facing API gateways.
 
 ---
 
@@ -11,38 +11,55 @@ This document details the database specification and real-time operational flows
   ┌────────────────────────────────────────────────────────┐
   │                  Client Applications                   │
   │     (Admin Portal, Restaurant Portal, Mobile Apps)     │
-  └───────────┬────────────────────────────────┬───────────┘
-              │                                │
-      [Direct SQL / Pool]           [Direct Firestore & FCM SDK]
-              │                                │
-              ▼                                ▼
-    ┌──────────────────┐             ┌───────────────────┐
-    │    PostgreSQL    │             │  Firebase Cloud   │
-    │ (Transactional)  │             │ (Real-Time & FCM) │
-    └────────▲─────────┘             └─────────┬─────────┘
-             │                                 │
-             │     ┌─────────────────────┐     │
-             └─────┤ Python Sync Daemon  ◄─────┘
-                   │  (Background Task)  │
-                   └─────────────────────┘
+  └───────────┬──────────────────┬──────────────┬──────────┘
+              │                  │              │
+       [Firebase Auth]  [Direct SQL Pool]  [Direct Firestore & FCM SDK]
+              │                  │              │
+              ▼                  ▼              ▼
+    ┌──────────────────┐┌──────────────────┐┌───────────────────┐
+    │  Firebase Auth   ││    PostgreSQL    ││  Firebase Cloud   │
+    │ (Central Identity)││ (Transactional)  ││ (Real-Time & FCM) │
+    └────────┬─────────┘└────────▲─────────┘└─────────┬─────────┘
+             │                   │                    │
+             │       ┌───────────┴─────────┐          │
+             └──────►│ Python Sync Daemon  ◄──────────┘
+                     │  (Background Task)  │
+                     └─────────────────────┘
 ```
 
-* **PostgreSQL (ACID Core)**: Stores all records, inventory, finances, catalog details, user accounts, and completed order archives.
-* **Firebase Firestore (Real-Time Transit Layer)**: Tracks active order deliveries, live driver GPS coordinates, active order requests, and pending alerts.
+* **Firebase Authentication (Central Identity Provider)**: Authenticates customers, delivery partners, and portal employees directly on the client side using Phone, Email/Password, or OAuth. It issues unique, secure User IDs (`firebase_uid`).
+* **Firebase Firestore (Real-Time Transit Layer)**: Tracks active order deliveries, live driver GPS coordinates, active order requests, and pending alerts. Secure write permissions are checked directly using `request.auth.uid`.
 * **Firebase Cloud Messaging (FCM)**: Dispatches instant push notifications for status transitions (e.g., preparing, out for delivery, delivered).
-* **Python Sync Daemon**: A background service that bridges PostgreSQL and Firestore, listening to Firestore triggers, updating the SQL database, sending push notifications, and cleaning up completed documents.
+* **PostgreSQL (ACID Core)**: Stores all records, inventory, finances, catalog details, and completed order archives, using the unique `firebase_uid` to map profiles.
+* **Python Sync Daemon**: A background service that bridges PostgreSQL and Firebase. It listens to Firestore triggers and Firebase Auth registration events to keep PostgreSQL in sync.
 
 ---
 
 ## 2. Real-Time Operational Flows
 
-### 2.1 Order Placement & Kitchen Alert Flow
-How a new order is placed and instantly alerts the restaurant kitchen with looping audible sounds:
+### 2.1 User Registration & Profile Sync Flow
+How new users (Customers & Drivers) sign up via Firebase Auth and sync their profile data directly:
 
 ```text
-[Customer App]
+[Customer Mobile App]
    │
-   ├─► 1. Writes order directly into PostgreSQL (status = 'Pending')
+   ▼ 
+1. Customer registers via Firebase Auth SDK (Phone or Email)
+   │
+   ├─► 2. Firebase Auth issues secure "firebase_uid"
+   └─► 3. Customer App pushes user details (name, email) directly to PostgreSQL
+          including the "firebase_uid" as the primary relational mapping key
+```
+
+---
+
+### 2.2 Order Placement & Real-Time Alert Flow
+How an authenticated customer places an order and triggers looping alarms on the kitchen dashboard:
+
+```text
+[Customer Mobile App]
+   │
+   ├─► 1. Writes order directly into PostgreSQL (status = 'Pending', client auth = firebase_uid)
    └─► 2. Writes alert entry into Firestore "/active_alerts/{orderId}"
              │
              ▼ (Real-time Snapshot)
@@ -54,36 +71,13 @@ How a new order is placed and instantly alerts the restaurant kitchen with loopi
 
 ---
 
-### 2.2 Order Ready & Driver Broadcast Alert Flow
-How the kitchen flags an order as ready, broadcasting it to drivers within a 30-second response window:
-
-```text
-[Restaurant Portal Web]
-   │
-   ▼ (Direct push)
-1. Kitchen marks order "Ready" ➔ Updates PostgreSQL & pushes to Firestore "/orders/{orderId}"
-   │
-   ▼
-2. Python Sync Daemon / Firestore Trigger:
-   ├─► Queries active branches and targets drivers assigned to the branch
-   └─► Writes request to Firestore "/order_broadcasts/{orderId}" with a 30-second expiry timestamp
-   │
-   ▼ (Real-time Snapshot)
-[Delivery Partner Apps]
-   ├─► 3. Driver apps listen to "/order_broadcasts" for their branch_id
-   ├─► 4. Driver App displays a bouncing popup alert card with a 30-second countdown timer
-   └─► 5. Driver accepts order ➔ Writes driver_id directly to Firestore "/orders/{orderId}"
-```
-
----
-
 ### 2.3 Live Delivery & PIN Verification Flow
-How the driver generates the verification PIN, updates customer coordinates, and completes delivery:
+How the delivery partner manages the verification PIN, updates customer coordinates, and completes delivery:
 
 ```text
 [Delivery Partner App]
    │
-   ▼ (Direct update)
+   ▼ (Direct update authenticated by driver firebase_uid)
 1. Driver confirms pickup ➔ Generates random 4-digit PIN on device
 2. Writes PIN, status = 'Out_For_Delivery', and coordinates directly to Firestore "/orders/{orderId}"
    │
@@ -106,7 +100,7 @@ How the Python Daemon archives the completed order, processes financials, and fr
    ▼ (Hears Firestore update status = 'Delivered')
 1. Sync Daemon reads final transaction payload from the Firestore document
 2. Commits transaction directly to PostgreSQL:
-   ├─► Updates PostgreSQL orders: status = 'Delivered', payment_status = 'Paid', driver_id = {driverId}
+   ├─► Updates PostgreSQL orders: status = 'Delivered', payment_status = 'Paid', driver_id = {driver_firebase_uid}
    └─► Logs driver shift and commission details
 3. Sync Daemon triggers Firebase Cloud Messaging (FCM) push notification to Customer device
 4. Sync Daemon safely deletes active tracking document from Firestore `/orders/{orderId}`
@@ -116,47 +110,123 @@ How the Python Daemon archives the completed order, processes financials, and fr
 
 ## 3. Database & Real-Time Collections Schema
 
-### 3.1 PostgreSQL Order Ledger Schema
+### 3.1 PostgreSQL Database Schema DDL
+The PostgreSQL database houses the transactional structures. Standard integer/UUID IDs are mapped directly to `firebase_uid` to enforce profile relationships.
+
 ```sql
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "postgis";
+
+-- 1. Branches Table
+CREATE TABLE branches (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code VARCHAR(15) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    phone VARCHAR(15) NOT NULL,
+    address_line_1 VARCHAR(255) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(100) NOT NULL,
+    pincode VARCHAR(6) NOT NULL,
+    location GEOGRAPHY(Point, 4326) NOT NULL,
+    opening_time TIME NOT NULL,
+    closing_time TIME NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE INDEX idx_branches_location ON branches USING GIST (location);
+
+-- 2. Employees (Admin & Kitchen Portal Users)
+CREATE TYPE user_role AS ENUM ('admin', 'branch_manager', 'kitchen_staff');
+
+CREATE TABLE employees (
+    firebase_uid VARCHAR(128) PRIMARY KEY, -- Firebase Auth User ID
+    branch_id UUID REFERENCES branches(id) ON DELETE SET NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    role user_role DEFAULT 'kitchen_staff' NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- 3. Menu Items Catalog
+CREATE TABLE menu_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    base_price DECIMAL(10, 2) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    is_veg BOOLEAN DEFAULT TRUE NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE NOT NULL,
+    customization_schema JSONB DEFAULT '[]'::jsonb NOT NULL
+);
+
+-- 4. Customer Accounts Table
+CREATE TABLE customers (
+    firebase_uid VARCHAR(128) PRIMARY KEY, -- Firebase Auth User ID
+    email VARCHAR(255) UNIQUE NOT NULL,
+    phone VARCHAR(15) UNIQUE NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    fcm_token VARCHAR(255), -- Saved for push notifications
+    cod_rejection_count INT DEFAULT 0 NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- 5. Customer Addresses
+CREATE TABLE customer_addresses (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    customer_id VARCHAR(128) REFERENCES customers(firebase_uid) ON DELETE CASCADE NOT NULL,
+    label VARCHAR(50) NOT NULL,
+    address_line TEXT NOT NULL,
+    pincode VARCHAR(6) NOT NULL,
+    location GEOGRAPHY(Point, 4326) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE INDEX idx_customer_addresses_loc ON customer_addresses USING GIST (location);
+
+-- 6. Orders Ledger
 CREATE TYPE order_status AS ENUM ('Pending', 'Accepted', 'Preparing', 'Ready', 'Out_For_Delivery', 'Delivered', 'Rejected');
 
 CREATE TABLE orders (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    branch_id UUID NOT NULL,
-    customer_id UUID NOT NULL,
-    driver_id UUID,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    branch_id UUID REFERENCES branches(id) NOT NULL,
+    customer_id VARCHAR(128) REFERENCES customers(firebase_uid) NOT NULL,
+    driver_id VARCHAR(128), -- Driver firebase_uid
     status order_status DEFAULT 'Pending' NOT NULL,
     payment_method VARCHAR(10) NOT NULL CHECK (payment_method IN ('COD', 'Online')),
     payment_status VARCHAR(15) DEFAULT 'Pending',
-    item_total DECIMAL(10,2) NOT NULL,
-    grand_total DECIMAL(10,2) NOT NULL,
+    item_total DECIMAL(10, 2) NOT NULL,
+    grand_total DECIMAL(10, 2) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+
+CREATE TABLE order_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    order_id UUID REFERENCES orders(id) ON DELETE CASCADE NOT NULL,
+    menu_item_id UUID REFERENCES menu_items(id) NOT NULL,
+    quantity INT NOT NULL CHECK (quantity > 0),
+    base_price DECIMAL(10, 2) NOT NULL,
+    selected_customizations JSONB DEFAULT '[]'::jsonb NOT NULL
+);
 ```
 
-### 3.2 Firestore `/active_alerts` (Kitchen Alerts)
-Used to trigger looping sound notifications on kitchen dashboard terminals.
-* **Document Path**: `/active_alerts/{orderId}`
-```json
-{
-  "order_id": "ORD_99018",
-  "branch_id": "br_mg_road",
-  "created_at": "2026-06-01T13:24:00Z",
-  "alert_sound_triggered": true
-}
-```
+---
 
-### 3.3 Firestore `/orders` (Live Tracking)
-Stores the active logistics coordinates, status, and verification PIN.
-* **Document Path**: `/orders/{orderId}`
+## 4. Firebase Firestore Schema & Security Rules
+
+### 4.1 Firestore Tracking Collection Document Structure
+* **Path**: `/orders/{orderId}`
 ```json
 {
-  "order_id": "ORD_99018",
-  "customer_id": "cust_82839120",
+  "order_id": "7ca64703-a5ff-4da2-bb17-7422b406e232",
+  "customer_id": "customer_firebase_uid_102",
   "branch_id": "br_mg_road",
   "status": "Out_For_Delivery",
-  "driver_id": "drv_102",
+  "driver_id": "driver_firebase_uid_891",
   "delivery_pin": "5821",
   "amount_due": 727.40,
   "payment_method": "COD",
@@ -168,26 +238,46 @@ Stores the active logistics coordinates, status, and verification PIN.
 }
 ```
 
-### 3.4 Firestore `/order_broadcasts` (Driver matching)
-Broadcasts order offers to available drivers.
-* **Document Path**: `/order_broadcasts/{orderId}`
-```json
-{
-  "order_id": "ORD_99018",
-  "branch_id": "br_mg_road",
-  "distance_to_branch": "1.5 KM",
-  "dropoff_address": "Oakwood Apts, MG Road (2.4 KM)",
-  "payment_mode": "COD",
-  "collect_amount": 727.40,
-  "expires_at": "2026-06-01T13:24:30Z" // 30 second countdown threshold
+### 4.2 Firestore Security Rules (Direct Auth Integration)
+Security rules validate client calls directly against the Firebase Authentication token (`request.auth`).
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Order tracking validation
+    match /orders/{orderId} {
+      // Customers can create orders; UIDs must match their Auth Token
+      allow create: if request.auth != null && request.resource.data.customer_id == request.auth.uid;
+      
+      // Read access allowed only for the specific customer or assigned driver
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.customer_id || 
+        request.auth.uid == resource.data.driver_id
+      );
+      
+      // Drivers can accept a delivery, change status, and update their location coordinates
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.driver_id || 
+        (resource.data.driver_id == null && request.resource.data.driver_id == request.auth.uid)
+      );
+    }
+
+    // Active driver locations
+    match /active_drivers/{driverId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == driverId;
+    }
+  }
 }
 ```
 
 ---
 
-## 4. Python Event Daemon Implementation
+## 5. Python Event Sync Daemon (With Firebase Auth Sync)
 
-This persistent backend daemon runs continuously. It monitors Firestore real-time snapshots, synchronizes data to PostgreSQL, dispatches FCM alerts, and cleans up completed orders.
+This background service runs continuously. It monitors Firestore active orders, synchronizes status changes directly to PostgreSQL, and automates push notification alerts via FCM.
 
 ```python
 import time
@@ -225,12 +315,12 @@ def send_fcm_push_notification(token: str, title: str, body: str, data: dict):
     except Exception as e:
         print(f"❌ Failed to send FCM Notification: {e}")
 
-def get_customer_fcm_token(customer_id: str):
+def get_customer_fcm_token(customer_uid: str):
     """
     Retrieves the customer's push notification token from PostgreSQL
     """
     with pg_conn.cursor(cursor_factory=RealDictCursor) as cur:
-        cur.execute("SELECT fcm_token FROM customers WHERE id = %s;", (customer_id,))
+        cur.execute("SELECT fcm_token FROM customers WHERE firebase_uid = %s;", (customer_uid,))
         row = cur.fetchone()
         return row["fcm_token"] if row else None
 
@@ -242,7 +332,7 @@ def on_firestore_event(doc_snapshot, changes, read_time):
         doc_data = change.document.to_dict()
         order_id = doc_data["order_id"]
         status = doc_data["status"]
-        customer_id = doc_data["customer_id"]
+        customer_uid = doc_data["customer_id"]
         
         if change.type.name == "ADDED" or change.type.name == "MODIFIED":
             print(f"⚡ Real-time Event: Order {order_id} transitioned to '{status}' in Firestore.")
@@ -262,7 +352,7 @@ def on_firestore_event(doc_snapshot, changes, read_time):
                     print(f"💾 Completed order {order_id} recorded in PostgreSQL.")
                     
                     # 2. Retrieve customer token and send delivered alert push
-                    fcm_token = get_customer_fcm_token(customer_id)
+                    fcm_token = get_customer_fcm_token(customer_uid)
                     if fcm_token:
                         send_fcm_push_notification(
                             token=fcm_token,
@@ -280,7 +370,7 @@ def on_firestore_event(doc_snapshot, changes, read_time):
                     cur.execute("UPDATE orders SET status = 'Out_For_Delivery', updated_at = NOW() WHERE id = %s;", (order_id,))
                     
                     # Dispatch Out for Delivery Push Notification
-                    fcm_token = get_customer_fcm_token(customer_id)
+                    fcm_token = get_customer_fcm_token(customer_uid)
                     if fcm_token:
                         send_fcm_push_notification(
                             token=fcm_token,
@@ -297,11 +387,3 @@ print("🚀 Python Real-Time Event Sync Daemon active and listening to Firebase.
 while True:
     time.sleep(1)
 ```
-
----
-
-## 5. Summary of Real-Time Configurations
-
-1. **Kitchen Alarm**: The Restaurant Web Portal opens a Firestore listener on the `/active_alerts` collection. A new document creates a web alert card and triggers `audio.play()` in a loop. When the kitchen clicks **Accept**, the alert document is deleted from Firestore, stopping the alarm.
-2. **Push Notifications (FCM)**: The Python Sync Daemon handles all push notification triggers. Transitions to `Out_For_Delivery` and `Delivered` generate payload alerts that are dispatched directly to Customer device registers.
-3. **Transient Coordinates**: Live driver GPS coordinates are written to the `/orders/{orderId}/driver_location` field in Firestore every 10 seconds. The Customer App renders these updates in real-time, bypassing the primary PostgreSQL database to reduce server load.
