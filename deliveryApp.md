@@ -340,11 +340,13 @@ Delivery Partner Login
 
 ### 1. Overview
 * **Purpose**: Tracks active deliveries from branch arrival to customer hand-off.
-* **Business Objective**: Standardize the order handoff process by using geo-validation checks and itemized checklists.
-* **User Workflow**: Accept order ➔ View Google Maps to Branch ➔ Click "Arrived" at store ➔ Check off items checklist ➔ Swipe "Confirm Pickup" ➔ View navigation to customer ➔ Click "Arrived" at location.
-* **Primary Actions**: Open Map Navigation, Confirm Store Arrival, Tick checklist items, Confirm Order Pickup, Confirm Customer Location Arrival.
+* **Business Objective**: Standardize the order handoff process by using geo-validation checks, itemized checklists, digital proof-of-delivery uploads, and secure OTP handshakes.
+* **User Workflow**: Accept order ➔ View Google Maps to Branch ➔ Click "Arrived" at store ➔ Check off items checklist ➔ Swipe "Confirm Pickup" ➔ View navigation to customer ➔ Click "Arrived" at location ➔ Capture photo proof of delivery ➔ Enter & verify customer OTP ➔ Collect payment (if COD) ➔ Click Complete Delivery.
+* **Primary Actions**: Open Map Navigation, Confirm Store Arrival, Tick checklist items, Confirm Order Pickup, Confirm Customer Location Arrival, Capture Photo Proof, Enter and Verify OTP, Navigate to COD Payment (if applicable), Confirm and Complete Delivery.
 
-### 2. Screen Preview
+### 2. Screen Previews
+
+#### Phase 1: Transit & Pickup (Route to Store / At Store / Route to Customer)
 ```text
 ┌──────────────────────────────────────────┐
 │ Active Order: #ORD-99018                 │
@@ -370,6 +372,30 @@ Delivery Partner Login
 └──────────────────────────────────────────┘
 ```
 
+#### Phase 2: Customer Hand-off (At Customer Location - Status: Arrived_Customer)
+```text
+┌──────────────────────────────────────────┐
+│ Active Order: #ORD-99018         (ARRIVED)│
+├──────────────────────────────────────────┤
+│  Customer: John Doe                      │
+│  Address: Flat 101, Oakwood Apartments   │
+├──────────────────────────────────────────┤
+│  DELIVERY PROOF PHOTO                    │
+│  [ 📷 CAPTURE PHOTO PROOF ]              │
+│  ┌────────────────────────────────────┐  │
+│  │ [Preview: Doorstep photo captured]  │  │
+│  └────────────────────────────────────┘  │
+├──────────────────────────────────────────┤
+│  CUSTOMER OTP VERIFICATION               │
+│  Enter 4-Digit OTP:                      │
+│  [ 5 ]  [ 8 ]  [ 2 ]  [ _ ]              │
+│  [            VERIFY OTP             ]   │
+├──────────────────────────────────────────┤
+│  Payment: Prepaid                        │
+│  [         COMPLETE DELIVERY         ]   │
+└──────────────────────────────────────────┘
+```
+
 ### 3. Screen Fields Table
 | Field Name | Type | Required | Validation | Example | Notes |
 |---|---|---|---|---|---|
@@ -382,21 +408,34 @@ Delivery Partner Login
 | Confirm Pickup Button | Button | Yes | Checklist complete & kitchen state ready | `[ CONFIRM PICK UP ]` | Transitions order to `Picked Up` / `Out for Delivery` |
 | Customer Name | Label | Yes | Alphabetic | `Customer: John Doe` | Name of the customer receiving the delivery |
 | Customer Address | Label | Yes | Alphanumeric | `Address: Flat 101, Oakwood Apartments` | Detailed delivery address |
-| Arrived Customer Button | Button | Yes | Driver within 250m of customer address | `[ ARRIVED AT CUSTOMER ]` | Transitions order state to `Arrived` |
+| Arrived Customer Button | Button | Yes | Driver within 250m of customer address | `[ ARRIVED AT CUSTOMER ]` | Transitions order state to `Arrived_Customer` |
+| Capture Photo Proof Button | Button | Yes | Requires camera permission | `[ 📷 CAPTURE PHOTO PROOF ]` | Launches device camera to shoot proof of delivery |
+| Photo Proof Preview | Image Container | Yes* | Displays captured image bitmap | Capture thumbnail | Visible only after image is captured. Shows a "Recapture" overlay option |
+| OTP Input Fields | Digit Fields | Yes | Exactly 4 numeric digits | `[ 5 ] [ 8 ] [ 2 ] [ _ ]` | Auto-focus shifting; allows only numeric entries |
+| Verify OTP Button | Button | Yes | 4 digits must be typed | `[ VERIFY OTP ]` | Submits OTP token check to backend |
+| Complete Delivery Button | Button | Yes | OTP verified & Proof uploaded & Payment cleared | `[ COMPLETE DELIVERY ]` | Concludes order delivery; sets status to `Delivered` |
 
 ### 4. Validations
 * **Checklist Lock**: The "Confirm Pickup" action remains disabled until every item in the checklist is ticked by the driver.
 * **Kitchen Status Check**: Driver cannot confirm pickup unless the restaurant portal has updated the order status to `Ready For Pickup`.
 * **Geofence Check**: "Arrived at Restaurant" is disabled unless the driver is within 200m of the store. "Arrived at Customer" is disabled unless the driver is within 250m of the delivery address.
+* **Delivery Photo Proof Lock**: The final "Complete Delivery" button remains disabled until a proof-of-delivery image is successfully captured.
+* **OTP Verification Check**: The delivery cannot be completed unless the customer's 4-digit OTP is verified successfully via the backend.
+* **COD Integration**: If the order type is COD, the driver must complete the payment verification loop on Screen 3.1 before the "Complete Delivery" button is enabled.
 
 ### 5. Dependencies
 * **Google Maps API**: Draws routing paths and checks coordinates.
 * **Restaurant Portal Sync**: Feeds kitchen status changes.
+* **Native Camera Access**: Required for capturing order hand-off photos.
+* **AWS S3 / Storage Provider**: File upload endpoints to store delivery proof images.
 
 ### 6. UI/UX Layout Description
 * **Progress Steps**: Visual timeline progress stepper along the top (`Assigned ➔ Arrived Restaurant ➔ Picked Up ➔ Arrived Customer`).
 * **Active CTA**: Primary actions are styled as sticky, full-width buttons at the bottom.
-* **Map Display**: Embedded map widget taking up the top half of the viewport showing live route path and updating dynamically as coordinates shift. Opens native navigation intent on double tap.
+* **Map Display**: Embedded map widget taking up the top half of the viewport showing live route path.
+* **Hand-off Overlay**: Clicking "Arrived at Customer" collapses the map view into a mini top-strip status banner and displays the "Delivery Proof Photo" upload widget and "Customer OTP Verification" section.
+* **Camera Capture Flow**: Clicking capture triggers native camera, overlays instructions: "Place package clearly visible in front of customer doorstep," compresses image on capture, and displays a thumbnail preview with a trash/retake icon.
+* **OTP Grid**: Uses an input row of 4 text cells with automated text cursor transitions. Turns green on successful verification, or shakes and highlights red on error with a "Resend OTP" link.
 
 ### 7. API Requirement Suggestions
 * **POST** `/api/v1/delivery/order/status-update`
@@ -415,6 +454,55 @@ Delivery Partner Login
     {
       "status": "success",
       "next_allowed_status": "PICKED_UP"
+    }
+    ```
+
+* **POST** `/api/v1/delivery/order/upload-proof`
+  * *Request Payload*: Multipart Form Data
+    - `driver_id`: "drv_102"
+    - `order_id`: "ord_99018"
+    - `file`: (binary image file)
+  * *Response (Success)*:
+    ```json
+    {
+      "status": "success",
+      "proof_image_url": "https://s3.amazonaws.com/dineos-proofs/ord_99018.jpg",
+      "uploaded_at": "2026-06-01T10:13:00Z"
+    }
+    ```
+
+* **POST** `/api/v1/delivery/order/verify-otp`
+  * *Request Payload*:
+    ```json
+    {
+      "driver_id": "drv_102",
+      "order_id": "ord_99018",
+      "otp_code": "5824"
+    }
+    ```
+  * *Response (Success)*:
+    ```json
+    {
+      "status": "success",
+      "otp_verified": true,
+      "verified_at": "2026-06-01T10:14:02Z"
+    }
+    ```
+
+* **POST** `/api/v1/delivery/order/complete`
+  * *Request Payload*:
+    ```json
+    {
+      "driver_id": "drv_102",
+      "order_id": "ord_99018"
+    }
+    ```
+  * *Response (Success)*:
+    ```json
+    {
+      "status": "success",
+      "final_status": "DELIVERED",
+      "completed_at": "2026-06-01T10:15:00Z"
     }
     ```
 
