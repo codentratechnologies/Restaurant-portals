@@ -1,0 +1,401 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/theme/colors.dart';
+import '../../core/theme/app_theme.dart';
+import '../../data/models/order.dart';
+import '../../state/order_state.dart';
+
+class OrderDetailScreen extends StatelessWidget {
+  final OrderModel order;
+
+  const OrderDetailScreen({super.key, required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Track Order',
+          style: AppTypography.outfit(fontWeight: FontWeight.bold),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: Consumer<OrderState>(
+        builder: (context, orderState, child) {
+          // Fetch updated order status from state
+          final updatedOrder = orderState.orders.firstWhere(
+            (element) => element.id == order.id,
+            orElse: () => order,
+          );
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Order ID card
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ORDER ID',
+                            style: AppTypography.inter(
+                              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            updatedOrder.id,
+                            style: AppTypography.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'STATUS',
+                            style: AppTypography.inter(
+                              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(updatedOrder.status).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              updatedOrder.status,
+                              style: AppTypography.outfit(
+                                color: _getStatusColor(updatedOrder.status),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Live Timeline tracker
+                Text(
+                  'Delivery Timeline',
+                  style: AppTypography.outfit(
+                    style: theme.textTheme.titleMedium,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildTimeline(updatedOrder.status, isDark),
+                const SizedBox(height: 32),
+
+                // Ordered Items
+                Text(
+                  'Items Ordered',
+                  style: AppTypography.outfit(
+                    style: theme.textTheme.titleMedium,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      ...updatedOrder.items.map((item) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${item.quantity}x ${item.foodItem.name}',
+                                      style: AppTypography.outfit(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      item.customizationSummary,
+                                      style: AppTypography.inter(
+                                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                '\$${item.totalPrice.toStringAsFixed(2)}',
+                                style: AppTypography.inter(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      const SizedBox(height: 8),
+                      Divider(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                      const SizedBox(height: 8),
+                      _buildReceiptRow('Subtotal', updatedOrder.subtotal, isDark),
+                      const SizedBox(height: 8),
+                      _buildReceiptRow('Delivery Fee', updatedOrder.deliveryFee, isDark),
+                      const SizedBox(height: 8),
+                      _buildReceiptRow('Taxes', updatedOrder.tax, isDark),
+                      if (updatedOrder.discount > 0) ...[
+                        const SizedBox(height: 8),
+                        _buildReceiptRow('Discount', -updatedOrder.discount, isDark, isPromo: true),
+                      ],
+                      const SizedBox(height: 12),
+                      Divider(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Grand Total',
+                            style: AppTypography.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            '\$${updatedOrder.total.toStringAsFixed(2)}',
+                            style: AppTypography.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Delivery address and Payment Info
+                Text(
+                  'Delivery Address',
+                  style: AppTypography.outfit(
+                    style: theme.textTheme.titleMedium,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 24),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              updatedOrder.deliveryAddress.title,
+                              style: AppTypography.outfit(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              updatedOrder.deliveryAddress.addressLine,
+                              style: AppTypography.inter(
+                                fontSize: 12,
+                                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 40),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Placed':
+        return AppColors.warning;
+      case 'Preparing':
+        return Colors.blue;
+      case 'Out for Delivery':
+        return AppColors.primary;
+      case 'Delivered':
+        return AppColors.success;
+      default:
+        return AppColors.lightTextSecondary;
+    }
+  }
+
+  Widget _buildTimeline(String currentStatus, bool isDark) {
+    final steps = ['Placed', 'Preparing', 'Out for Delivery', 'Delivered'];
+    final descriptions = [
+      'Your order has been received by restaurant.',
+      'Chef is preparing your fresh meal now.',
+      'Delivery partner is bringing your hot food.',
+      'Order completed! Enjoy your delicious meal!'
+    ];
+
+    int currentIndex = steps.indexOf(currentStatus);
+
+    return Column(
+      children: List.generate(steps.length, (index) {
+        final step = steps[index];
+        final isDone = index <= currentIndex;
+        final isCurrent = index == currentIndex;
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Line and dot
+            Column(
+              children: [
+                Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: isDone ? _getStatusColor(step) : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                    shape: BoxShape.circle,
+                    border: isCurrent
+                        ? Border.all(
+                            color: isDark ? Colors.white : Colors.black87,
+                            width: 2.5,
+                          )
+                        : null,
+                  ),
+                  child: isDone && !isCurrent
+                      ? const Icon(Icons.check, color: Colors.white, size: 12)
+                      : null,
+                ),
+                if (index < steps.length - 1)
+                  Container(
+                    width: 3,
+                    height: 48,
+                    color: index < currentIndex
+                        ? _getStatusColor(steps[index + 1])
+                        : isDark
+                            ? AppColors.darkBorder
+                            : AppColors.lightBorder,
+                  ),
+              ],
+            ),
+            const SizedBox(width: 16),
+            // Text detail
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 1),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      step,
+                      style: AppTypography.outfit(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: isDone
+                            ? (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary)
+                            : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      descriptions[index],
+                      style: AppTypography.inter(
+                        color: isDone && isCurrent
+                            ? (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary)
+                            : (isDark ? AppColors.darkTextSecondary.withOpacity(0.8) : AppColors.lightTextSecondary.withOpacity(0.8)),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      }),
+    );
+  }
+
+  Widget _buildReceiptRow(String label, double val, bool isDark, {bool isPromo = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: AppTypography.inter(
+            color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+            fontSize: 12,
+          ),
+        ),
+        Text(
+          isPromo ? '-\$${(-val).toStringAsFixed(2)}' : '\$${val.toStringAsFixed(2)}',
+          style: AppTypography.inter(
+            color: isPromo ? AppColors.success : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
+            fontWeight: isPromo ? FontWeight.bold : FontWeight.normal,
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+}
