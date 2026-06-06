@@ -72,37 +72,6 @@ class AuthRepository {
       );
     }
 
-    // Fallback: Default mock user if logging in with customer@dineos.com / password123
-    if (email == 'customer@dineos.com' && password == 'password123') {
-      final defaultId = 'IjrrNmUtrlSP2qskK47DcCLNZSI22';
-      final record = {
-        'fullName': 'Oliver Queen',
-        'mobileNumber': '+919876543210',
-        'username': 'oliverqueen',
-        'email': 'customer@dineos.com',
-        'password': 'password123',
-      };
-      
-      try {
-        await http.put(
-          Uri.parse('$_dbUrl/user_customer/$defaultId.json'),
-          body: json.encode(record),
-        ).timeout(const Duration(seconds: 3));
-      } catch (e) {
-        print('Failed to write seed user to database: $e');
-      }
-
-      MockDatabase.userCustomerTable[defaultId] = record;
-      return UserModel(
-        id: defaultId,
-        fullName: 'Oliver Queen',
-        mobileNumber: '+919876543210',
-        username: 'oliverqueen',
-        email: 'customer@dineos.com',
-        password: 'password123',
-      );
-    }
-
     throw Exception('Invalid email or password');
   }
 
@@ -192,13 +161,176 @@ class AuthRepository {
 }
 
 class FoodRepository {
+  static const String _dbUrl = 'https://dineos-123-default-rtdb.asia-southeast1.firebasedatabase.app';
+
   Future<List<FoodItem>> getFoodCatalog() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return MockDatabase.foodItems.map((item) => item.copyWith()).toList();
+    // Also load coupons in background so they are synced automatically:
+    getCoupons().catchError((e) {
+      print('Coupons background sync failed: $e');
+      return <Coupon>[];
+    });
+
+    try {
+      final response = await http.get(Uri.parse('$_dbUrl/restaurants.json')).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded is Map) {
+          final List<FoodItem> loadedItems = [];
+          final Set<String> loadedCategories = {'All'};
+
+          decoded.forEach((restaurantId, restaurantVal) {
+            if (restaurantVal is Map && restaurantVal.containsKey('menu_items')) {
+              final menuItemsVal = restaurantVal['menu_items'];
+              if (menuItemsVal is Map) {
+                menuItemsVal.forEach((itemId, itemVal) {
+                  if (itemVal is Map) {
+                    final category = itemVal['category']?.toString() ?? 'Other';
+                    loadedCategories.add(category);
+
+                    // Add standard customization groups for Pizza and Burgers to keep UI beautiful:
+                    List<CustomizationGroup> custGroups = [];
+                    if (category.toLowerCase().contains('pizza')) {
+                      custGroups = [
+                        CustomizationGroup(
+                          title: 'Select Size',
+                          isRequired: true,
+                          options: [
+                            CustomizationOption(name: 'Personal 7"', additionalPrice: 0.0, isSelected: true),
+                            CustomizationOption(name: 'Medium 10"', additionalPrice: 4.00),
+                            CustomizationOption(name: 'Large 12"', additionalPrice: 7.00),
+                          ],
+                        ),
+                        CustomizationGroup(
+                          title: 'Crust Preference',
+                          isRequired: true,
+                          options: [
+                            CustomizationOption(name: 'Classic Hand-Tossed', additionalPrice: 0.0, isSelected: true),
+                            CustomizationOption(name: 'Cheese Burst Crust', additionalPrice: 2.99),
+                          ],
+                        ),
+                      ];
+                    } else if (category.toLowerCase().contains('burger')) {
+                      custGroups = [
+                        CustomizationGroup(
+                          title: 'Select Size',
+                          isRequired: true,
+                          options: [
+                            CustomizationOption(name: 'Regular', additionalPrice: 0.0, isSelected: true),
+                            CustomizationOption(name: 'Medium Double Patty', additionalPrice: 2.49),
+                            CustomizationOption(name: 'Monster Triple Patty', additionalPrice: 4.49),
+                          ],
+                        ),
+                        CustomizationGroup(
+                          title: 'Add Extra Toppings',
+                          isMultiSelect: true,
+                          options: [
+                            CustomizationOption(name: 'Extra Cheddar Cheese Slice', additionalPrice: 0.99),
+                            CustomizationOption(name: 'Crispy Bacon Strips', additionalPrice: 1.49),
+                          ],
+                        ),
+                      ];
+                    }
+
+                    loadedItems.add(FoodItem(
+                      id: itemId.toString(),
+                      name: itemVal['name']?.toString() ?? '',
+                      description: itemVal['description']?.toString() ?? '',
+                      basePrice: (itemVal['price'] as num?)?.toDouble() ?? 0.0,
+                      imageUrl: itemVal['image_url']?.toString() ?? 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
+                      rating: 4.5 + (Random().nextDouble() * 0.4),
+                      reviewsCount: 30 + Random().nextInt(100),
+                      category: category,
+                      isVeg: itemVal['is_vegetarian'] ?? false,
+                      customizationGroups: custGroups,
+                    ));
+                  }
+                });
+              }
+            }
+          });
+
+          // Sync local mock database lists:
+          MockDatabase.foodItems.clear();
+          MockDatabase.foodItems.addAll(loadedItems);
+
+          MockDatabase.categories.clear();
+          MockDatabase.categories.addAll(loadedCategories.toList()..sort());
+
+          return loadedItems;
+        }
+      }
+    } catch (e) {
+      print('Error loading food catalog from Firebase: $e');
+    }
+
+    // Fallback
+    return MockDatabase.foodItems.map((e) => e.copyWith()).toList();
   }
 
   Future<List<String>> getCategories() async {
+    // If empty, fetch catalog to populate categories dynamically:
+    if (MockDatabase.categories.length <= 1) {
+      await getFoodCatalog();
+    }
     return MockDatabase.categories;
+  }
+
+  Future<List<Coupon>> getCoupons() async {
+    try {
+      final response = await http.get(Uri.parse('$_dbUrl/coupons.json')).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded is Map) {
+          final List<Coupon> list = [];
+          decoded.forEach((key, val) {
+            if (val is Map) {
+              list.add(_mapToCoupon(val));
+            }
+          });
+          MockDatabase.coupons.clear();
+          MockDatabase.coupons.addAll(list);
+          return list;
+        } else if (decoded == null) {
+          // Seed initial coupons
+          final list = [
+            Coupon(
+              code: 'DINEOS10',
+              description: 'Get 10% off on your order, up to \$5. Minimum order \$15.',
+              discountPercentage: 10,
+              minOrderValue: 15.0,
+              maxDiscount: 5.0,
+            ),
+            Coupon(
+              code: 'FREEVIP',
+              description: 'Get \$5.00 flat discount on your order. Minimum order \$20.',
+              flatDiscount: 5.0,
+              minOrderValue: 20.0,
+              maxDiscount: 5.0,
+            ),
+            Coupon(
+              code: 'WARMORANGE',
+              description: 'Celebrate our primary Orange tone! 20% off up to \$10. Minimum order \$10.',
+              discountPercentage: 20,
+              minOrderValue: 10.0,
+              maxDiscount: 10.0,
+            ),
+          ];
+
+          for (final coupon in list) {
+            await http.put(
+              Uri.parse('$_dbUrl/coupons/${coupon.code}.json'),
+              body: json.encode(_couponToMap(coupon)),
+            );
+          }
+          MockDatabase.coupons.clear();
+          MockDatabase.coupons.addAll(list);
+          return list;
+        }
+      }
+    } catch (e) {
+      print('Firebase RTDB getCoupons failed: $e');
+    }
+    return MockDatabase.coupons;
   }
 }
 
