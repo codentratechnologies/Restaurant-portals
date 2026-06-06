@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "267515153341",
+    "firebase_url": "https://dineos-123-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "dineos-123",
+    "storage_bucket": "dineos-123.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:267515153341:android:0d63aeb3fc7bd276e6a0d4",
+        "android_client_info": {
+          "package_name": "com.example.dineos_customer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLzdYqvHGV_L2SA1OAOwwe8szc79qPwgc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
