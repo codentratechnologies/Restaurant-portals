@@ -5,11 +5,14 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/page_transitions.dart';
 import '../../state/auth_state.dart';
 import '../../state/theme_state.dart';
+import '../../state/address_state.dart';
+import '../../state/order_state.dart';
 import '../auth/login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'food_collection_screen.dart';
 import 'recent_orders_screen.dart';
 import 'address_book_screen.dart';
+
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -49,7 +52,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        user != null && user.name.isNotEmpty ? user.name[0].toUpperCase() : 'G',
+                        user != null && user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : 'G',
                         style: AppTypography.outfit(
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
@@ -60,7 +63,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    user?.name ?? 'Guest User',
+                    user?.fullName ?? 'Guest User',
                     style: AppTypography.outfit(
                       fontWeight: FontWeight.bold,
                       fontSize: 20,
@@ -154,6 +157,8 @@ class ProfileScreen extends StatelessWidget {
                     color: AppColors.danger,
                     onTap: () {
                       authState.logout();
+                      Provider.of<AddressState>(context, listen: false).loadAddresses();
+                      Provider.of<OrderState>(context, listen: false).loadOrders();
                       Navigator.of(context).pushAndRemoveUntil(
                         SlidePageRoute(page: const LoginScreen()),
                         (route) => false,

@@ -5,6 +5,11 @@ import '../models/order.dart';
 import '../models/cart_item.dart';
 
 class MockDatabase {
+  // Simulated database table: user_customer
+  static final Map<String, Map<String, dynamic>> userCustomerTable = {};
+  static String? currentUserId;
+
+
   static final List<String> categories = [
     'All',
     'Burgers',

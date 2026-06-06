@@ -6,6 +6,8 @@ import '../../core/widgets/custom_text_field.dart';
 import '../../core/widgets/elastic_button.dart';
 import '../../core/widgets/page_transitions.dart';
 import '../../state/auth_state.dart';
+import '../../state/address_state.dart';
+import '../../state/order_state.dart';
 import '../main_navigation.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -17,17 +19,21 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _fullNameController = TextEditingController();
+  final _mobileController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _fullNameController.dispose();
+    _mobileController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -35,13 +41,18 @@ class _SignupScreenState extends State<SignupScreen> {
     if (_formKey.currentState!.validate()) {
       final authState = Provider.of<AuthState>(context, listen: false);
       final success = await authState.signup(
-        _nameController.text.trim(),
-        _emailController.text.trim(),
-        _phoneController.text.trim(),
-        _passwordController.text,
+        fullName: _fullNameController.text.trim(),
+        mobileNumber: _mobileController.text.trim(),
+        username: _usernameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
       );
 
       if (success && mounted) {
+        // Refresh address and order state for the signed-up user
+        Provider.of<AddressState>(context, listen: false).loadAddresses();
+        Provider.of<OrderState>(context, listen: false).loadOrders();
+
         Navigator.of(context).pushAndRemoveUntil(
           SlidePageRoute(page: const MainNavigation()),
           (route) => false,
@@ -60,7 +71,6 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final authState = Provider.of<AuthState>(context);
 
     return Scaffold(
@@ -95,67 +105,122 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
+                
+                // Full Name
                 CustomTextField(
                   label: 'Full Name',
-                  placeholder: 'Oliver Queen',
+                  placeholder: 'John Doe',
                   prefixIcon: Icons.person_outline_rounded,
-                  controller: _nameController,
+                  controller: _fullNameController,
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your full name';
+                    }
+                    if (!RegExp(r'^[a-zA-Z\s]{3,50}$').hasMatch(value.trim())) {
+                      return 'Alphabetic characters only, 3-50 chars';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 20),
+
+                // Mobile Number
+                CustomTextField(
+                  label: 'Mobile Number',
+                  placeholder: '9876543210',
+                  prefixIcon: Icons.phone_android_outlined,
+                  keyboardType: TextInputType.phone,
+                  controller: _mobileController,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your mobile number';
+                    }
+                    if (!RegExp(r'^[0-9]{10}$').hasMatch(value.trim())) {
+                      return 'Numeric characters only, exactly 10 digits';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Username
+                CustomTextField(
+                  label: 'Username',
+                  placeholder: 'johndoe123',
+                  prefixIcon: Icons.alternate_email_rounded,
+                  controller: _usernameController,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please choose a username';
+                    }
+                    if (!RegExp(r'^[a-zA-Z0-9]{4,20}$').hasMatch(value.trim())) {
+                      return 'Alphanumeric only, 4-20 chars, no spaces';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Email Address
                 CustomTextField(
                   label: 'Email Address',
-                  placeholder: 'oliver@queen.com',
+                  placeholder: 'john@example.com',
                   prefixIcon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
                   controller: _emailController,
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your email address';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
                       return 'Please enter a valid email address';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 20),
-                CustomTextField(
-                  label: 'Phone Number',
-                  placeholder: '+1 (555) 019-2834',
-                  prefixIcon: Icons.phone_android_outlined,
-                  keyboardType: TextInputType.phone,
-                  controller: _phoneController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
+
+                // Password
                 CustomTextField(
                   label: 'Password',
-                  placeholder: 'Create a password',
+                  placeholder: 'Pass@1234',
                   prefixIcon: Icons.lock_outline_rounded,
                   isPassword: true,
                   controller: _passwordController,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please create a password';
+                      return 'Please enter a password';
                     }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
+                    // Validate: Min 8 chars, 1 uppercase, 1 lowercase, 1 special char
+                    final pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$';
+                    if (!RegExp(pattern).hasMatch(value)) {
+                      return 'Min 8 chars, 1 uppercase, 1 lowercase, 1 special char';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Confirm Password
+                CustomTextField(
+                  label: 'Confirm Password',
+                  placeholder: 'Re-enter your password',
+                  prefixIcon: Icons.lock_clock_outlined,
+                  isPassword: true,
+                  controller: _confirmPasswordController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please confirm your password';
+                    }
+                    if (value != _passwordController.text) {
+                      return 'Passwords do not match';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 40),
+
+                // Sign Up CTA
                 ElasticButton(
                   onTap: authState.isLoading ? null : _handleSignup,
                   child: Container(

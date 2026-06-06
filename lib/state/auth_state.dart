@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../data/models/user_model.dart';
 import '../data/repositories/mock_repositories.dart';
+import '../data/mock/mock_database.dart';
+
 
 class AuthState extends ChangeNotifier {
   final AuthRepository _authRepository = AuthRepository();
@@ -21,6 +23,7 @@ class AuthState extends ChangeNotifier {
 
     try {
       _currentUser = await _authRepository.login(email, password);
+      MockDatabase.currentUserId = _currentUser?.id;
       _isLoading = false;
       notifyListeners();
       return true;
@@ -32,13 +35,26 @@ class AuthState extends ChangeNotifier {
     }
   }
 
-  Future<bool> signup(String name, String email, String phone, String password) async {
+  Future<bool> signup({
+    required String fullName,
+    required String mobileNumber,
+    required String username,
+    required String email,
+    required String password,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _currentUser = await _authRepository.signup(name, email, phone, password);
+      _currentUser = await _authRepository.signup(
+        fullName: fullName,
+        mobileNumber: mobileNumber,
+        username: username,
+        email: email,
+        password: password,
+      );
+      MockDatabase.currentUserId = _currentUser?.id;
       _isLoading = false;
       notifyListeners();
       return true;
@@ -50,20 +66,32 @@ class AuthState extends ChangeNotifier {
     }
   }
 
-  Future<void> updateProfile(String name, String email, String phone) async {
+  Future<void> updateProfile({
+    required String fullName,
+    required String mobileNumber,
+    required String username,
+    required String email,
+  }) async {
     if (_currentUser == null) return;
 
     _isLoading = true;
     notifyListeners();
 
-    final updatedUser = _currentUser!.copyWith(name: name, email: email, phone: phone);
+    final updatedUser = _currentUser!.copyWith(
+      fullName: fullName,
+      mobileNumber: mobileNumber,
+      username: username,
+      email: email,
+    );
     _currentUser = await _authRepository.updateProfile(updatedUser);
+    MockDatabase.currentUserId = _currentUser?.id;
     _isLoading = false;
     notifyListeners();
   }
 
   void logout() {
     _currentUser = null;
+    MockDatabase.currentUserId = null;
     notifyListeners();
   }
 

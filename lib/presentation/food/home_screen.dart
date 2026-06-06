@@ -79,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final addressState = Provider.of<AddressState>(context);
     final cartState = Provider.of<CartState>(context);
 
-    final userName = authState.currentUser?.name ?? 'Guest';
+    final userName = authState.currentUser?.fullName ?? 'Guest';
     final userAddress = addressState.selectedAddress?.addressLine ?? 'Select Address';
 
     return Scaffold(

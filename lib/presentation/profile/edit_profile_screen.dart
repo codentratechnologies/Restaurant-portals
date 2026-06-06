@@ -18,14 +18,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
+  late TextEditingController _usernameController;
 
   @override
   void initState() {
     super.initState();
     final user = Provider.of<AuthState>(context, listen: false).currentUser;
-    _nameController = TextEditingController(text: user?.name ?? '');
+    _nameController = TextEditingController(text: user?.fullName ?? '');
     _emailController = TextEditingController(text: user?.email ?? '');
-    _phoneController = TextEditingController(text: user?.phone ?? '');
+    _phoneController = TextEditingController(text: user?.mobileNumber ?? '');
+    _usernameController = TextEditingController(text: user?.username ?? '');
   }
 
   @override
@@ -33,6 +35,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _usernameController.dispose();
     super.dispose();
   }
 
@@ -40,9 +43,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (_formKey.currentState!.validate()) {
       final authState = Provider.of<AuthState>(context, listen: false);
       await authState.updateProfile(
-        _nameController.text.trim(),
-        _emailController.text.trim(),
-        _phoneController.text.trim(),
+        fullName: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        mobileNumber: _phoneController.text.trim(),
+        username: _usernameController.text.trim(),
       );
 
       if (mounted) {
@@ -89,6 +93,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your name';
                     }
+                    if (!RegExp(r'^[a-zA-Z\s]{3,50}$').hasMatch(value)) {
+                      return 'Alphabetic only, 3-50 characters';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                CustomTextField(
+                  label: 'Username',
+                  placeholder: 'oliverqueen',
+                  prefixIcon: Icons.alternate_email_rounded,
+                  controller: _usernameController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your username';
+                    }
+                    if (!RegExp(r'^[a-zA-Z0-9]{4,20}$').hasMatch(value)) {
+                      return 'Alphanumeric only, 4-20 characters, no spaces';
+                    }
                     return null;
                   },
                 ),
@@ -112,13 +135,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 const SizedBox(height: 20),
                 CustomTextField(
                   label: 'Phone Number',
-                  placeholder: '+1 (555) 019-2834',
+                  placeholder: '9876543210',
                   prefixIcon: Icons.phone_android_outlined,
                   keyboardType: TextInputType.phone,
                   controller: _phoneController,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your phone number';
+                    }
+                    // Extract numeric part
+                    String raw = value.replaceAll(RegExp(r'[^0-9]'), '');
+                    if (raw.length != 10 && !value.startsWith('+91')) {
+                      return 'Numeric, exactly 10 digits required';
                     }
                     return null;
                   },

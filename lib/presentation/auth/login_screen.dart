@@ -6,6 +6,8 @@ import '../../core/widgets/custom_text_field.dart';
 import '../../core/widgets/elastic_button.dart';
 import '../../core/widgets/page_transitions.dart';
 import '../../state/auth_state.dart';
+import '../../state/address_state.dart';
+import '../../state/order_state.dart';
 import '../main_navigation.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
@@ -38,6 +40,10 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success && mounted) {
+        // Refresh address and order state for the logged-in user
+        Provider.of<AddressState>(context, listen: false).loadAddresses();
+        Provider.of<OrderState>(context, listen: false).loadOrders();
+
         Navigator.of(context).pushReplacement(
           SlidePageRoute(page: const MainNavigation()),
         );
@@ -206,74 +212,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Divider line
-                Row(
-                  children: [
-                    Expanded(
-                      child: Divider(
-                        color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                        thickness: 1,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'Or Continue With',
-                        style: AppTypography.inter(
-                          style: theme.textTheme.bodySmall,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Divider(
-                        color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                        thickness: 1,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                // Social logins
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElasticButton(
-                        onTap: () {
-                          // Mock social login
-                          _emailController.text = 'google.customer@dineos.com';
-                          _handleLogin();
-                        },
-                        child: Container(
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.g_mobiledata_rounded, size: 30, color: AppColors.primary),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Google',
-                                style: AppTypography.outfit(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 40),
                 // Sign Up link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
