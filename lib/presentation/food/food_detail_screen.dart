@@ -190,44 +190,17 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      // Stats Row
+                      // Stats Row (Delivery Time)
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.star_rounded, color: Colors.amber, size: 20),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${widget.foodItem.rating}',
-                                style: AppTypography.outfit(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '(${widget.foodItem.reviewsCount} reviews)',
-                                style: AppTypography.inter(
-                                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                          // Delivery Time Mock
-                          Row(
-                            children: [
-                              const Icon(Icons.delivery_dining_rounded, color: AppColors.primary, size: 20),
-                              const SizedBox(width: 4),
-                              Text(
-                                '25-30 min',
-                                style: AppTypography.outfit(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
+                          const Icon(Icons.delivery_dining_rounded, color: AppColors.primary, size: 20),
+                          const SizedBox(width: 6),
+                          Text(
+                            '25-30 min',
+                            style: AppTypography.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
                           ),
                         ],
                       ),

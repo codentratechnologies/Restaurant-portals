@@ -507,31 +507,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   ),
                                                 ),
                                               ),
-                                              Positioned(
-                                                bottom: 8,
-                                                right: 8,
-                                                child: Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.black.withOpacity(0.7),
-                                                    borderRadius: BorderRadius.circular(6),
-                                                  ),
-                                                  child: Row(
-                                                    children: [
-                                                      const Icon(Icons.star_rounded, color: Colors.amber, size: 12),
-                                                      const SizedBox(width: 2),
-                                                      Text(
-                                                        '${item.rating}',
-                                                        style: const TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 10,
-                                                          fontWeight: FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
                                             ],
                                           ),
                                         ),
