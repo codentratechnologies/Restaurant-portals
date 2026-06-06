@@ -255,7 +255,7 @@ class FoodRepository {
 
   Future<List<Coupon>> getCoupons() async {
     try {
-      final response = await http.get(Uri.parse('$_dbUrl/coupons.json')).timeout(const Duration(seconds: 5));
+      final response = await http.get(Uri.parse('$_dbUrl/coupen.json')).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         if (decoded is Map) {
@@ -296,7 +296,7 @@ class FoodRepository {
 
           for (final coupon in list) {
             await http.put(
-              Uri.parse('$_dbUrl/coupons/${coupon.code}.json'),
+              Uri.parse('$_dbUrl/coupen/${coupon.code}.json'),
               body: json.encode(_couponToMap(coupon)),
             );
           }
