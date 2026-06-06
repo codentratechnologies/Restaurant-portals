@@ -171,81 +171,59 @@ class FoodRepository {
     });
 
     try {
-      final response = await http.get(Uri.parse('$_dbUrl/restaurants.json')).timeout(const Duration(seconds: 5));
+      final response = await http.get(Uri.parse('$_dbUrl/menu.json')).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         if (decoded is Map) {
           final List<FoodItem> loadedItems = [];
           final Set<String> loadedCategories = {'All'};
 
-          decoded.forEach((restaurantId, restaurantVal) {
-            if (restaurantVal is Map && restaurantVal.containsKey('menu_items')) {
-              final menuItemsVal = restaurantVal['menu_items'];
-              if (menuItemsVal is Map) {
-                menuItemsVal.forEach((itemId, itemVal) {
-                  if (itemVal is Map) {
-                    final category = itemVal['category']?.toString() ?? 'Other';
-                    loadedCategories.add(category);
+          decoded.forEach((restaurantId, itemsMap) {
+            if (itemsMap is Map) {
+              itemsMap.forEach((itemId, itemVal) {
+                if (itemVal is Map) {
+                  final category = itemVal['category']?.toString() ?? 'Other';
+                  loadedCategories.add(category);
 
-                    // Add standard customization groups for Pizza and Burgers to keep UI beautiful:
-                    List<CustomizationGroup> custGroups = [];
-                    if (category.toLowerCase().contains('pizza')) {
-                      custGroups = [
-                        CustomizationGroup(
-                          title: 'Select Size',
-                          isRequired: true,
-                          options: [
-                            CustomizationOption(name: 'Personal 7"', additionalPrice: 0.0, isSelected: true),
-                            CustomizationOption(name: 'Medium 10"', additionalPrice: 4.00),
-                            CustomizationOption(name: 'Large 12"', additionalPrice: 7.00),
-                          ],
-                        ),
-                        CustomizationGroup(
-                          title: 'Crust Preference',
-                          isRequired: true,
-                          options: [
-                            CustomizationOption(name: 'Classic Hand-Tossed', additionalPrice: 0.0, isSelected: true),
-                            CustomizationOption(name: 'Cheese Burst Crust', additionalPrice: 2.99),
-                          ],
-                        ),
-                      ];
-                    } else if (category.toLowerCase().contains('burger')) {
-                      custGroups = [
-                        CustomizationGroup(
-                          title: 'Select Size',
-                          isRequired: true,
-                          options: [
-                            CustomizationOption(name: 'Regular', additionalPrice: 0.0, isSelected: true),
-                            CustomizationOption(name: 'Medium Double Patty', additionalPrice: 2.49),
-                            CustomizationOption(name: 'Monster Triple Patty', additionalPrice: 4.49),
-                          ],
-                        ),
-                        CustomizationGroup(
-                          title: 'Add Extra Toppings',
+                  // Dynamically map customization options from the database
+                  List<CustomizationGroup> custGroups = [];
+                  if (itemVal.containsKey('customizations') && itemVal['customizations'] is List) {
+                    final custs = itemVal['customizations'] as List;
+                    if (custs.isNotEmpty) {
+                      final List<CustomizationOption> options = [];
+                      for (var c in custs) {
+                        if (c is Map) {
+                          options.add(CustomizationOption(
+                            name: c['label']?.toString() ?? '',
+                            additionalPrice: (c['price'] as num?)?.toDouble() ?? 0.0,
+                            isSelected: false,
+                          ));
+                        }
+                      }
+                      if (options.isNotEmpty) {
+                        custGroups.add(CustomizationGroup(
+                          title: 'Customizations',
                           isMultiSelect: true,
-                          options: [
-                            CustomizationOption(name: 'Extra Cheddar Cheese Slice', additionalPrice: 0.99),
-                            CustomizationOption(name: 'Crispy Bacon Strips', additionalPrice: 1.49),
-                          ],
-                        ),
-                      ];
+                          options: options,
+                        ));
+                      }
                     }
-
-                    loadedItems.add(FoodItem(
-                      id: itemId.toString(),
-                      name: itemVal['name']?.toString() ?? '',
-                      description: itemVal['description']?.toString() ?? '',
-                      basePrice: (itemVal['price'] as num?)?.toDouble() ?? 0.0,
-                      imageUrl: itemVal['image_url']?.toString() ?? 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
-                      rating: 4.5 + (Random().nextDouble() * 0.4),
-                      reviewsCount: 30 + Random().nextInt(100),
-                      category: category,
-                      isVeg: itemVal['is_vegetarian'] ?? false,
-                      customizationGroups: custGroups,
-                    ));
                   }
-                });
-              }
+
+                  loadedItems.add(FoodItem(
+                    id: itemId.toString(),
+                    name: itemVal['name']?.toString() ?? '',
+                    description: itemVal['description']?.toString() ?? '',
+                    basePrice: (itemVal['price'] as num?)?.toDouble() ?? 0.0,
+                    imageUrl: itemVal['image_url']?.toString() ?? 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
+                    rating: 4.5 + (Random().nextDouble() * 0.4),
+                    reviewsCount: 30 + Random().nextInt(100),
+                    category: category,
+                    isVeg: itemVal['is_vegetarian'] ?? false,
+                    customizationGroups: custGroups,
+                  ));
+                }
+              });
             }
           });
 
