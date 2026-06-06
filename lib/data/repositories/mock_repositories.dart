@@ -255,54 +255,48 @@ class FoodRepository {
 
   Future<List<Coupon>> getCoupons() async {
     try {
-      final response = await http.get(Uri.parse('$_dbUrl/coupen.json')).timeout(const Duration(seconds: 5));
+      final response = await http.get(Uri.parse('$_dbUrl/coupons.json')).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         if (decoded is Map) {
-          final List<Coupon> list = [];
-          decoded.forEach((key, val) {
-            if (val is Map) {
-              list.add(_mapToCoupon(val));
+          final Map<String, Coupon> listMap = {};
+          
+          decoded.forEach((adminId, adminData) {
+            if (adminData is Map) {
+              adminData.forEach((couponKey, couponData) {
+                if (couponData is Map) {
+                  final coupon = _mapToCoupon(couponData);
+                  if (coupon.code.isNotEmpty) {
+                    listMap[coupon.code] = coupon;
+                  }
+                }
+              });
+            } else if (adminData is String && adminId == 'code') {
+              final coupon = _mapToCoupon(decoded);
+              if (coupon.code.isNotEmpty) {
+                listMap[coupon.code] = coupon;
+              }
             }
           });
+          
+          if (listMap.isEmpty) {
+            decoded.forEach((key, val) {
+              if (val is Map) {
+                final coupon = _mapToCoupon(val);
+                if (coupon.code.isNotEmpty) {
+                  listMap[coupon.code] = coupon;
+                }
+              }
+            });
+          }
+
+          final List<Coupon> list = listMap.values.toList();
           MockDatabase.coupons.clear();
           MockDatabase.coupons.addAll(list);
           return list;
         } else if (decoded == null) {
-          // Seed initial coupons
-          final list = [
-            Coupon(
-              code: 'DINEOS10',
-              description: 'Get 10% off on your order, up to \$5. Minimum order \$15.',
-              discountPercentage: 10,
-              minOrderValue: 15.0,
-              maxDiscount: 5.0,
-            ),
-            Coupon(
-              code: 'FREEVIP',
-              description: 'Get \$5.00 flat discount on your order. Minimum order \$20.',
-              flatDiscount: 5.0,
-              minOrderValue: 20.0,
-              maxDiscount: 5.0,
-            ),
-            Coupon(
-              code: 'WARMORANGE',
-              description: 'Celebrate our primary Orange tone! 20% off up to \$10. Minimum order \$10.',
-              discountPercentage: 20,
-              minOrderValue: 10.0,
-              maxDiscount: 10.0,
-            ),
-          ];
-
-          for (final coupon in list) {
-            await http.put(
-              Uri.parse('$_dbUrl/coupen/${coupon.code}.json'),
-              body: json.encode(_couponToMap(coupon)),
-            );
-          }
           MockDatabase.coupons.clear();
-          MockDatabase.coupons.addAll(list);
-          return list;
+          return [];
         }
       }
     } catch (e) {
@@ -342,6 +336,14 @@ Map<String, dynamic> _couponToMap(Coupon coupon) {
     'flatDiscount': coupon.flatDiscount,
     'minOrderValue': coupon.minOrderValue,
     'maxDiscount': coupon.maxDiscount,
+    'discountType': coupon.discountType,
+    'discountValue': coupon.discountValue,
+    'maxDiscountAmount': coupon.maxDiscountAmount,
+    'validFrom': coupon.validFrom,
+    'validUntil': coupon.validUntil,
+    'status': coupon.status,
+    'targetAudience': coupon.targetAudience,
+    'applicableBranches': coupon.applicableBranches,
   };
 }
 
@@ -353,6 +355,14 @@ Coupon _mapToCoupon(Map map) {
     flatDiscount: (map['flatDiscount'] as num?)?.toDouble() ?? 0.0,
     minOrderValue: (map['minOrderValue'] as num?)?.toDouble() ?? 0.0,
     maxDiscount: (map['maxDiscount'] as num?)?.toDouble() ?? 0.0,
+    discountType: map['discountType'] ?? 'Flat',
+    discountValue: (map['discountValue'] as num?)?.toDouble() ?? 0.0,
+    maxDiscountAmount: (map['maxDiscountAmount'] as num?)?.toDouble() ?? 0.0,
+    validFrom: map['validFrom'] ?? '',
+    validUntil: map['validUntil'] ?? '',
+    status: map['status'] ?? 'Active',
+    targetAudience: map['targetAudience'] ?? 'All',
+    applicableBranches: map['applicableBranches'] ?? 'All Branches',
   );
 }
 
@@ -410,20 +420,111 @@ FoodItem _mapToFoodItem(Map map) {
     customizationGroups: groups,
   );
 }
-
 Map<String, dynamic> _cartItemToMap(CartItem item) {
+  final selectedCustomizations = item.foodItem.customizationGroups
+      .expand((g) => g.options.where((o) => o.isSelected))
+      .map((o) => {
+        'label': o.name,
+        'price': o.additionalPrice,
+      })
+      .toList();
+
   return {
     'id': item.id,
+    'menu_item_id': item.foodItem.id,
+    'name': item.foodItem.name,
     'quantity': item.quantity,
-    'foodItem': _foodItemToMap(item.foodItem),
+    'unit_price': item.unitPrice,
+    'total_price': item.totalPrice,
+    'customizations': selectedCustomizations,
   };
 }
 
 CartItem _mapToCartItem(Map map) {
+  final qty = (map['quantity'] as num?)?.toInt() ?? (map['qty'] as num?)?.toInt() ?? 1;
+  FoodItem foodItem;
+  
+  if (map.containsKey('foodItem')) {
+    foodItem = _mapToFoodItem(map['foodItem'] as Map? ?? {});
+  } else {
+    final menuId = map['menu_item_id'] ?? map['id'] ?? '';
+    final name = map['name'] ?? '';
+    final unitPrice = (map['unit_price'] as num?)?.toDouble() ?? (map['price'] as num?)?.toDouble() ?? 0.0;
+    
+    // Attempt lookup in current database catalog
+    FoodItem? catalogItem;
+    for (var element in MockDatabase.foodItems) {
+      if (element.id == menuId) {
+        catalogItem = element;
+        break;
+      }
+    }
+
+    if (catalogItem != null) {
+      // Clone it
+      foodItem = catalogItem.copyWith();
+      // Deselect all customization options first
+      for (var group in foodItem.customizationGroups) {
+        for (var option in group.options) {
+          option.isSelected = false;
+        }
+      }
+      // Set selections based on DB record
+      final custsList = map['customizations'] as List? ?? [];
+      for (var c in custsList) {
+        if (c is Map) {
+          final label = c['label']?.toString() ?? c['name']?.toString() ?? '';
+          for (var group in foodItem.customizationGroups) {
+            for (var option in group.options) {
+              if (option.name == label) {
+                option.isSelected = true;
+              }
+            }
+          }
+        }
+      }
+    } else {
+      // Reconstruct foodItem dynamically if catalog item is not found
+      final List<CustomizationOption> options = [];
+      final custsList = map['customizations'] as List? ?? [];
+      for (var c in custsList) {
+        if (c is Map) {
+          options.add(CustomizationOption(
+            name: c['label']?.toString() ?? c['name']?.toString() ?? '',
+            additionalPrice: (c['price'] as num?)?.toDouble() ?? (c['additionalPrice'] as num?)?.toDouble() ?? 0.0,
+            isSelected: true,
+          ));
+        }
+      }
+      
+      List<CustomizationGroup> groups = [];
+      if (options.isNotEmpty) {
+        groups.add(CustomizationGroup(
+          title: 'Customizations',
+          isMultiSelect: true,
+          options: options,
+        ));
+      }
+
+      foodItem = FoodItem(
+        id: menuId,
+        name: name,
+        description: '',
+        basePrice: unitPrice - options.fold(0.0, (sum, o) => sum + o.additionalPrice),
+        imageUrl: '',
+        rating: 4.5,
+        reviewsCount: 10,
+        category: '',
+        isVeg: false,
+        customizationGroups: groups,
+      );
+    }
+  }
+
   return CartItem(
     id: map['id'] ?? '',
-    quantity: (map['quantity'] as num?)?.toInt() ?? 1,
-    foodItem: _mapToFoodItem(map['foodItem'] as Map? ?? {}),
+    quantity: qty,
+    foodItem: foodItem,
   );
 }
 

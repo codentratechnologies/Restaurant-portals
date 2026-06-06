@@ -324,7 +324,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '\$${widget.foodItem.basePrice.toStringAsFixed(2)}',
+                          '₹${widget.foodItem.basePrice.toStringAsFixed(2)}',
                           style: AppTypography.outfit(
                             fontWeight: FontWeight.bold,
                             fontSize: 24,

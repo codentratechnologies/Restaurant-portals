@@ -164,7 +164,7 @@ class _FoodCustomizationScreenState extends State<FoodCustomizationScreen> {
                               children: group.options.map((option) {
                                 final isOptionSelected = option.isSelected;
                                 final priceText = option.additionalPrice > 0
-                                    ? '(+\$${option.additionalPrice.toStringAsFixed(2)})'
+                                    ? '(+₹${option.additionalPrice.toStringAsFixed(2)})'
                                     : 'Free';
 
                                 return group.isMultiSelect
@@ -243,7 +243,7 @@ class _FoodCustomizationScreenState extends State<FoodCustomizationScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '\$${_currentTotalPrice.toStringAsFixed(2)}',
+                          '₹${_currentTotalPrice.toStringAsFixed(2)}',
                           style: AppTypography.outfit(
                             fontWeight: FontWeight.bold,
                             fontSize: 22,

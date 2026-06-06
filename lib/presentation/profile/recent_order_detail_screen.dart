@@ -112,7 +112,7 @@ class RecentOrderDetailScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '\$${item.totalPrice.toStringAsFixed(2)}',
+                            '₹${item.totalPrice.toStringAsFixed(2)}',
                             style: AppTypography.inter(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -148,7 +148,7 @@ class RecentOrderDetailScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '\$${order.total.toStringAsFixed(2)}',
+                        '₹${order.total.toStringAsFixed(2)}',
                         style: AppTypography.outfit(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -255,7 +255,7 @@ class RecentOrderDetailScreen extends StatelessWidget {
           ),
         ),
         Text(
-          isPromo ? '-\$${(-val).toStringAsFixed(2)}' : '\$${val.toStringAsFixed(2)}',
+          isPromo ? '-₹${(-val).toStringAsFixed(2)}' : '₹${val.toStringAsFixed(2)}',
           style: AppTypography.inter(
             color: isPromo ? AppColors.success : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
             fontWeight: isPromo ? FontWeight.bold : FontWeight.normal,

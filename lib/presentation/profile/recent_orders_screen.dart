@@ -129,7 +129,7 @@ class RecentOrdersScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Total Paid: \$${order.total.toStringAsFixed(2)}',
+                            'Total Paid: ₹${order.total.toStringAsFixed(2)}',
                             style: AppTypography.outfit(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,

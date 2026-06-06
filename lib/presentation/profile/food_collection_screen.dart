@@ -121,7 +121,7 @@ class FoodCollectionScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '\$${item.basePrice.toStringAsFixed(2)}',
+                          '₹${item.basePrice.toStringAsFixed(2)}',
                           style: AppTypography.inter(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,

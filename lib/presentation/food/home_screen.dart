@@ -540,7 +540,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                 children: [
                                                   Text(
-                                                    '\$${item.basePrice.toStringAsFixed(2)}',
+                                                    '₹${item.basePrice.toStringAsFixed(2)}',
                                                     style: AppTypography.inter(
                                                       fontWeight: FontWeight.bold,
                                                       fontSize: 15,

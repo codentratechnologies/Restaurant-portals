@@ -132,7 +132,7 @@ class _CartScreenState extends State<CartScreen> {
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
-                                    '\$${item.unitPrice.toStringAsFixed(2)}',
+                                    '₹${item.unitPrice.toStringAsFixed(2)}',
                                     style: AppTypography.inter(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
@@ -300,7 +300,7 @@ class _CartScreenState extends State<CartScreen> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        'Discount: -\$${cartState.discount.toStringAsFixed(2)}',
+                                        'Discount: -₹${cartState.discount.toStringAsFixed(2)}',
                                         style: AppTypography.inter(
                                           color: AppColors.success,
                                           fontWeight: FontWeight.bold,
@@ -434,7 +434,7 @@ class _CartScreenState extends State<CartScreen> {
                               ),
                             ),
                             Text(
-                              '\$${cartState.total.toStringAsFixed(2)}',
+                              '₹${cartState.total.toStringAsFixed(2)}',
                               style: AppTypography.outfit(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
@@ -503,7 +503,7 @@ class _CartScreenState extends State<CartScreen> {
                         child: orderState.isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
                             : Text(
-                                'Place Order • \$${cartState.total.toStringAsFixed(2)}',
+                                'Place Order • ₹${cartState.total.toStringAsFixed(2)}',
                                 style: AppTypography.outfit(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -530,8 +530,8 @@ class _CartScreenState extends State<CartScreen> {
     final valueText = isFree
         ? 'FREE'
         : isDiscount
-            ? '-\$${(-val).toStringAsFixed(2)}'
-            : '\$${val.toStringAsFixed(2)}';
+            ? '-₹${(-val).toStringAsFixed(2)}'
+            : '₹${val.toStringAsFixed(2)}';
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
