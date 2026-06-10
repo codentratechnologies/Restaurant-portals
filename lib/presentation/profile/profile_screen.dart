@@ -71,7 +71,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    user?.email ?? 'guest@dineos.com',
+                    user?.email ?? '',
                     style: AppTypography.inter(
                       color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                       fontSize: 14,

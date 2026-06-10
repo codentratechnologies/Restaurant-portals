@@ -7,6 +7,7 @@ import '../../core/widgets/page_transitions.dart';
 import '../../state/cart_state.dart';
 import '../../state/address_state.dart';
 import '../../state/order_state.dart';
+import '../../state/branch_state.dart';
 import 'select_coupon_screen.dart';
 import 'select_payment_method_screen.dart';
 import 'select_address_screen.dart';
@@ -30,6 +31,7 @@ class _CartScreenState extends State<CartScreen> {
     final cartState = Provider.of<CartState>(context);
     final addressState = Provider.of<AddressState>(context);
     final orderState = Provider.of<OrderState>(context);
+    final branchState = Provider.of<BranchState>(context);
 
     final cartItems = cartState.items;
     final deliveryAddress = addressState.selectedAddress;
@@ -474,6 +476,7 @@ class _CartScreenState extends State<CartScreen> {
                               tax: cartState.tax,
                               discount: cartState.discount,
                               total: cartState.total,
+                              branchId: branchState.selectedBranch?.id ?? '',
                             );
 
                             // Clear cart

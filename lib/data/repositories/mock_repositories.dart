@@ -8,6 +8,7 @@ import '../models/coupon.dart';
 import '../models/address.dart';
 import '../models/order.dart';
 import '../models/cart_item.dart';
+import '../models/branch.dart';
 import '../mock/mock_database.dart';
 
 
@@ -531,6 +532,7 @@ CartItem _mapToCartItem(Map map) {
 Map<String, dynamic> _orderToMap(OrderModel order) {
   return {
     'id': order.id,
+    'branchId': order.branchId,
     'orderDate': order.orderDate.toIso8601String(),
     'status': order.status,
     'deliveryAddress': _addressToMap(order.deliveryAddress),
@@ -550,6 +552,7 @@ OrderModel _mapToOrder(String id, Map map) {
   final items = itemsList.map((iMap) => _mapToCartItem(iMap as Map)).toList();
   return OrderModel(
     id: id,
+    branchId: map['branchId']?.toString() ?? '',
     orderDate: DateTime.tryParse(map['orderDate'] ?? '') ?? DateTime.now(),
     status: map['status'] ?? 'Placed',
     deliveryAddress: _mapToAddress(map['deliveryAddress'] as Map? ?? {}),
@@ -763,11 +766,13 @@ class OrderRepository {
     double tax,
     double discount,
     double total,
+    String branchId,
   ) async {
     final userId = MockDatabase.currentUserId;
     final orderId = 'ORD-${10000 + DateTime.now().millisecondsSinceEpoch % 90000}';
     final newOrder = OrderModel(
       id: orderId,
+      branchId: branchId,
       items: items.map((e) => e.copyWith()).toList(),
       orderDate: DateTime.now(),
       status: 'Placed',
@@ -805,3 +810,33 @@ class OrderRepository {
     return newOrder;
   }
 }
+
+class BranchRepository {
+  static const String _dbUrl = 'https://dineos-123-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+  Future<List<Branch>> getBranches() async {
+    try {
+      final response = await http.get(Uri.parse('$_dbUrl/branch.json')).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded is Map) {
+          final List<Branch> branches = [];
+          decoded.forEach((adminId, branchesMap) {
+            if (branchesMap is Map) {
+              branchesMap.forEach((branchId, branchVal) {
+                if (branchVal is Map) {
+                  branches.add(Branch.fromMap(branchId.toString(), branchVal));
+                }
+              });
+            }
+          });
+          return branches;
+        }
+      }
+    } catch (e) {
+      print('Error loading branches from Firebase: $e');
+    }
+    return [];
+  }
+}
+

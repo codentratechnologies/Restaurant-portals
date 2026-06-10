@@ -5,11 +5,12 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/page_transitions.dart';
 import '../../core/widgets/elastic_button.dart';
 import '../../data/models/food_item.dart';
+import '../../data/models/branch.dart';
 import '../../data/repositories/mock_repositories.dart';
-import '../../state/theme_state.dart';
 import '../../state/auth_state.dart';
 import '../../state/address_state.dart';
 import '../../state/cart_state.dart';
+import '../../state/branch_state.dart';
 import '../cart/select_address_screen.dart';
 import 'food_detail_screen.dart';
 
@@ -23,7 +24,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final FoodRepository _foodRepository = FoodRepository();
   List<FoodItem> _allFoodItems = [];
-  List<FoodItem> _filteredFoodItems = [];
   List<String> _categories = [];
   String _selectedCategory = 'All';
   String _searchQuery = '';
@@ -47,40 +47,40 @@ class _HomeScreenState extends State<HomeScreen> {
       _allFoodItems = food;
       _categories = cats;
       _isLoading = false;
-      _applyFilters();
     });
   }
 
-  void _applyFilters() {
-    setState(() {
-      _filteredFoodItems = _allFoodItems.where((item) {
-        final matchesCategory = _selectedCategory == 'All' || item.category == _selectedCategory;
-        final matchesSearch = item.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            item.description.toLowerCase().contains(_searchQuery.toLowerCase());
-        
-        bool matchesVegFilter = true;
-        if (_filterVeg && !_filterNonVeg) {
-          matchesVegFilter = item.isVeg;
-        } else if (_filterNonVeg && !_filterVeg) {
-          matchesVegFilter = !item.isVeg;
-        }
+  List<FoodItem> _getFilteredItems(Branch? selectedBranch) {
+    return _allFoodItems.where((item) {
+      if (selectedBranch != null && !selectedBranch.assignedMenuIds.contains(item.id)) {
+        return false;
+      }
+      final matchesCategory = _selectedCategory == 'All' || item.category == _selectedCategory;
+      if (!matchesCategory) return false;
 
-        return matchesCategory && matchesSearch && matchesVegFilter;
-      }).toList();
-    });
+      final matchesSearch = item.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          item.description.toLowerCase().contains(_searchQuery.toLowerCase());
+      if (!matchesSearch) return false;
+
+      if (_filterVeg && !_filterNonVeg && !item.isVeg) return false;
+      if (_filterNonVeg && !_filterVeg && item.isVeg) return false;
+
+      return true;
+    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final themeState = Provider.of<ThemeState>(context);
     final authState = Provider.of<AuthState>(context);
     final addressState = Provider.of<AddressState>(context);
     final cartState = Provider.of<CartState>(context);
+    final branchState = Provider.of<BranchState>(context);
 
     final userName = authState.currentUser?.fullName ?? 'Guest';
     final userAddress = addressState.selectedAddress?.addressLine ?? 'Select Address';
+    final filteredItems = _getFilteredItems(branchState.selectedBranch);
 
     return Scaffold(
       body: SafeArea(
@@ -92,59 +92,115 @@ class _HomeScreenState extends State<HomeScreen> {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 18),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            SlidePageRoute(page: const SelectAddressScreen()),
-                                          );
-                                        },
-                                        child: Text(
-                                          userAddress,
-                                          style: AppTypography.outfit(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                            color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      SlidePageRoute(page: const SelectAddressScreen()),
+                                    );
+                                  },
+                                  child: Container(
+                                    height: 38,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    decoration: BoxDecoration(
+                                      color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                                      borderRadius: BorderRadius.circular(19),
+                                      border: Border.all(
+                                        color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
                                       ),
                                     ),
-                                    const Icon(Icons.keyboard_arrow_down_rounded, size: 16),
-                                  ],
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Hello, $userName 👋',
-                                  style: AppTypography.outfit(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 16),
+                                        const SizedBox(width: 6),
+                                        Flexible(
+                                          child: Text(
+                                            userAddress,
+                                            style: AppTypography.outfit(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                              color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const Icon(Icons.keyboard_arrow_down_rounded, size: 14),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(width: 8),
+                              if (branchState.branches.isNotEmpty)
+                                Flexible(
+                                  child: Container(
+                                    height: 38,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    decoration: BoxDecoration(
+                                      color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                                      borderRadius: BorderRadius.circular(19),
+                                      border: Border.all(
+                                        color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                                      ),
+                                    ),
+                                    child: DropdownButtonHideUnderline(
+                                      child: DropdownButton<Branch>(
+                                        value: branchState.selectedBranch,
+                                        isExpanded: true,
+                                        icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 14),
+                                        style: AppTypography.outfit(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                                        ),
+                                        dropdownColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                                        borderRadius: BorderRadius.circular(16),
+                                        items: branchState.branches.map((Branch b) {
+                                          return DropdownMenuItem<Branch>(
+                                            value: b,
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(Icons.storefront_rounded, size: 16, color: AppColors.primary),
+                                                const SizedBox(width: 6),
+                                                Flexible(
+                                                  child: Text(
+                                                    b.name,
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }).toList(),
+                                        onChanged: (Branch? newBranch) {
+                                          if (newBranch != null) {
+                                            branchState.selectBranch(newBranch);
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                          // Dark Mode Switcher
-                          IconButton(
-                            icon: Icon(
-                              themeState.isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-                              color: AppColors.primary,
+                          const SizedBox(height: 12),
+                          Text(
+                            'Hello, $userName 👋',
+                            style: AppTypography.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
                             ),
-                            onPressed: () => themeState.toggleTheme(),
                           ),
                         ],
                       ),
@@ -167,7 +223,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           onChanged: (val) {
                             setState(() {
                               _searchQuery = val;
-                              _applyFilters();
                             });
                           },
                           style: AppTypography.inter(fontSize: 14),
@@ -308,7 +363,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                     if (selected) {
                                       setState(() {
                                         _selectedCategory = cat;
-                                        _applyFilters();
                                       });
                                     }
                                   },
@@ -357,7 +411,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               setState(() {
                                 _filterVeg = selected;
                                 if (selected) _filterNonVeg = false;
-                                _applyFilters();
                               });
                             },
                             selectedColor: AppColors.success.withOpacity(0.15),
@@ -399,7 +452,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               setState(() {
                                 _filterNonVeg = selected;
                                 if (selected) _filterVeg = false;
-                                _applyFilters();
                               });
                             },
                             selectedColor: AppColors.danger.withOpacity(0.15),
@@ -426,7 +478,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
 
                   // Menu Items Grid/List
-                  _filteredFoodItems.isEmpty
+                  filteredItems.isEmpty
                       ? SliverFillRemaining(
                           child: Center(
                             child: Column(
@@ -455,7 +507,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             delegate: SliverChildBuilderDelegate(
                               (context, index) {
-                                final item = _filteredFoodItems[index];
+                                final item = filteredItems[index];
                                 return GestureDetector(
                                   onTap: () {
                                     Navigator.push(
@@ -591,7 +643,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 );
                               },
-                              childCount: _filteredFoodItems.length,
+                              childCount: filteredItems.length,
                             ),
                           ),
                         ),

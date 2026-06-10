@@ -17,15 +17,7 @@ class FoodCollectionScreen extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final cartState = Provider.of<CartState>(context, listen: false);
 
-    // Mock favorite items (e.g. Cheese Burst Burger, Caramel Macchiato, Veggie Pizza)
-    final favorites = [
-      MockDatabase.foodItems[0],
-      // Cheese Burst Burger
-      MockDatabase.foodItems[1],
-      // Veggie Pizza
-      MockDatabase.foodItems[4],
-      // Macchiato
-    ];
+    final favorites = MockDatabase.foodItems.take(3).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -38,7 +30,29 @@ class FoodCollectionScreen extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: ListView.builder(
+      body: favorites.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.favorite_border_rounded,
+                    size: 64,
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No favorites collected yet',
+                    style: AppTypography.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : ListView.builder(
         padding: const EdgeInsets.all(20.0),
         itemCount: favorites.length,
         itemBuilder: (context, index) {

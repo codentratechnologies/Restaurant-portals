@@ -4,6 +4,7 @@ import 'coupon.dart';
 
 class OrderModel {
   final String id;
+  final String branchId;
   final List<CartItem> items;
   final DateTime orderDate;
   String status; // 'Placed' | 'Preparing' | 'Out for Delivery' | 'Delivered'
@@ -18,6 +19,7 @@ class OrderModel {
 
   OrderModel({
     required this.id,
+    required this.branchId,
     required this.items,
     required this.orderDate,
     required this.status,
@@ -33,6 +35,7 @@ class OrderModel {
 
   OrderModel copyWith({
     String? id,
+    String? branchId,
     List<CartItem>? items,
     DateTime? orderDate,
     String? status,
@@ -47,6 +50,7 @@ class OrderModel {
   }) {
     return OrderModel(
       id: id ?? this.id,
+      branchId: branchId ?? this.branchId,
       items: items ?? this.items.map((e) => e.copyWith()).toList(),
       orderDate: orderDate ?? this.orderDate,
       status: status ?? this.status,

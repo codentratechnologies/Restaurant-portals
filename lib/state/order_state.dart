@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import '../data/models/order.dart';
 import '../data/models/cart_item.dart';
@@ -12,7 +11,6 @@ class OrderState extends ChangeNotifier {
   List<OrderModel> _orders = [];
   OrderModel? _activeOrder;
   bool _isLoading = false;
-  Timer? _statusTimer;
 
   List<OrderModel> get orders => _orders;
   OrderModel? get activeOrder => _activeOrder;
@@ -20,12 +18,6 @@ class OrderState extends ChangeNotifier {
 
   OrderState() {
     loadOrders();
-  }
-
-  @override
-  void dispose() {
-    _statusTimer?.cancel();
-    super.dispose();
   }
 
   Future<void> loadOrders() async {
@@ -48,6 +40,7 @@ class OrderState extends ChangeNotifier {
     required double tax,
     required double discount,
     required double total,
+    required String branchId,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -62,6 +55,7 @@ class OrderState extends ChangeNotifier {
       tax,
       discount,
       total,
+      branchId,
     );
 
     _orders.insert(0, order);
@@ -69,40 +63,11 @@ class OrderState extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
 
-    // Start real-time simulated tracking status updates
-    _startSimulatedTracking();
-
     return order;
   }
 
   void selectActiveOrder(OrderModel order) {
     _activeOrder = order;
     notifyListeners();
-  }
-
-  void _startSimulatedTracking() {
-    _statusTimer?.cancel();
-    int currentStep = 0;
-    
-    // Status sequence: Placed (0) -> Preparing (1) -> Out for Delivery (2) -> Delivered (3)
-    final statuses = ['Placed', 'Preparing', 'Out for Delivery', 'Delivered'];
-
-    _statusTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      if (_activeOrder == null || currentStep >= 3) {
-        timer.cancel();
-        return;
-      }
-
-      currentStep++;
-      _activeOrder!.status = statuses[currentStep];
-
-      // Also update in orders list
-      final index = _orders.indexWhere((element) => element.id == _activeOrder!.id);
-      if (index != -1) {
-        _orders[index] = _activeOrder!.copyWith(status: statuses[currentStep]);
-      }
-
-      notifyListeners();
-    });
   }
 }
