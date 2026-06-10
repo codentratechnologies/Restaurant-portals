@@ -222,44 +222,48 @@ class _AcceptedOrderScreenState extends State<AcceptedOrderScreen> {
                           style: theme.textTheme.bodySmall,
                         ),
                         const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+                        Material(
+                          color: cardBg,
+                          borderRadius: BorderRadius.circular(16),
+                          clipBehavior: Clip.antiAlias,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+                              ),
                             ),
-                          ),
-                          child: Column(
-                            children: List.generate(
-                              order.items.length,
-                              (index) {
-                                final item = order.items[index];
-                                return CheckboxListTile(
-                                  value: item.isChecked,
-                                  onChanged: (_) {
-                                    state.toggleChecklistItem(index);
-                                  },
-                                  activeColor: AppColors.success,
-                                  title: Text(
-                                    item.name,
-                                    style: GoogleFonts.inter(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                      color: textPrimary,
-                                      decoration: item.isChecked
-                                          ? TextDecoration.lineThrough
-                                          : null,
+                            child: Column(
+                              children: List.generate(
+                                order.items.length,
+                                (index) {
+                                  final item = order.items[index];
+                                  return CheckboxListTile(
+                                    value: item.isChecked,
+                                    onChanged: (_) {
+                                      state.toggleChecklistItem(index);
+                                    },
+                                    activeColor: AppColors.success,
+                                    title: Text(
+                                      item.name,
+                                      style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: textPrimary,
+                                        decoration: item.isChecked
+                                            ? TextDecoration.lineThrough
+                                            : null,
+                                      ),
                                     ),
-                                  ),
-                                  subtitle: item.subtitle != null
-                                      ? Text(item.subtitle!, style: GoogleFonts.inter(fontSize: 12))
-                                      : null,
-                                  controlAffinity: ListTileControlAffinity.leading,
-                                  contentPadding: EdgeInsets.zero,
-                                );
-                              },
+                                    subtitle: item.subtitle != null
+                                        ? Text(item.subtitle!, style: GoogleFonts.inter(fontSize: 12))
+                                        : null,
+                                    controlAffinity: ListTileControlAffinity.leading,
+                                    contentPadding: EdgeInsets.zero,
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),

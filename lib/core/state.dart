@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:crypto/crypto.dart';
 import 'models.dart';
 
 class AppState extends ChangeNotifier {
@@ -8,15 +10,9 @@ class AppState extends ChangeNotifier {
   static final AppState _instance = AppState._internal();
   factory AppState() => _instance;
   AppState._internal() {
+    // Initialise with mock data
     _initMockData();
   }
-
-  // Firebase references
-  final FirebaseDatabase _db = FirebaseDatabase.instance;
-  DatabaseReference? _driverRef;
-  DatabaseReference? _broadcastsRef;
-  StreamSubscription<DatabaseEvent>? _broadcastSubscription;
-  StreamSubscription<DatabaseEvent>? _historySubscription;
 
   // Theme settings
   bool _isThemeDark = true;
@@ -64,323 +60,185 @@ class AppState extends ChangeNotifier {
   double get onlineHours => _onlineHours;
 
   Timer? _requestTimer;
-  Timer? _hourTimer;
 
   void _initMockData() {
     _driver = null;
     _history = [];
   }
 
-  // Realtime Database sync setup
-  void _setupFirebaseSync() {
-    if (_driver == null) return;
-    final driverId = _driver!.id;
-
-    // 1. Sync driver profile details and status
-    _driverRef = _db.ref('drivers/$driverId');
-    _updateFirebaseStatus();
-
-    // 2. Listen to broadcasts node for real-time delivery requests
-    _broadcastsRef = _db.ref('broadcasts');
-    _broadcastSubscription?.cancel();
-    _broadcastSubscription = _broadcastsRef!.onValue.listen((event) {
-      if (!_isOnline || _activeOrder != null) return;
-      
-      final data = event.snapshot.value;
-      if (data == null) {
-        if (_activeRequest != null) {
-          _activeRequest = null;
-          notifyListeners();
-        }
-        return;
-      }
-
-      if (data is Map) {
-        final keys = data.keys.toList();
-        if (keys.isNotEmpty) {
-          final firstKey = keys.first;
-          final orderData = Map<String, dynamic>.from(data[firstKey] as Map);
-          
-          final itemsList = <ChecklistItem>[];
-          if (orderData['items'] != null) {
-            for (var item in (orderData['items'] as List)) {
-              final itemMap = Map<String, dynamic>.from(item as Map);
-              itemsList.add(ChecklistItem(
-                name: itemMap['name'] ?? '',
-                subtitle: itemMap['subtitle'],
-                isChecked: itemMap['isChecked'] ?? false,
-              ));
-            }
-          }
-
-          _activeRequest = OrderModel(
-            orderId: orderData['orderId'] ?? firstKey.toString(),
-            branchName: orderData['branchName'] ?? 'MG Road Branch',
-            branchDistance: (orderData['branchDistance'] as num?)?.toDouble() ?? 1.5,
-            customerName: orderData['customerName'] ?? 'John Doe',
-            customerPhone: orderData['customerPhone'] ?? '+91 98765 43210',
-            customerAddress: orderData['customerAddress'] ?? 'Oakwood Apartments',
-            customerDistance: (orderData['customerDistance'] as num?)?.toDouble() ?? 2.4,
-            paymentMode: orderData['paymentMode'] ?? 'COD',
-            collectAmount: (orderData['collectAmount'] as num?)?.toDouble() ?? 0.0,
-            items: itemsList,
-          );
-          
-          notifyListeners();
-        }
-      }
-    });
-
-    // 3. Sync history ledger list from Firebase
-    _historySubscription?.cancel();
-    _historySubscription = _db.ref('drivers/$driverId/history').onValue.listen((event) {
-      final data = event.snapshot.value;
-      if (data == null) {
-        _history = [];
-        _completedToday = 0;
-        notifyListeners();
-        return;
-      }
-
-      final List<HistoryItem> tempHistory = [];
-      if (data is Map) {
-        data.forEach((key, val) {
-          final orderData = Map<String, dynamic>.from(val as Map);
-          final itemsRaw = orderData['itemNames'] ?? [];
-          final List<String> itemNames = List<String>.from(itemsRaw);
-
-          tempHistory.add(HistoryItem(
-            orderId: orderData['orderId'] ?? key.toString(),
-            customerName: orderData['customerName'] ?? '',
-            amount: (orderData['amount'] as num?)?.toDouble() ?? 0.0,
-            paymentMode: orderData['paymentMode'] ?? '',
-            deliveredTime: orderData['deliveredTime'] ?? '',
-            date: orderData['date'] ?? 'Today',
-            restaurantName: orderData['restaurantName'] ?? '',
-            customerPhoneMasked: orderData['customerPhoneMasked'] ?? '',
-            customerAddress: orderData['customerAddress'] ?? '',
-            itemNames: itemNames,
-            proofImagePath: orderData['proofImagePath'] ?? '',
-          ));
-        });
-      }
-
-      // Sort so newest is first
-      _history = tempHistory..sort((a, b) => b.orderId.compareTo(a.orderId));
-      _completedToday = _history.where((item) => item.date == 'Today').length;
-      notifyListeners();
-    });
-  }
-
-  void _updateFirebaseStatus() {
-    if (_driverRef == null || _driver == null) return;
-    
-    _driverRef!.update({
-      'id': _driver!.id,
-      'name': _driver!.name,
-      'mobile': _driver!.mobile,
-      'username': _driver!.username,
-      'email': _driver!.email,
-      'branchName': _driver!.branchName,
-      'shiftTime': _driver!.shiftTime,
-      'monthlySalary': _driver!.monthlySalary,
-      'profilePhotoUrl': _driver!.profilePhotoUrl,
-      'isOnline': _isOnline,
-      'onlineHours': _onlineHours,
-      'status': _isOnline ? (_activeOrder != null ? 'Delivering' : 'Idle') : 'Offline',
-      'activeOrderId': _activeOrder?.orderId ?? '',
-    }).catchError((e) => print('Firebase update error: $e'));
+  // SHA-256 password hashing helper
+  String _hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
   // Auth Operations
   Future<bool> login(String username, String password) async {
-    if (username.isNotEmpty && password.isNotEmpty) {
-      // Firebase keys can't contain special characters
-      final driverId = username.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
+    if (username.isEmpty || password.isEmpty) return false;
+    
+    try {
+      final ref = FirebaseDatabase.instance.ref('users');
+      final snapshot = await ref.get();
       
-      String displayName = username;
-      if (username.contains('@')) {
-        displayName = username.split('@').first;
+      if (snapshot.exists && snapshot.value != null) {
+        final usersData = snapshot.value as Map<dynamic, dynamic>;
+        final String inputEmail = username.trim().toLowerCase();
+        final String hashedPassword = _hashPassword(password);
+        
+        // Loop through owner UIDs (e.g. IjrrNmUTrlSP2qsK47DcCLNZSI22)
+        for (var ownerKey in usersData.keys) {
+          final ownerData = usersData[ownerKey];
+          if (ownerData is Map<dynamic, dynamic>) {
+            // Loop through employee keys (e.g. -Ouk4_RP_4r-9fd5KAxY)
+            for (var employeeKey in ownerData.keys) {
+              final employee = ownerData[employeeKey];
+              if (employee is Map<dynamic, dynamic>) {
+                final String? dbEmail = employee['email']?.toString().trim().toLowerCase();
+                final String? dbRole = employee['role']?.toString();
+                final String? dbStatus = employee['status']?.toString();
+                final String? dbPassword = employee['password']?.toString();
+                
+                // Matches Email and is Active Delivery Partner
+                if (dbEmail == inputEmail && 
+                    dbRole == 'Delivery Partner' && 
+                    dbStatus == 'Active') {
+                  
+                  // Match password hashes
+                  if (dbPassword == hashedPassword) {
+                    final String firstName = employee['firstName']?.toString() ?? '';
+                    final String lastName = employee['lastName']?.toString() ?? '';
+                    final String phone = employee['phone']?.toString() ?? '';
+                    final String branch = employee['branch']?.toString() ?? '';
+                    
+                    String displayBranchName = branch.isNotEmpty 
+                        ? 'Branch Key: ${branch.length > 8 ? '${branch.substring(0, 8)}...' : branch}' 
+                        : 'Default Branch';
+                    
+                    if (branch.isNotEmpty) {
+                      try {
+                        final branchRef = FirebaseDatabase.instance.ref('branch/$ownerKey/$branch');
+                        final branchSnapshot = await branchRef.get();
+                        if (branchSnapshot.exists && branchSnapshot.value != null) {
+                          final branchData = branchSnapshot.value as Map<dynamic, dynamic>;
+                          final String? name = branchData['name']?.toString() ?? branchData['branchName']?.toString();
+                          if (name != null && name.trim().isNotEmpty) {
+                            displayBranchName = name.trim();
+                          }
+                        }
+                      } catch (e) {
+                        debugPrint('Error fetching branch details: $e');
+                      }
+                    }
+                    
+                    _driver = DriverProfile(
+                      id: employeeKey.toString(),
+                      name: '$firstName $lastName'.trim(),
+                      username: dbEmail!.split('@').first,
+                      email: employee['email']?.toString() ?? dbEmail,
+                      mobile: phone.startsWith('+') ? phone : '+91 $phone',
+                      branchName: displayBranchName,
+                      shiftTime: '10:00 AM - 10:00 PM',
+                      monthlySalary: 15000.0,
+                      profilePhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop',
+                    );
+                    
+                    _isLoggedIn = true;
+                    _activeTab = 0;
+                    _completedToday = 0;
+                    _onlineHours = 0.0;
+                    notifyListeners();
+                    return true;
+                  }
+                }
+              }
+            }
+          }
+        }
       }
-      displayName = displayName.replaceAll(RegExp(r'[._]'), ' ');
-      displayName = displayName
-          .split(' ')
-          .map((word) => word.isNotEmpty
-              ? '${word[0].toUpperCase()}${word.substring(1)}'
-              : '')
-          .join(' ');
-
-      // Try fetching existing profile from database
-      final snapshot = await _db.ref('drivers/$driverId').get();
-      if (snapshot.exists) {
-        final data = Map<String, dynamic>.from(snapshot.value as Map);
-        _driver = DriverProfile(
-          id: driverId,
-          name: data['name'] ?? displayName,
-          username: data['username'] ?? username.split('@').first,
-          email: data['email'] ?? (username.contains('@') ? username : '$username@dineos.com'),
-          mobile: data['mobile'] ?? '+91 99999 99999',
-          branchName: data['branchName'] ?? 'Assigned Branch',
-          shiftTime: data['shiftTime'] ?? '10:00 AM - 10:00 PM',
-          monthlySalary: (data['monthlySalary'] as num?)?.toDouble() ?? 12000.0,
-          profilePhotoUrl: data['profilePhotoUrl'] ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop',
-        );
-        _onlineHours = (data['onlineHours'] as num?)?.toDouble() ?? 0.0;
-      } else {
-        // Create new profile
-        _driver = DriverProfile(
-          id: driverId,
-          name: displayName,
-          username: username.split('@').first,
-          email: username.contains('@') ? username : '$username@dineos.com',
-          mobile: '+91 99999 99999',
-          branchName: 'MG Road Branch',
-          shiftTime: '10:00 AM - 10:00 PM',
-          monthlySalary: 12000.0,
-          profilePhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop',
-        );
-        _onlineHours = 0.0;
-      }
-
-      _isLoggedIn = true;
-      _activeTab = 0;
-      
-      // Start syncing with Firebase
-      _setupFirebaseSync();
-      _startHoursTimer();
-
-      notifyListeners();
-      return true;
+    } catch (e) {
+      debugPrint('Database query authentication failed: $e');
     }
     return false;
   }
 
   void logout() {
-    _isOnline = false;
-    _updateFirebaseStatus();
-    
     _isLoggedIn = false;
+    _isOnline = false;
     _activeOrder = null;
     _activeRequest = null;
-    
     _requestTimer?.cancel();
-    _hourTimer?.cancel();
-    _broadcastSubscription?.cancel();
-    _historySubscription?.cancel();
-    
-    _driverRef = null;
-    _broadcastsRef = null;
-
     notifyListeners();
   }
 
-  // Timer to simulate online hours ticking
-  void _startHoursTimer() {
-    _hourTimer?.cancel();
-    _hourTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      if (_isOnline) {
-        _onlineHours += (1 / 60); // Add 1 minute in hours decimal
-        _updateFirebaseStatus();
-        notifyListeners();
-      }
-    });
-  }
-
-  // Availability status toggle
+  // Availability toggle
   void setOnline(bool online) {
     if (_activeOrder != null && !online) {
+      // Locked if holding active order
       return;
     }
     _isOnline = online;
     _requestTimer?.cancel();
 
-    _updateFirebaseStatus();
-
     if (_isOnline) {
-      // Setup a simulated order request in Realtime Database in 5s if empty
-      _requestTimer = Timer(const Duration(seconds: 5), () {
+      // Start a simulated request trigger after 4 seconds to make the app interactive!
+      _requestTimer = Timer(const Duration(seconds: 4), () {
         triggerSimulatedOrder();
       });
-    } else {
-      // Clear current request if they go offline
-      _activeRequest = null;
     }
 
     notifyListeners();
   }
 
-  // Pushes a simulated request payload to the Firebase Realtime Database broadcasts node
-  Future<void> triggerSimulatedOrder() async {
-    if (!_isOnline || _activeOrder != null) return;
+  // Simulator order request generator
+  void triggerSimulatedOrder() {
+    if (!_isOnline || _activeOrder != null || _activeRequest != null) return;
 
-    final mockOrder = {
-      'orderId': 'ORD_99018',
-      'branchName': 'MG Road Branch',
-      'branchDistance': 1.5,
-      'customerName': 'John Doe',
-      'customerPhone': '+91 98765 43210',
-      'customerAddress': 'Flat 101, Oakwood Apartments, Residency Road',
-      'customerDistance': 2.4,
-      'paymentMode': 'COD',
-      'collectAmount': 727.40,
-      'items': [
-        {'name': '2x Veg Margherita Pizza', 'subtitle': 'Extra Cheese', 'isChecked': false},
-        {'name': '1x Coca Cola 300ml', 'isChecked': false}
-      ]
-    };
+    _activeRequest = OrderModel(
+      orderId: '#ORD-99018',
+      branchName: 'MG Road Branch',
+      branchDistance: 1.5,
+      customerName: 'John Doe',
+      customerPhone: '+91 98765 43210',
+      customerAddress: 'Flat 101, Oakwood Apartments, Residency Road',
+      customerDistance: 2.4,
+      paymentMode: 'COD',
+      collectAmount: 727.40,
+      items: [
+        ChecklistItem(name: '2x Veg Margherita Pizza', subtitle: 'Extra Cheese'),
+        ChecklistItem(name: '1x Coca Cola 300ml'),
+      ],
+    );
 
-    // Pushing directly to Firebase Realtime Database broadcasts node
-    // Our local listener will receive it automatically via standard stream subscription!
-    await _db.ref('broadcasts/ORD_99018').set(mockOrder);
+    notifyListeners();
   }
 
-  // Request Actions
-  Future<void> declineRequest() async {
+  // Request actions
+  void declineRequest() {
     _activeRequest = null;
     notifyListeners();
 
-    // Remove from Firebase broadcasts
-    await _db.ref('broadcasts/ORD_99018').remove();
-
+    // Schedule another request in 8 seconds to allow retrying
     if (_isOnline) {
       _requestTimer?.cancel();
-      _requestTimer = Timer(const Duration(seconds: 10), () {
+      _requestTimer = Timer(const Duration(seconds: 8), () {
         triggerSimulatedOrder();
       });
     }
   }
 
-  Future<void> acceptRequest() async {
+  void acceptRequest() {
     if (_activeRequest == null) return;
     _activeOrder = _activeRequest;
     _activeRequest = null;
     _activeOrder!.status = OrderStatus.assigned;
-    
-    // Claim the order: remove from broadcasts and write to active orders
-    await _db.ref('broadcasts/${_activeOrder!.orderId}').remove();
-    
-    final orderMap = {
-      'orderId': _activeOrder!.orderId,
-      'driverId': _driver!.id,
-      'status': 'Assigned',
-      'branchName': _activeOrder!.branchName,
-      'customerName': _activeOrder!.customerName,
-      'customerAddress': _activeOrder!.customerAddress,
-      'collectAmount': _activeOrder!.collectAmount,
-      'paymentMode': _activeOrder!.paymentMode,
-    };
-    
-    await _db.ref('orders/${_activeOrder!.orderId}').set(orderMap);
-    _updateFirebaseStatus();
     notifyListeners();
   }
 
-  // Order lifecycle status updates in Firebase
-  Future<void> arriveAtRestaurant() async {
+  // Order lifecycle status progression
+  void arriveAtRestaurant() {
     if (_activeOrder == null) return;
     _activeOrder!.status = OrderStatus.arrivedStore;
-    
-    await _db.ref('orders/${_activeOrder!.orderId}').update({'status': 'ArrivedStore'});
     notifyListeners();
   }
 
@@ -395,19 +253,15 @@ class AppState extends ChangeNotifier {
     return _activeOrder!.items.every((item) => item.isChecked);
   }
 
-  Future<void> confirmPickup() async {
+  void confirmPickup() {
     if (_activeOrder == null || !areAllItemsChecked()) return;
     _activeOrder!.status = OrderStatus.pickedUp;
-    
-    await _db.ref('orders/${_activeOrder!.orderId}').update({'status': 'PickedUp'});
     notifyListeners();
   }
 
-  Future<void> arriveAtCustomer() async {
+  void arriveAtCustomer() {
     if (_activeOrder == null) return;
     _activeOrder!.status = OrderStatus.arrivedCustomer;
-    
-    await _db.ref('orders/${_activeOrder!.orderId}').update({'status': 'ArrivedCustomer'});
     notifyListeners();
   }
 
@@ -433,7 +287,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> completeDelivery() async {
+  void completeDelivery() {
     if (_activeOrder == null ||
         !_activeOrder!.isOtpVerified ||
         _activeOrder!.proofImagePath == null ||
@@ -443,39 +297,35 @@ class AppState extends ChangeNotifier {
 
     _activeOrder!.status = OrderStatus.delivered;
 
-    final historyItemMap = {
-      'orderId': _activeOrder!.orderId,
-      'customerName': _activeOrder!.customerName,
-      'amount': _activeOrder!.collectAmount,
-      'paymentMode': _activeOrder!.paymentMode,
-      'deliveredTime': '10:15 AM',
-      'date': 'Today',
-      'restaurantName': _activeOrder!.branchName,
-      'customerPhoneMasked': '+91 ******45',
-      'customerAddress': _activeOrder!.customerAddress,
-      'itemNames': _activeOrder!.items.map((e) => e.name).toList(),
-      'proofImagePath': _activeOrder!.proofImagePath!,
-    };
+    // Add to history list
+    _history.insert(
+      0,
+      HistoryItem(
+        orderId: _activeOrder!.orderId,
+        customerName: _activeOrder!.customerName,
+        amount: _activeOrder!.collectAmount,
+        paymentMode: _activeOrder!.paymentMode,
+        deliveredTime: '10:15 AM', // Simulated time of delivery
+        date: 'Today',
+        restaurantName: _activeOrder!.branchName,
+        customerPhoneMasked: '+91 ******45', // Masked phone number
+        customerAddress: _activeOrder!.customerAddress,
+        itemNames: _activeOrder!.items.map((e) => e.name).toList(),
+        proofImagePath: _activeOrder!.proofImagePath!,
+      ),
+    );
 
-    // Save history item to Firebase under driver history list
-    final driverId = _driver!.id;
-    await _db.ref('drivers/$driverId/history/${_activeOrder!.orderId}').set(historyItemMap);
-
-    // Delete or mark complete in orders
-    await _db.ref('orders/${_activeOrder!.orderId}').update({'status': 'Delivered'});
-
+    _completedToday += 1;
     _activeOrder = null;
-    _activeTab = 1; // Direct to history screen
+    _activeTab = 1; // Direct to history screen so they can review their delivery
 
-    _updateFirebaseStatus();
     notifyListeners();
   }
 
-  // Profile Edit updates in Firebase
-  Future<void> updateProfile(String name, String mobile) async {
+  // Profile Edit
+  void updateProfile(String name, String mobile) {
     if (_driver == null) return;
     _driver = _driver!.copyWith(name: name, mobile: mobile);
-    _updateFirebaseStatus();
     notifyListeners();
   }
 }

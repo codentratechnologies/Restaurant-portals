@@ -179,71 +179,75 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                Container(
-                  decoration: BoxDecoration(
-                    color: cardBg,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isDark ? Colors.white10 : Colors.black.withOpacity(0.04),
+                Material(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(16),
+                  clipBehavior: Clip.antiAlias,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: isDark ? Colors.white10 : Colors.black.withOpacity(0.04),
+                      ),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildMenuItem(
-                        context,
-                        icon: Icons.badge_outlined,
-                        label: 'View Full Contract Profile',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ViewProfileScreen(),
-                            ),
-                          );
-                        },
-                        textPrimary: textPrimary,
-                        textSecondary: textSecondary,
-                      ),
-                      Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
-                      _buildMenuItem(
-                        context,
-                        icon: Icons.edit_note_rounded,
-                        label: 'Edit Contact Profile',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const EditProfileScreen(),
-                            ),
-                          );
-                        },
-                        textPrimary: textPrimary,
-                        textSecondary: textSecondary,
-                      ),
-                      Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
-                      // Theme toggle menu option
-                      ListTile(
-                        leading: Icon(
-                          isDark ? Icons.light_mode : Icons.dark_mode,
-                          color: AppColors.primary,
+                    child: Column(
+                      children: [
+                        _buildMenuItem(
+                          context,
+                          icon: Icons.badge_outlined,
+                          label: 'View Full Contract Profile',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ViewProfileScreen(),
+                              ),
+                            );
+                          },
+                          textPrimary: textPrimary,
+                          textSecondary: textSecondary,
                         ),
-                        title: Text(
-                          isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: textPrimary,
+                        Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
+                        _buildMenuItem(
+                          context,
+                          icon: Icons.edit_note_rounded,
+                          label: 'Edit Contact Profile',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const EditProfileScreen(),
+                              ),
+                            );
+                          },
+                          textPrimary: textPrimary,
+                          textSecondary: textSecondary,
+                        ),
+                        Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
+                        // Theme toggle menu option
+                        ListTile(
+                          leading: Icon(
+                            isDark ? Icons.light_mode : Icons.dark_mode,
+                            color: AppColors.primary,
+                          ),
+                          title: Text(
+                            isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: textPrimary,
+                            ),
+                          ),
+                          trailing: Switch(
+                            value: isDark,
+                            onChanged: (_) {
+                              state.toggleTheme();
+                            },
+                            activeColor: AppColors.primary,
                           ),
                         ),
-                        trailing: Switch(
-                          value: isDark,
-                          onChanged: (_) {
-                            state.toggleTheme();
-                          },
-                          activeColor: AppColors.primary,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 36),
