@@ -8,8 +8,17 @@ import '../../state/address_state.dart';
 import '../cart/add_address_screen.dart';
 import 'edit_address_screen.dart';
 
-class AddressBookScreen extends StatelessWidget {
+class AddressBookScreen extends StatefulWidget {
   const AddressBookScreen({super.key});
+
+  @override
+  State<AddressBookScreen> createState() => _AddressBookScreenState();
+}
+
+class _AddressBookScreenState extends State<AddressBookScreen> {
+  Future<void> _onRefresh() async {
+    await Provider.of<AddressState>(context, listen: false).loadAddresses();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,40 +52,55 @@ class AddressBookScreen extends StatelessWidget {
       body: addressState.isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : addresses.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.location_off_outlined, size: 64, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No address records found.',
-                        style: AppTypography.outfit(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-                      ElasticButton(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            SlidePageRoute(page: const AddAddressScreen()),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            'Add Address',
-                            style: AppTypography.outfit(color: Colors.white, fontWeight: FontWeight.bold),
+              ? LayoutBuilder(
+                  builder: (context, constraints) => RefreshIndicator(
+                    color: AppColors.primary,
+                    onRefresh: _onRefresh,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: SizedBox(
+                        height: constraints.maxHeight,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.location_off_outlined, size: 64, color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No address records found.',
+                                style: AppTypography.outfit(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 12),
+                              ElasticButton(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    SlidePageRoute(page: const AddAddressScreen()),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Add Address',
+                                    style: AppTypography.outfit(color: Colors.white, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              )
+                            ],
                           ),
                         ),
-                      )
-                    ],
+                      ),
+                    ),
                   ),
                 )
-              : ListView.builder(
+              : RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: _onRefresh,
+                  child: ListView.builder(
                   padding: const EdgeInsets.all(20.0),
                   itemCount: addresses.length,
                   itemBuilder: (context, index) {
@@ -183,6 +207,7 @@ class AddressBookScreen extends StatelessWidget {
                     );
                   },
                 ),
+              ),
     );
   }
 }

@@ -40,14 +40,16 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadData();
   }
 
-  void _loadData() async {
+  Future<void> _loadData() async {
     final food = await _foodRepository.getFoodCatalog();
     final cats = await _foodRepository.getCategories();
-    setState(() {
-      _allFoodItems = food;
-      _categories = cats;
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _allFoodItems = food;
+        _categories = cats;
+        _isLoading = false;
+      });
+    }
   }
 
   List<FoodItem> _getFilteredItems(Branch? selectedBranch) {
@@ -86,8 +88,16 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-            : CustomScrollView(
-                slivers: [
+            : RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async {
+                  await _loadData();
+                  if (context.mounted) {
+                    await Provider.of<BranchState>(context, listen: false).loadBranches();
+                  }
+                },
+                child: CustomScrollView(
+                  slivers: [
                   // Header section
                   SliverToBoxAdapter(
                     child: Padding(
@@ -648,6 +658,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                 ],
+                ),
               ),
       ),
     );

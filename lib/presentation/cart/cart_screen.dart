@@ -73,9 +73,16 @@ class _CartScreenState extends State<CartScreen> {
                 ],
               ),
             )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
+          : RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: () async {
+                await Provider.of<OrderState>(context, listen: false).loadOrders();
+                await Provider.of<AddressState>(context, listen: false).loadAddresses();
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Cart items list
@@ -520,6 +527,7 @@ class _CartScreenState extends State<CartScreen> {
                 ],
               ),
             ),
+          ),
     );
   }
 

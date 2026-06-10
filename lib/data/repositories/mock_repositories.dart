@@ -756,6 +756,23 @@ class OrderRepository {
     return List.from(_localOrders);
   }
 
+  /// Fetches only the status string for a single order from Firebase.
+  /// Returns null if the order isn't found or network fails.
+  Future<String?> fetchOrderStatus(String orderId) async {
+    final userId = MockDatabase.currentUserId;
+    if (userId == null) return null;
+    try {
+      final response = await http
+          .get(Uri.parse('$_dbUrl/user_customer/$userId/orders/$orderId/status.json'))
+          .timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded is String) return decoded;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   Future<OrderModel> placeOrder(
     List<CartItem> items,
     Address address,

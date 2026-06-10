@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/colors.dart';
@@ -5,10 +6,41 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/order.dart';
 import '../../state/order_state.dart';
 
-class OrderDetailScreen extends StatelessWidget {
+class OrderDetailScreen extends StatefulWidget {
   final OrderModel order;
 
   const OrderDetailScreen({super.key, required this.order});
+
+  @override
+  State<OrderDetailScreen> createState() => _OrderDetailScreenState();
+}
+
+class _OrderDetailScreenState extends State<OrderDetailScreen> {
+  Timer? _pollTimer;
+  bool _isSyncing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Immediately fetch the latest status on screen open
+    _pollStatus();
+    // Then poll every 15 seconds
+    _pollTimer = Timer.periodic(const Duration(seconds: 15), (_) => _pollStatus());
+  }
+
+  Future<void> _pollStatus() async {
+    if (!mounted) return;
+    setState(() => _isSyncing = true);
+    await Provider.of<OrderState>(context, listen: false)
+        .fetchAndUpdateOrderStatus(widget.order.id);
+    if (mounted) setState(() => _isSyncing = false);
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,245 +57,296 @@ class OrderDetailScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => Navigator.of(context).pop(),
         ),
-      ),
-      body: Consumer<OrderState>(
-        builder: (context, orderState, child) {
-          // Fetch updated order status from state
-          final updatedOrder = orderState.orders.firstWhere(
-            (element) => element.id == order.id,
-            orElse: () => order,
-          );
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Order ID card
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: _isSyncing
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      color: AppColors.primary,
+                      strokeWidth: 2,
                     ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  )
+                : Row(
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'ORDER ID',
-                            style: AppTypography.inter(
-                              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            updatedOrder.id,
-                            style: AppTypography.outfit(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.success,
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            'STATUS',
-                            style: AppTypography.inter(
-                              color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: _getStatusColor(updatedOrder.status).withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              updatedOrder.status,
-                              style: AppTypography.outfit(
-                                color: _getStatusColor(updatedOrder.status),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Live Timeline tracker
-                Text(
-                  'Delivery Timeline',
-                  style: AppTypography.outfit(
-                    style: theme.textTheme.titleMedium,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildTimeline(updatedOrder.status, isDark),
-                const SizedBox(height: 32),
-
-                // Ordered Items
-                Text(
-                  'Items Ordered',
-                  style: AppTypography.outfit(
-                    style: theme.textTheme.titleMedium,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      ...updatedOrder.items.map((item) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${item.quantity}x ${item.foodItem.name}',
-                                      style: AppTypography.outfit(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      item.customizationSummary,
-                                      style: AppTypography.inter(
-                                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                '₹${item.totalPrice.toStringAsFixed(2)}',
-                                style: AppTypography.inter(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      const SizedBox(height: 8),
-                      Divider(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                      const SizedBox(height: 8),
-                      _buildReceiptRow('Subtotal', updatedOrder.subtotal, isDark),
-                      const SizedBox(height: 8),
-                      _buildReceiptRow('Delivery Fee', updatedOrder.deliveryFee, isDark),
-                      const SizedBox(height: 8),
-                      _buildReceiptRow('Taxes', updatedOrder.tax, isDark),
-                      if (updatedOrder.discount > 0) ...[
-                        const SizedBox(height: 8),
-                        _buildReceiptRow('Discount', -updatedOrder.discount, isDark, isPromo: true),
-                      ],
-                      const SizedBox(height: 12),
-                      Divider(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Grand Total',
-                            style: AppTypography.outfit(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                          Text(
-                            '₹${updatedOrder.total.toStringAsFixed(2)}',
-                            style: AppTypography.outfit(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Delivery address and Payment Info
-                Text(
-                  'Delivery Address',
-                  style: AppTypography.outfit(
-                    style: theme.textTheme.titleMedium,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 24),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              updatedOrder.deliveryAddress.title,
-                              style: AppTypography.outfit(fontWeight: FontWeight.bold, fontSize: 14),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              updatedOrder.deliveryAddress.addressLine,
-                              style: AppTypography.inter(
-                                fontSize: 12,
-                                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                              ),
-                            ),
-                          ],
+                      const SizedBox(width: 6),
+                      Text(
+                        'Live',
+                        style: AppTypography.outfit(
+                          color: AppColors.success,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
                         ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 40),
-              ],
+          ),
+        ],
+      ),
+      body: Consumer<OrderState>(
+        builder: (context, orderState, child) {
+          // Fetch the latest version of this order from state (auto-updated by polling)
+          final updatedOrder = orderState.orders.firstWhere(
+            (element) => element.id == widget.order.id,
+            orElse: () => widget.order,
+          );
+
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () => orderState.loadOrders(),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Order ID card
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'ORDER ID',
+                              style: AppTypography.inter(
+                                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              updatedOrder.id,
+                              style: AppTypography.outfit(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              'STATUS',
+                              style: AppTypography.inter(
+                                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: _getStatusColor(updatedOrder.status).withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                updatedOrder.status,
+                                style: AppTypography.outfit(
+                                  color: _getStatusColor(updatedOrder.status),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Live Timeline tracker
+                  Text(
+                    'Delivery Timeline',
+                    style: AppTypography.outfit(
+                      style: theme.textTheme.titleMedium,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTimeline(updatedOrder.status, isDark),
+                  const SizedBox(height: 32),
+
+                  // Ordered Items
+                  Text(
+                    'Items Ordered',
+                    style: AppTypography.outfit(
+                      style: theme.textTheme.titleMedium,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        ...updatedOrder.items.map((item) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '${item.quantity}x ${item.foodItem.name}',
+                                        style: AppTypography.outfit(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        item.customizationSummary,
+                                        style: AppTypography.inter(
+                                          color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Text(
+                                  '₹${item.totalPrice.toStringAsFixed(2)}',
+                                  style: AppTypography.inter(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                        const SizedBox(height: 8),
+                        Divider(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                        const SizedBox(height: 8),
+                        _buildReceiptRow('Subtotal', updatedOrder.subtotal, isDark),
+                        const SizedBox(height: 8),
+                        _buildReceiptRow('Delivery Fee', updatedOrder.deliveryFee, isDark),
+                        const SizedBox(height: 8),
+                        _buildReceiptRow('Taxes', updatedOrder.tax, isDark),
+                        if (updatedOrder.discount > 0) ...[
+                          const SizedBox(height: 8),
+                          _buildReceiptRow('Discount', -updatedOrder.discount, isDark, isPromo: true),
+                        ],
+                        const SizedBox(height: 12),
+                        Divider(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Grand Total',
+                              style: AppTypography.outfit(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              '₹${updatedOrder.total.toStringAsFixed(2)}',
+                              style: AppTypography.outfit(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Delivery address and Payment Info
+                  Text(
+                    'Delivery Address',
+                    style: AppTypography.outfit(
+                      style: theme.textTheme.titleMedium,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 24),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                updatedOrder.deliveryAddress.title,
+                                style: AppTypography.outfit(fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                updatedOrder.deliveryAddress.addressLine,
+                                style: AppTypography.inter(
+                                  fontSize: 12,
+                                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Auto-refresh hint
+                  Center(
+                    child: Text(
+                      'Status updates automatically every 15 seconds',
+                      style: AppTypography.inter(
+                        fontSize: 11,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           );
         },

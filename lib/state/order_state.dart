@@ -70,4 +70,22 @@ class OrderState extends ChangeNotifier {
     _activeOrder = order;
     notifyListeners();
   }
+
+  /// Polls Firebase for the latest status of a single order and updates it
+  /// in the local list. Lightweight — only reads the status field.
+  Future<void> fetchAndUpdateOrderStatus(String orderId) async {
+    final newStatus = await _orderRepository.fetchOrderStatus(orderId);
+    if (newStatus == null) return;
+
+    final idx = _orders.indexWhere((o) => o.id == orderId);
+    if (idx != -1 && _orders[idx].status != newStatus) {
+      _orders[idx] = _orders[idx].copyWith(status: newStatus);
+      notifyListeners();
+    }
+    // Also update activeOrder if it matches
+    if (_activeOrder?.id == orderId && _activeOrder!.status != newStatus) {
+      _activeOrder = _activeOrder!.copyWith(status: newStatus);
+      notifyListeners();
+    }
+  }
 }

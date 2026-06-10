@@ -14,8 +14,21 @@ import 'recent_orders_screen.dart';
 import 'address_book_screen.dart';
 
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  Future<void> _onRefresh() async {
+    if (!mounted) return;
+    final orderState = Provider.of<OrderState>(context, listen: false);
+    final addressState = Provider.of<AddressState>(context, listen: false);
+    await orderState.loadOrders();
+    await addressState.loadAddresses();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +47,14 @@ class ProfileScreen extends StatelessWidget {
         ),
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        child: Column(
-          children: [
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: _onRefresh,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Column(
+            children: [
             // User Avatar Card
             Center(
               child: Column(
@@ -171,6 +188,7 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 
