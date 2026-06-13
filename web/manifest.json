@@ -1,6 +1,6 @@
 {
-    "name": "dineos_customer",
-    "short_name": "dineos_customer",
+    "name": "DineOS",
+    "short_name": "DineOS",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

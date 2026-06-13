@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
     final themeState = Provider.of<ThemeState>(context);
 
     return MaterialApp(
-      title: 'DineOS Customer',
+      title: 'DineOS',
       debugShowCheckedModeBanner: false,
       themeMode: themeState.themeMode,
       theme: AppTheme.lightTheme,

@@ -95,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // App Name & Subtitle
                 Center(
                   child: Text(
-                    'DineOS Customer',
+                    'DineOS',
                     style: AppTypography.outfit(
                       style: theme.textTheme.displaySmall,
                       fontWeight: FontWeight.bold,
