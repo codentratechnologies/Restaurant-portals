@@ -1,9 +1,14 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' as latlong;
+import 'package:http/http.dart' as http;
 import '../../core/theme.dart';
 import '../../core/state.dart';
 import '../../core/models.dart';
-import '../../widgets/status_chip.dart';
 import 'collect_payment_screen.dart';
 
 class AcceptedOrderScreen extends StatefulWidget {
@@ -21,8 +26,215 @@ class _AcceptedOrderScreenState extends State<AcceptedOrderScreen> {
   String? _otpError;
   bool _isPhotoMocking = false;
 
+  StreamSubscription<Position>? _positionSubscription;
+  double _distanceToBranch = 999999.0;
+  bool _isLoadingLocation = true;
+  String? _locationError;
+  double? _driverLatitude;
+  double? _driverLongitude;
+
+  // Map controller for programmatic camera
+  final MapController _mapController = MapController();
+  List<latlong.LatLng> _routePoints = [];
+  bool _isLoadingRoute = false;
+
+  // 5-second timer to enable Arrived At Restaurant button
+  bool _arrivedButtonEnabled = false;
+  int _arrivedCountdown = 5;
+  Timer? _arrivedTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startLocationTracking();
+    _startArrivedTimer();
+  }
+
+  void _startArrivedTimer() {
+    _arrivedCountdown = 5;
+    _arrivedButtonEnabled = false;
+    _arrivedTimer?.cancel();
+    _arrivedTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _arrivedCountdown--;
+        if (_arrivedCountdown <= 0) {
+          _arrivedButtonEnabled = true;
+          timer.cancel();
+        }
+      });
+    });
+  }
+
+  void _startLocationTracking() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        setState(() {
+          _locationError = 'Location services are disabled.';
+          _isLoadingLocation = false;
+        });
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          setState(() {
+            _locationError = 'Location permissions are denied.';
+            _isLoadingLocation = false;
+          });
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        setState(() {
+          _locationError = 'Location permissions permanently denied.';
+          _isLoadingLocation = false;
+        });
+        return;
+      }
+
+      setState(() {
+        _isLoadingLocation = true;
+        _locationError = null;
+      });
+
+      // Get initial position
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      _updateDistance(position);
+      _fetchRoute();
+
+      // Listen to position changes
+      _positionSubscription = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 5,
+        ),
+      ).listen((Position position) {
+        _updateDistance(position);
+        // Re-fetch route every 100m of driver movement
+        _fetchRoute();
+      }, onError: (e) {
+        debugPrint('Location stream error: $e');
+      });
+    } catch (e) {
+      setState(() {
+        _locationError = 'Failed to get location: $e';
+        _isLoadingLocation = false;
+      });
+    }
+  }
+
+  void _updateDistance(Position driverPos) {
+    final state = AppState();
+    double branchLat = state.branchLatitude ?? 12.9716;
+    double branchLng = state.branchLongitude ?? 77.5946;
+
+    double distance = Geolocator.distanceBetween(
+      driverPos.latitude,
+      driverPos.longitude,
+      branchLat,
+      branchLng,
+    );
+
+    if (mounted) {
+      setState(() {
+        _driverLatitude = driverPos.latitude;
+        _driverLongitude = driverPos.longitude;
+        _distanceToBranch = distance;
+        _isLoadingLocation = false;
+      });
+      // Move map camera to driver position
+      try {
+        _mapController.move(
+          latlong.LatLng(driverPos.latitude, driverPos.longitude),
+          _mapController.camera.zoom,
+        );
+      } catch (_) {}
+    }
+  }
+
+  // Fetch road route from OSRM (open-source routing, no API key needed)
+  Future<void> _fetchRoute() async {
+    if (_driverLatitude == null || _driverLongitude == null) return;
+    final state = AppState();
+    final order = state.activeOrder;
+
+    double destLat, destLng;
+    bool isTransit = order?.status == OrderStatus.pickedUp ||
+        order?.status == OrderStatus.arrivedCustomer;
+
+    if (isTransit) {
+      // Use customer location — offset from branch as mock since we don't have real customer coords
+      destLat = (state.branchLatitude ?? 12.9716) + 0.012;
+      destLng = (state.branchLongitude ?? 77.5946) + 0.012;
+    } else {
+      destLat = state.branchLatitude ?? 12.9716;
+      destLng = state.branchLongitude ?? 77.5946;
+    }
+
+    if (_isLoadingRoute) return;
+    setState(() => _isLoadingRoute = true);
+
+    try {
+      final url =
+          'https://router.project-osrm.org/route/v1/driving/$_driverLongitude,$_driverLatitude;$destLng,$destLat?overview=full&geometries=geojson';
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 8));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final coords = data['routes']?[0]?['geometry']?['coordinates'] as List?;
+        if (coords != null) {
+          final points = coords
+              .map((c) => latlong.LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
+              .toList();
+          if (mounted) {
+            setState(() {
+              _routePoints = points;
+              _isLoadingRoute = false;
+            });
+          }
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('OSRM route fetch error: $e');
+    }
+
+    // Fallback: straight line if routing fails
+    if (mounted) {
+      setState(() {
+        _routePoints = [
+          latlong.LatLng(_driverLatitude!, _driverLongitude!),
+          latlong.LatLng(destLat, destLng),
+        ];
+        _isLoadingRoute = false;
+      });
+    }
+  }
+
+  void _stopLocationTracking() {
+    _positionSubscription?.cancel();
+    _positionSubscription = null;
+  }
+
+  void _stopArrivedTimer() {
+    _arrivedTimer?.cancel();
+    _arrivedTimer = null;
+  }
+
   @override
   void dispose() {
+    _stopLocationTracking();
+    _stopArrivedTimer();
+    _mapController.dispose();
     for (var controller in _otpControllers) {
       controller.dispose();
     }
@@ -32,7 +244,7 @@ class _AcceptedOrderScreenState extends State<AcceptedOrderScreen> {
     super.dispose();
   }
 
-  void _verifyOtp() {
+  void _verifyOtp() async {
     String enteredOtp = _otpControllers.map((c) => c.text).join();
     if (enteredOtp.length < 4) {
       setState(() {
@@ -46,26 +258,25 @@ class _AcceptedOrderScreenState extends State<AcceptedOrderScreen> {
       _otpError = null;
     });
 
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      if (!mounted) return;
-      final state = AppState();
-      bool isSuccess = state.verifyOtp(enteredOtp);
+    final state = AppState();
+    bool isSuccess = await state.verifyOtp(enteredOtp);
 
-      setState(() {
-        _isVerifyingOtp = false;
-      });
+    if (!mounted) return;
 
-      if (!isSuccess) {
-        setState(() {
-          _otpError = 'Invalid OTP code. Use: 5824';
-          // Shake effect mock: clear fields
-          for (var controller in _otpControllers) {
-            controller.clear();
-          }
-          _otpFocusNodes[0].requestFocus();
-        });
-      }
+    setState(() {
+      _isVerifyingOtp = false;
     });
+
+    if (!isSuccess) {
+      setState(() {
+        _otpError = 'Invalid OTP code.';
+        // Shake effect mock: clear fields
+        for (var controller in _otpControllers) {
+          controller.clear();
+        }
+        _otpFocusNodes[0].requestFocus();
+      });
+    }
   }
 
   void _mockCameraCapture() {
@@ -114,6 +325,7 @@ class _AcceptedOrderScreenState extends State<AcceptedOrderScreen> {
         bool otpVerified = order.isOtpVerified;
         bool hasPhotoProof = order.proofImagePath != null;
 
+
         return Scaffold(
           appBar: AppBar(
             title: Text('Active Order ${order.orderId}'),
@@ -132,89 +344,152 @@ class _AcceptedOrderScreenState extends State<AcceptedOrderScreen> {
                   flex: 3,
                   child: _buildMockMap(order.status),
                 )
-              else
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  color: AppColors.primary.withOpacity(0.08),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.check_circle_outline, color: AppColors.primary, size: 16),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Arrived at Customer Location: Verify Hand-off',
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                else
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    color: AppColors.primary.withOpacity(0.08),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.check_circle_outline, color: AppColors.primary, size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Arrived at Customer Location: Verify Hand-off',
+                          style: GoogleFonts.outfit(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
-              // Active details view scrollable list
-              Expanded(
-                flex: 4,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Phase details
-                      if (order.status == OrderStatus.assigned) ...[
-                        _buildSectionHeader(context, 'Store Pickup Details'),
-                        const SizedBox(height: 10),
-                        _buildInfoCard(
-                          context,
-                          title: order.branchName,
-                          subtitle: 'Pickup Address: MG Road Branch, Near Metro Stn.',
-                          icon: Icons.storefront,
-                          trailing: '${order.branchDistance} KM away',
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.06),
-                            borderRadius: BorderRadius.circular(10),
+                // Active details view scrollable list
+                Expanded(
+                  flex: 4,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Phase details
+                        if (order.status == OrderStatus.assigned) ...[
+                          _buildSectionHeader(context, 'Store Pickup Details'),
+                          const SizedBox(height: 10),
+                          _buildInfoCard(
+                            context,
+                            title: order.branchName,
+                            subtitle: 'Pickup Address: ${state.branchAddress ?? 'Branch Address not specified'}',
+                            icon: Icons.storefront,
+                            trailing: _isLoadingLocation
+                                ? 'Calculating...'
+                                : _distanceToBranch >= 1000.0
+                                    ? '${(_distanceToBranch / 1000).toStringAsFixed(1)} KM away'
+                                    : '${_distanceToBranch.toStringAsFixed(0)}m away',
                           ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.location_on, color: AppColors.primary, size: 20),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Proximity Alert: You are within 200m geofence.',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
+                          const SizedBox(height: 16),
+                          if (_locationError != null) ...[
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.danger.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppColors.danger.withOpacity(0.3)),
                               ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          height: 52,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              state.arriveAtRestaurant();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.error_outline, color: AppColors.danger, size: 20),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _locationError!,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.danger,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            child: Text(
-                              'ARRIVED AT RESTAURANT',
-                              style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
+                            const SizedBox(height: 16),
+                          ],
+                          if (_arrivedButtonEnabled) ...[
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.success.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppColors.success.withOpacity(0.3)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.check_circle, color: AppColors.success, size: 20),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Ready to check in at restaurant.',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.success,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ] else ...[
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.warning.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.timer_outlined, color: AppColors.warning, size: 20),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Button enables in $_arrivedCountdown second${_arrivedCountdown == 1 ? '' : 's'}...',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.warning,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                          SizedBox(
+                            height: 52,
+                            child: ElevatedButton(
+                              onPressed: _arrivedButtonEnabled
+                                  ? () {
+                                      state.arriveAtRestaurant();
+                                    }
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.success,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: isDark ? Colors.white10 : Colors.black.withOpacity(0.06),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: Text(
+                                'ARRIVED AT RESTAURANT',
+                                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
                             ),
                           ),
-                        ),
-                      ] else if (order.status == OrderStatus.arrivedStore) ...[
+                        ] else if (order.status == OrderStatus.arrivedStore) ...[
                         _buildSectionHeader(context, 'Verify Items Checklist'),
                         const SizedBox(height: 4),
                         Text(
@@ -521,7 +796,7 @@ class _AcceptedOrderScreenState extends State<AcceptedOrderScreen> {
                                 const Icon(Icons.check_circle, color: AppColors.success),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'OTP Handshake Verified (Code 5824)',
+                                  'OTP Handshake Verified',
                                   style: GoogleFonts.inter(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.success,
@@ -588,7 +863,7 @@ class _AcceptedOrderScreenState extends State<AcceptedOrderScreen> {
               ),
             ],
           ),
-        );
+      );
       },
     );
   }
@@ -723,31 +998,164 @@ class _AcceptedOrderScreenState extends State<AcceptedOrderScreen> {
     );
   }
 
-  // Draw simulated maps beautifully
+  // Draw dynamic OpenStreetMap/Mapbox tiles map using flutter_map
   Widget _buildMockMap(OrderStatus status) {
+    final state = AppState();
+    double branchLat = state.branchLatitude ?? 12.9716;
+    double branchLng = state.branchLongitude ?? 77.5946;
+
+    // Always use real driver GPS
+    double driverLat = _driverLatitude ?? (branchLat - 0.008);
+    double driverLng = _driverLongitude ?? (branchLng - 0.008);
+
+    double destLat;
+    double destLng;
+    bool isTransit = status == OrderStatus.pickedUp || status == OrderStatus.arrivedCustomer;
+
+    if (isTransit) {
+      // Customer location: offset from branch (mock, since real customer coords not in order model)
+      destLat = branchLat + 0.012;
+      destLng = branchLng + 0.012;
+    } else {
+      destLat = branchLat;
+      destLng = branchLng;
+    }
+
+    final driverPoint = latlong.LatLng(driverLat, driverLng);
+    final destPoint = latlong.LatLng(destLat, destLng);
+
+    // Use OSRM route if available, otherwise straight line
+    final List<latlong.LatLng> polylinePoints = _routePoints.isNotEmpty
+        ? _routePoints
+        : [driverPoint, destPoint];
+
+    // Center between driver and destination
+    final centerLat = (driverLat + destLat) / 2;
+    final centerLng = (driverLng + destLng) / 2;
+    final mapCenter = latlong.LatLng(centerLat, centerLng);
+
     return Container(
       color: Colors.grey.shade900,
       child: Stack(
         children: [
-          // Background canvas grid pattern
-          CustomPaint(
-            painter: MapPainter(status: status),
-            size: Size.infinite,
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: mapCenter,
+              initialZoom: 14.0,
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+              ),
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                subdomains: const ['a', 'b', 'c', 'd'],
+                userAgentPackageName: 'com.dineos.delivery',
+              ),
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: polylinePoints,
+                    color: AppColors.primary,
+                    strokeWidth: 5.0,
+                    borderColor: AppColors.primary.withOpacity(0.3),
+                    borderStrokeWidth: 10.0,
+                  ),
+                ],
+              ),
+              MarkerLayer(
+                markers: [
+                  // Driver marker (live GPS)
+                  Marker(
+                    point: driverPoint,
+                    width: 48,
+                    height: 48,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.success.withOpacity(0.2),
+                        border: Border.all(color: AppColors.success, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.navigation,
+                        color: AppColors.success,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                  // Destination marker (branch or customer)
+                  Marker(
+                    point: destPoint,
+                    width: 48,
+                    height: 48,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: (isTransit ? AppColors.danger : AppColors.warning).withOpacity(0.2),
+                        border: Border.all(
+                          color: isTransit ? AppColors.danger : AppColors.warning,
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(
+                        isTransit ? Icons.home : Icons.storefront,
+                        color: isTransit ? AppColors.danger : AppColors.warning,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
           // Route label overlay
           Positioned(
-            top: 16,
-            left: 16,
+            top: 12,
+            left: 12,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(8),
+                color: Colors.black.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isTransit ? Icons.home : Icons.storefront,
+                    color: isTransit ? AppColors.danger : AppColors.warning,
+                    size: 14,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    isTransit ? 'Route: Store ➔ Customer' : 'Route: You ➔ Restaurant',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Distance badge
+          Positioned(
+            top: 12,
+            right: 56,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
-                status == OrderStatus.assigned || status == OrderStatus.arrivedStore
-                    ? 'Route: Driver ➔ Restaurant'
-                    : 'Route: Restaurant ➔ Customer',
+                _isLoadingLocation
+                    ? 'Locating...'
+                    : _distanceToBranch >= 1000
+                        ? '${(_distanceToBranch / 1000).toStringAsFixed(1)} km'
+                        : '${_distanceToBranch.toStringAsFixed(0)} m',
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -756,14 +1164,50 @@ class _AcceptedOrderScreenState extends State<AcceptedOrderScreen> {
               ),
             ),
           ),
-          // GPS Compass tracking HUD overlay
+          // Route loading indicator
+          if (_isLoadingRoute)
+            Positioned(
+              bottom: 52,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                    ),
+                    SizedBox(width: 6),
+                    Text('Loading route...', style: TextStyle(color: Colors.white, fontSize: 11)),
+                  ],
+                ),
+              ),
+            ),
+          // GPS recenter button
           Positioned(
-            bottom: 16,
-            right: 16,
-            child: CircleAvatar(
-              backgroundColor: Colors.black.withOpacity(0.8),
-              radius: 20,
-              child: const Icon(Icons.my_location, color: AppColors.primary, size: 20),
+            bottom: 12,
+            right: 12,
+            child: GestureDetector(
+              onTap: () {
+                if (_driverLatitude != null && _driverLongitude != null) {
+                  _mapController.move(
+                    latlong.LatLng(_driverLatitude!, _driverLongitude!),
+                    15.0,
+                  );
+                }
+                _startLocationTracking();
+              },
+              child: CircleAvatar(
+                backgroundColor: Colors.black.withOpacity(0.8),
+                radius: 20,
+                child: const Icon(Icons.my_location, color: AppColors.primary, size: 20),
+              ),
             ),
           ),
         ],
@@ -771,6 +1215,7 @@ class _AcceptedOrderScreenState extends State<AcceptedOrderScreen> {
     );
   }
 }
+
 
 // Custom Painter to draw a map grid beautifully
 class MapPainter extends CustomPainter {

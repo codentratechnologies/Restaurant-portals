@@ -45,6 +45,34 @@ class DriverProfile {
       profilePhotoUrl: profilePhotoUrl,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'username': username,
+      'email': email,
+      'mobile': mobile,
+      'branchName': branchName,
+      'shiftTime': shiftTime,
+      'monthlySalary': monthlySalary,
+      'profilePhotoUrl': profilePhotoUrl,
+    };
+  }
+
+  factory DriverProfile.fromJson(Map<String, dynamic> json) {
+    return DriverProfile(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      username: json['username']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      mobile: json['mobile']?.toString() ?? '',
+      branchName: json['branchName']?.toString() ?? '',
+      shiftTime: json['shiftTime']?.toString() ?? '',
+      monthlySalary: double.tryParse(json['monthlySalary']?.toString() ?? '') ?? 0.0,
+      profilePhotoUrl: json['profilePhotoUrl']?.toString() ?? '',
+    );
+  }
 }
 
 class ChecklistItem {

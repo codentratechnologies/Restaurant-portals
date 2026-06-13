@@ -16,6 +16,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await AppState().loadPersistedState();
   runApp(const MyApp());
 }
 

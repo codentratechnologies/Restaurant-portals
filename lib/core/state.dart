@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:crypto/crypto.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'models.dart';
 
 class AppState extends ChangeNotifier {
@@ -29,6 +30,30 @@ class AppState extends ChangeNotifier {
 
   DriverProfile? _driver;
   DriverProfile? get driver => _driver;
+
+  String? _ownerKey;
+  String? get ownerKey => _ownerKey;
+
+  String? _branchKey;
+  String? get branchKey => _branchKey;
+
+  String? _resolvedBranchId;
+  String? get resolvedBranchId => _resolvedBranchId;
+
+  double? _branchLatitude;
+  double? get branchLatitude => _branchLatitude;
+
+  double? _branchLongitude;
+  double? get branchLongitude => _branchLongitude;
+
+  String? _branchGoogleMapUrl;
+  String? get branchGoogleMapUrl => _branchGoogleMapUrl;
+
+  String? _branchAddress;
+  String? get branchAddress => _branchAddress;
+
+  final Set<String> _declinedOrderIds = {};
+  Timer? _orderTimer;
 
   // Global state
   bool _isOnline = false;
@@ -64,6 +89,327 @@ class AppState extends ChangeNotifier {
   void _initMockData() {
     _driver = null;
     _history = [];
+    _branchLatitude = null;
+    _branchLongitude = null;
+    _branchGoogleMapUrl = null;
+    _branchAddress = null;
+    _resolvedBranchId = null;
+    _declinedOrderIds.clear();
+    _stopOrderListener();
+  }
+
+  Future<void> loadPersistedState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+      _isOnline = prefs.getBool('isOnline') ?? false;
+      _ownerKey = prefs.getString('ownerKey');
+      _branchKey = prefs.getString('branchKey');
+      _resolvedBranchId = prefs.getString('resolvedBranchId');
+      
+      final latVal = prefs.getDouble('branchLatitude');
+      if (latVal != null) _branchLatitude = latVal;
+      
+      final lngVal = prefs.getDouble('branchLongitude');
+      if (lngVal != null) _branchLongitude = lngVal;
+      
+      _branchGoogleMapUrl = prefs.getString('branchGoogleMapUrl');
+      _branchAddress = prefs.getString('branchAddress');
+      
+      final driverJson = prefs.getString('driverProfile');
+      if (driverJson != null) {
+        _driver = DriverProfile.fromJson(json.decode(driverJson));
+      }
+      
+      if (_isLoggedIn && _ownerKey != null && _branchKey != null) {
+        if (_resolvedBranchId == null) {
+          await _resolveBranchId();
+        }
+        if (_isOnline) {
+          _startOrderListener();
+        }
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading persisted state: $e');
+    }
+  }
+
+  Future<void> _persistState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', _isLoggedIn);
+      await prefs.setBool('isOnline', _isOnline);
+      
+      if (_ownerKey != null) await prefs.setString('ownerKey', _ownerKey!);
+      else await prefs.remove('ownerKey');
+      
+      if (_branchKey != null) await prefs.setString('branchKey', _branchKey!);
+      else await prefs.remove('branchKey');
+      
+      if (_resolvedBranchId != null) await prefs.setString('resolvedBranchId', _resolvedBranchId!);
+      else await prefs.remove('resolvedBranchId');
+      
+      if (_branchLatitude != null) await prefs.setDouble('branchLatitude', _branchLatitude!);
+      else await prefs.remove('branchLatitude');
+      
+      if (_branchLongitude != null) await prefs.setDouble('branchLongitude', _branchLongitude!);
+      else await prefs.remove('branchLongitude');
+      
+      if (_branchGoogleMapUrl != null) await prefs.setString('branchGoogleMapUrl', _branchGoogleMapUrl!);
+      else await prefs.remove('branchGoogleMapUrl');
+
+      if (_branchAddress != null) await prefs.setString('branchAddress', _branchAddress!);
+      else await prefs.remove('branchAddress');
+      
+      if (_driver != null) {
+        await prefs.setString('driverProfile', json.encode(_driver!.toJson()));
+      } else {
+        await prefs.remove('driverProfile');
+      }
+    } catch (e) {
+      debugPrint('Error persisting state: $e');
+    }
+  }
+
+  Future<void> _clearPersistedState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+    } catch (e) {
+      debugPrint('Error clearing persisted state: $e');
+    }
+  }
+
+  OrderModel _mapDbToOrder(String id, Map<dynamic, dynamic> map) {
+    // Items mapping - handle both List and Map representations from Firebase RTDB
+    final rawItems = map['items'];
+    final List<dynamic> itemsList = [];
+    if (rawItems is List) {
+      itemsList.addAll(rawItems);
+    } else if (rawItems is Map) {
+      final sortedKeys = rawItems.keys.toList()..sort();
+      for (var key in sortedKeys) {
+        itemsList.add(rawItems[key]);
+      }
+    }
+
+    final items = itemsList.map((itemVal) {
+      if (itemVal is Map<dynamic, dynamic>) {
+        final name = itemVal['foodItem']?['name']?.toString() ?? itemVal['name']?.toString() ?? 'Item';
+        final qty = itemVal['quantity'] ?? itemVal['qty'] ?? 1;
+        
+        // Find customizations if any
+        String? customizationsText;
+        if (itemVal['customizations'] is Map) {
+          final custs = itemVal['customizations'] as Map;
+          final List<String> selectedNames = [];
+          custs.forEach((key, val) {
+            if (val == true || val == 'true') {
+              selectedNames.add(key.toString());
+            }
+          });
+          if (selectedNames.isNotEmpty) {
+            customizationsText = selectedNames.join(', ');
+          }
+        }
+        
+        return ChecklistItem(
+          name: '${qty}x $name',
+          subtitle: customizationsText,
+        );
+      }
+      return ChecklistItem(name: '1x Item');
+    }).toList();
+
+    // Delivery address parsing
+    final addrVal = map['deliveryAddress'];
+    String addressStr = 'Address not specified';
+    if (addrVal is Map) {
+      final addressLine = addrVal['addressLine']?.toString() ?? '';
+      final landmark = addrVal['landmark']?.toString() ?? '';
+      final pinCode = addrVal['pinCode']?.toString() ?? '';
+      final title = addrVal['title']?.toString() ?? '';
+      final parts = [title, addressLine, landmark, pinCode].where((p) => p.isNotEmpty).toList();
+      if (parts.isNotEmpty) {
+        addressStr = parts.join(', ');
+      }
+    }
+
+    final String paymentMethod = map['paymentMethod']?.toString() ?? 'Prepaid';
+    final String paymentMode = (paymentMethod.toLowerCase().contains('cash') || paymentMethod.toLowerCase().contains('cod'))
+        ? 'COD'
+        : 'Prepaid';
+
+    final double total = double.tryParse(map['total']?.toString() ?? '') ?? 0.0;
+
+    return OrderModel(
+      orderId: id,
+      branchName: _driver?.branchName ?? 'MG Road Branch',
+      branchDistance: 1.5,
+      customerName: addrVal is Map ? (addrVal['title']?.toString() ?? 'Customer') : 'Customer',
+      customerPhone: '+91 98765 43210',
+      customerAddress: addressStr,
+      customerDistance: 2.4,
+      items: items,
+      paymentMode: paymentMode,
+      collectAmount: total,
+    );
+  }
+
+  Future<void> _resolveBranchId() async {
+    if (_ownerKey == null || _branchKey == null) return;
+    try {
+      final branchesRef = FirebaseDatabase.instance.ref('branch/$_ownerKey');
+      final branchesSnapshot = await branchesRef.get();
+      if (branchesSnapshot.exists && branchesSnapshot.value != null) {
+        final branchesData = branchesSnapshot.value;
+        if (branchesData is Map) {
+          for (var entry in branchesData.entries) {
+            final bKey = entry.key.toString();
+            final bVal = entry.value;
+            if (bVal is Map) {
+              final code = bVal['code']?.toString();
+              if (bKey == _branchKey || code == _branchKey) {
+                _resolvedBranchId = bKey;
+                debugPrint('[BranchResolve] Found branch $bKey. Fields: ${bVal.keys.toList()}');
+                _branchLatitude = _parseDouble(bVal, ['latitude', 'lat', 'Latitude', 'Lat']);
+                _branchLongitude = _parseDouble(bVal, ['longitude', 'lng', 'long', 'Longitude', 'Lng']);
+                _branchGoogleMapUrl = _parseString(bVal, ['googleMapUrl', 'google_map_url', 'mapUrl', 'map_url', 'googleMapsUrl']);
+                _branchAddress = _parseString(bVal, ['address', 'branchAddress', 'branch_address', 'Address', 'fullAddress']);
+                debugPrint('[BranchResolve] lat=$_branchLatitude, lng=$_branchLongitude, addr=$_branchAddress');
+                await _persistState();
+                break;
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error resolving branch ID: $e');
+    }
+  }
+
+  double? _parseDouble(Map bVal, List<String> keys) {
+    for (final key in keys) {
+      final v = bVal[key];
+      if (v != null) {
+        final parsed = double.tryParse(v.toString());
+        if (parsed != null) return parsed;
+      }
+    }
+    return null;
+  }
+
+  String? _parseString(Map bVal, List<String> keys) {
+    for (final key in keys) {
+      final v = bVal[key]?.toString();
+      if (v != null && v.trim().isNotEmpty) return v.trim();
+    }
+    return null;
+  }
+
+  void _startOrderListener() {
+    _stopOrderListener();
+    if (_ownerKey == null) return;
+
+    if (_resolvedBranchId == null) {
+      _resolveBranchId().then((_) {
+        if (_isOnline && _resolvedBranchId != null && _orderTimer == null) {
+          _startOrderListener();
+        }
+      });
+      return;
+    }
+
+    // Run immediately once
+    _checkIncomingOrders();
+
+    // Schedule periodic check every 15 seconds
+    _orderTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      _checkIncomingOrders();
+    });
+  }
+
+  Future<void> _checkIncomingOrders() async {
+    debugPrint('[OrderPolling] Checking incoming orders: isOnline=$_isOnline, activeOrder=$_activeOrder, activeRequest=$_activeRequest');
+    if (!_isOnline || _activeOrder != null || _activeRequest != null) return;
+    if (_ownerKey == null || _resolvedBranchId == null) {
+      debugPrint('[OrderPolling] Warning: ownerKey ($_ownerKey) or resolvedBranchId ($_resolvedBranchId) is null. Aborting polling.');
+      return;
+    }
+
+    try {
+      final path = 'order/$_ownerKey/$_resolvedBranchId';
+      debugPrint('[OrderPolling] Fetching database path: $path');
+      final ref = FirebaseDatabase.instance.ref(path);
+      final snapshot = await ref.get();
+      
+      if (!_isOnline || _activeOrder != null || _activeRequest != null) return;
+
+      if (snapshot.exists && snapshot.value != null) {
+        final dynamic rawVal = snapshot.value;
+        Map<dynamic, dynamic> data = {};
+        if (rawVal is Map) {
+          data = rawVal;
+        } else if (rawVal is List) {
+          for (int i = 0; i < rawVal.length; i++) {
+            if (rawVal[i] != null) {
+              data[i.toString()] = rawVal[i];
+            }
+          }
+        }
+        debugPrint('[OrderPolling] Fetched ${data.length} orders from path: $path');
+        
+        // Find the first order with status == 'Preparing'
+        for (var entry in data.entries) {
+          final orderId = entry.key.toString();
+          final orderVal = entry.value;
+          if (orderVal is Map) {
+            final String status = orderVal['status']?.toString() ?? '';
+            final bool isDeclined = _declinedOrderIds.contains(orderId);
+            debugPrint('[OrderPolling] Order: $orderId, status: $status, declined: $isDeclined');
+            
+            if (status.trim().toLowerCase() == 'preparing' && !isDeclined) {
+              debugPrint('[OrderPolling] Found match for order $orderId with status "$status". Displaying request popup.');
+              // Map to OrderModel
+              _activeRequest = _mapDbToOrder(orderId, Map<dynamic, dynamic>.from(orderVal));
+              notifyListeners();
+              break;
+            }
+          }
+        }
+      } else {
+        debugPrint('[OrderPolling] No snapshot content found at database path: $path');
+      }
+    } catch (e) {
+      debugPrint('[OrderPolling] Error fetching or mapping incoming orders: $e');
+    }
+  }
+
+  void _stopOrderListener() {
+    _orderTimer?.cancel();
+    _orderTimer = null;
+  }
+
+  // Update database status helper
+  Future<void> _updateDbStatus({String? availability, String? delivery}) async {
+    if (_ownerKey != null && _branchKey != null && _driver != null) {
+      try {
+        final empRef = FirebaseDatabase.instance
+            .ref('employee/$_ownerKey/$_branchKey/${_driver!.id}');
+        
+        final Map<String, dynamic> updates = {};
+        if (availability != null) updates['availability_status'] = availability;
+        if (delivery != null) updates['delivery_status'] = delivery;
+        
+        if (updates.isNotEmpty) {
+          await empRef.update(updates);
+        }
+      } catch (e) {
+        debugPrint('Error updating database status fields: $e');
+      }
+    }
   }
 
   // SHA-256 password hashing helper
@@ -78,77 +424,112 @@ class AppState extends ChangeNotifier {
     if (username.isEmpty || password.isEmpty) return false;
     
     try {
-      final ref = FirebaseDatabase.instance.ref('users');
+      final ref = FirebaseDatabase.instance.ref('employee');
       final snapshot = await ref.get();
       
       if (snapshot.exists && snapshot.value != null) {
-        final usersData = snapshot.value as Map<dynamic, dynamic>;
+        final employeeData = snapshot.value as Map<dynamic, dynamic>;
         final String inputEmail = username.trim().toLowerCase();
         final String hashedPassword = _hashPassword(password);
         
-        // Loop through owner UIDs (e.g. IjrrNmUTrlSP2qsK47DcCLNZSI22)
-        for (var ownerKey in usersData.keys) {
-          final ownerData = usersData[ownerKey];
+        // Loop through owner UIDs (e.g. IjrrNmUTrlSP2qsk47DcCLNZSI22)
+        for (var ownerKey in employeeData.keys) {
+          final ownerData = employeeData[ownerKey];
           if (ownerData is Map<dynamic, dynamic>) {
-            // Loop through employee keys (e.g. -Ouk4_RP_4r-9fd5KAxY)
-            for (var employeeKey in ownerData.keys) {
-              final employee = ownerData[employeeKey];
-              if (employee is Map<dynamic, dynamic>) {
-                final String? dbEmail = employee['email']?.toString().trim().toLowerCase();
-                final String? dbRole = employee['role']?.toString();
-                final String? dbStatus = employee['status']?.toString();
-                final String? dbPassword = employee['password']?.toString();
-                
-                // Matches Email and is Active Delivery Partner
-                if (dbEmail == inputEmail && 
-                    dbRole == 'Delivery Partner' && 
-                    dbStatus == 'Active') {
-                  
-                  // Match password hashes
-                  if (dbPassword == hashedPassword) {
-                    final String firstName = employee['firstName']?.toString() ?? '';
-                    final String lastName = employee['lastName']?.toString() ?? '';
-                    final String phone = employee['phone']?.toString() ?? '';
-                    final String branch = employee['branch']?.toString() ?? '';
+            // Loop through branch keys (e.g. BR003)
+            for (var branchKey in ownerData.keys) {
+              final branchData = ownerData[branchKey];
+              if (branchData is Map<dynamic, dynamic>) {
+                // Loop through employee keys (e.g. -Ouw9fxQkGf28SG1XNCV)
+                for (var employeeKey in branchData.keys) {
+                  final employee = branchData[employeeKey];
+                  if (employee is Map<dynamic, dynamic>) {
+                    final String? dbEmail = employee['email']?.toString().trim().toLowerCase();
+                    final String? dbRole = employee['role']?.toString();
+                    final String? dbStatus = employee['status']?.toString();
+                    final String? dbPassword = employee['password']?.toString();
                     
-                    String displayBranchName = branch.isNotEmpty 
-                        ? 'Branch Key: ${branch.length > 8 ? '${branch.substring(0, 8)}...' : branch}' 
-                        : 'Default Branch';
-                    
-                    if (branch.isNotEmpty) {
-                      try {
-                        final branchRef = FirebaseDatabase.instance.ref('branch/$ownerKey/$branch');
-                        final branchSnapshot = await branchRef.get();
-                        if (branchSnapshot.exists && branchSnapshot.value != null) {
-                          final branchData = branchSnapshot.value as Map<dynamic, dynamic>;
-                          final String? name = branchData['name']?.toString() ?? branchData['branchName']?.toString();
-                          if (name != null && name.trim().isNotEmpty) {
-                            displayBranchName = name.trim();
+                    // Matches Email and is Active Delivery Partner
+                    if (dbEmail == inputEmail && 
+                        dbRole == 'Delivery Partner' && 
+                        dbStatus == 'Active') {
+                      
+                      // Match password hashes
+                      if (dbPassword == hashedPassword) {
+                        final String firstName = employee['firstName']?.toString() ?? '';
+                        final String lastName = employee['lastName']?.toString() ?? '';
+                        final String phone = employee['phone']?.toString() ?? '';
+                        final String branch = employee['branch']?.toString() ?? branchKey.toString();
+                        
+                        String displayBranchName = branch.isNotEmpty 
+                            ? 'Branch Key: ${branch.length > 8 ? '${branch.substring(0, 8)}...' : branch}' 
+                            : 'Default Branch';
+                        
+                        String? resolvedBranchKey;
+                        if (branch.isNotEmpty) {
+                          try {
+                            final branchesRef = FirebaseDatabase.instance.ref('branch/$ownerKey');
+                            final branchesSnapshot = await branchesRef.get();
+                            if (branchesSnapshot.exists && branchesSnapshot.value != null) {
+                              final branchesData = branchesSnapshot.value;
+                              if (branchesData is Map) {
+                                for (var entry in branchesData.entries) {
+                                  final bKey = entry.key.toString();
+                                  final bVal = entry.value;
+                                  if (bVal is Map) {
+                                    final code = bVal['code']?.toString();
+                                    if (bKey == branch || code == branch) {
+                                      resolvedBranchKey = bKey;
+                                      debugPrint('[Login BranchResolve] Found branch $bKey. Fields: ${bVal.keys.toList()}');
+                                      final String? name = _parseString(bVal, ['name', 'branchName', 'branch_name', 'Name']);
+                                      if (name != null && name.trim().isNotEmpty) {
+                                        displayBranchName = name.trim();
+                                      }
+                                      _branchLatitude = _parseDouble(bVal, ['latitude', 'lat', 'Latitude', 'Lat']);
+                                      _branchLongitude = _parseDouble(bVal, ['longitude', 'lng', 'long', 'Longitude', 'Lng']);
+                                      _branchGoogleMapUrl = _parseString(bVal, ['googleMapUrl', 'google_map_url', 'mapUrl', 'map_url', 'googleMapsUrl']);
+                                      _branchAddress = _parseString(bVal, ['address', 'branchAddress', 'branch_address', 'Address', 'fullAddress']);
+                                      debugPrint('[Login BranchResolve] lat=$_branchLatitude, lng=$_branchLongitude, addr=$_branchAddress');
+                                      break;
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          } catch (e) {
+                            debugPrint('Error fetching branch details: $e');
                           }
                         }
-                      } catch (e) {
-                        debugPrint('Error fetching branch details: $e');
+                        
+                        _driver = DriverProfile(
+                          id: employeeKey.toString(),
+                          name: '$firstName $lastName'.trim(),
+                          username: dbEmail!.split('@').first,
+                          email: employee['email']?.toString() ?? dbEmail,
+                          mobile: phone.startsWith('+') ? phone : '+91 $phone',
+                          branchName: displayBranchName,
+                          shiftTime: '10:00 AM - 10:00 PM',
+                          monthlySalary: 15000.0,
+                          profilePhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop',
+                        );
+                        
+                        _ownerKey = ownerKey.toString();
+                        _branchKey = branch.isNotEmpty ? branch : branchKey.toString();
+                        _resolvedBranchId = resolvedBranchKey ?? _branchKey;
+                        _updateDbStatus(
+                          availability: 'Offline',
+                          delivery: 'Offline',
+                        );
+                        
+                        _isLoggedIn = true;
+                        _activeTab = 0;
+                        _completedToday = 0;
+                        _onlineHours = 0.0;
+                        _persistState();
+                        notifyListeners();
+                        return true;
                       }
                     }
-                    
-                    _driver = DriverProfile(
-                      id: employeeKey.toString(),
-                      name: '$firstName $lastName'.trim(),
-                      username: dbEmail!.split('@').first,
-                      email: employee['email']?.toString() ?? dbEmail,
-                      mobile: phone.startsWith('+') ? phone : '+91 $phone',
-                      branchName: displayBranchName,
-                      shiftTime: '10:00 AM - 10:00 PM',
-                      monthlySalary: 15000.0,
-                      profilePhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop',
-                    );
-                    
-                    _isLoggedIn = true;
-                    _activeTab = 0;
-                    _completedToday = 0;
-                    _onlineHours = 0.0;
-                    notifyListeners();
-                    return true;
                   }
                 }
               }
@@ -163,11 +544,19 @@ class AppState extends ChangeNotifier {
   }
 
   void logout() {
+    _stopOrderListener();
+    _updateDbStatus(
+      availability: 'Offline',
+      delivery: 'Offline',
+    );
     _isLoggedIn = false;
     _isOnline = false;
     _activeOrder = null;
     _activeRequest = null;
+    _resolvedBranchId = null;
+    _branchAddress = null;
     _requestTimer?.cancel();
+    _clearPersistedState();
     notifyListeners();
   }
 
@@ -180,13 +569,18 @@ class AppState extends ChangeNotifier {
     _isOnline = online;
     _requestTimer?.cancel();
 
+    _updateDbStatus(
+      availability: _isOnline ? 'Online' : 'Offline',
+      delivery: _isOnline ? 'IDLE' : 'Offline',
+    );
+
     if (_isOnline) {
-      // Start a simulated request trigger after 4 seconds to make the app interactive!
-      _requestTimer = Timer(const Duration(seconds: 4), () {
-        triggerSimulatedOrder();
-      });
+      _startOrderListener();
+    } else {
+      _stopOrderListener();
     }
 
+    _persistState();
     notifyListeners();
   }
 
@@ -215,6 +609,9 @@ class AppState extends ChangeNotifier {
 
   // Request actions
   void declineRequest() {
+    if (_activeRequest != null) {
+      _declinedOrderIds.add(_activeRequest!.orderId);
+    }
     _activeRequest = null;
     notifyListeners();
 
@@ -222,7 +619,7 @@ class AppState extends ChangeNotifier {
     if (_isOnline) {
       _requestTimer?.cancel();
       _requestTimer = Timer(const Duration(seconds: 8), () {
-        triggerSimulatedOrder();
+        // Fallback or request trigger
       });
     }
   }
@@ -232,6 +629,39 @@ class AppState extends ChangeNotifier {
     _activeOrder = _activeRequest;
     _activeRequest = null;
     _activeOrder!.status = OrderStatus.assigned;
+
+    // Generate a 4-digit OTP for this delivery
+    final int otp = 1000 + (DateTime.now().millisecondsSinceEpoch % 9000);
+    final String otpStr = otp.toString();
+
+    // Write delivery record — do NOT touch the order status table
+    if (_ownerKey != null && _resolvedBranchId != null && _driver != null && _activeOrder != null) {
+      final order = _activeOrder!;
+      final deliveryRef = FirebaseDatabase.instance.ref(
+        'delivery/$_ownerKey/$_resolvedBranchId/${_driver!.id}/${order.orderId}',
+      );
+
+      deliveryRef.set({
+        'deliveryPartnerName': _driver!.name,
+        'mobileNumber': _driver!.mobile,
+        'otp': otpStr,
+        'orderId': order.orderId,
+        'branchName': order.branchName,
+        'customerName': order.customerName,
+        'customerPhone': order.customerPhone,
+        'customerAddress': order.customerAddress,
+        'paymentMode': order.paymentMode,
+        'totalAmount': order.collectAmount,
+        'items': order.items.map((item) => {
+          'name': item.name,
+          'subtitle': item.subtitle ?? '',
+        }).toList(),
+        'acceptedAt': ServerValue.timestamp,
+        'status': 'Accepted',
+      });
+    }
+
+    _updateDbStatus(delivery: 'On Delivery');
     notifyListeners();
   }
 
@@ -239,6 +669,7 @@ class AppState extends ChangeNotifier {
   void arriveAtRestaurant() {
     if (_activeOrder == null) return;
     _activeOrder!.status = OrderStatus.arrivedStore;
+    // No Firebase status update on arrival — only advance local delivery flow
     notifyListeners();
   }
 
@@ -256,12 +687,22 @@ class AppState extends ChangeNotifier {
   void confirmPickup() {
     if (_activeOrder == null || !areAllItemsChecked()) return;
     _activeOrder!.status = OrderStatus.pickedUp;
+    if (_ownerKey != null && _resolvedBranchId != null) {
+      FirebaseDatabase.instance
+          .ref('order/$_ownerKey/$_resolvedBranchId/${_activeOrder!.orderId}/status')
+          .set('Out For Delivery');
+    }
     notifyListeners();
   }
 
   void arriveAtCustomer() {
     if (_activeOrder == null) return;
     _activeOrder!.status = OrderStatus.arrivedCustomer;
+    if (_ownerKey != null && _resolvedBranchId != null) {
+      FirebaseDatabase.instance
+          .ref('order/$_ownerKey/$_resolvedBranchId/${_activeOrder!.orderId}/status')
+          .set('Arrived Customer');
+    }
     notifyListeners();
   }
 
@@ -271,12 +712,21 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool verifyOtp(String code) {
-    if (_activeOrder == null) return false;
-    if (code == '5824') {
-      _activeOrder!.isOtpVerified = true;
-      notifyListeners();
-      return true;
+  Future<bool> verifyOtp(String code) async {
+    if (_activeOrder == null || _ownerKey == null || _resolvedBranchId == null || _driver == null) return false;
+    
+    try {
+      final deliveryRef = FirebaseDatabase.instance.ref(
+        'delivery/$_ownerKey/$_resolvedBranchId/${_driver!.id}/${_activeOrder!.orderId}/otp',
+      );
+      final snapshot = await deliveryRef.get();
+      if (snapshot.exists && snapshot.value?.toString() == code) {
+        _activeOrder!.isOtpVerified = true;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      debugPrint('Error verifying OTP: $e');
     }
     return false;
   }
@@ -296,6 +746,11 @@ class AppState extends ChangeNotifier {
     }
 
     _activeOrder!.status = OrderStatus.delivered;
+    if (_ownerKey != null && _resolvedBranchId != null) {
+      FirebaseDatabase.instance
+          .ref('order/$_ownerKey/$_resolvedBranchId/${_activeOrder!.orderId}/status')
+          .set('Delivered');
+    }
 
     // Add to history list
     _history.insert(
@@ -318,6 +773,7 @@ class AppState extends ChangeNotifier {
     _completedToday += 1;
     _activeOrder = null;
     _activeTab = 1; // Direct to history screen so they can review their delivery
+    _updateDbStatus(delivery: 'IDLE');
 
     notifyListeners();
   }
