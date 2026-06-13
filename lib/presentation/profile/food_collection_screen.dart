@@ -6,6 +6,7 @@ import '../../core/widgets/elastic_button.dart';
 import '../../core/widgets/page_transitions.dart';
 import '../../data/mock/mock_database.dart';
 import '../../state/cart_state.dart';
+import '../../state/branch_state.dart';
 import '../food/food_detail_screen.dart';
 
 class FoodCollectionScreen extends StatelessWidget {
@@ -145,36 +146,56 @@ class FoodCollectionScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  ElasticButton(
-                    onTap: () {
-                      if (item.customizationGroups.isEmpty) {
-                        cartState.addToCart(item);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('${item.name} added to cart!'),
-                            duration: const Duration(seconds: 1),
-                            backgroundColor: AppColors.success,
+                  Builder(
+                    builder: (context) {
+                      final branchState = Provider.of<BranchState>(context, listen: false);
+                      final isAvailable = branchState.selectedBranch?.isItemAvailable(item.id) ?? true;
+
+                      return ElasticButton(
+                        onTap: !isAvailable
+                            ? () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${item.name} is not available at this branch.'),
+                                    backgroundColor: AppColors.danger,
+                                  ),
+                                );
+                              }
+                            : () {
+                                if (item.customizationGroups.isEmpty) {
+                                  cartState.addToCart(item);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('${item.name} added to cart!'),
+                                      duration: const Duration(seconds: 1),
+                                      backgroundColor: AppColors.success,
+                                    ),
+                                  );
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    SlidePageRoute(page: FoodDetailScreen(foodItem: item)),
+                                  );
+                                }
+                              },
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: isAvailable
+                                ? AppColors.primary.withOpacity(0.12)
+                                : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        );
-                      } else {
-                        Navigator.push(
-                          context,
-                          SlidePageRoute(page: FoodDetailScreen(foodItem: item)),
-                        );
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.add_shopping_cart_rounded,
-                        color: AppColors.primary,
-                        size: 20,
-                      ),
-                    ),
+                          child: Icon(
+                            Icons.add_shopping_cart_rounded,
+                            color: isAvailable
+                                ? AppColors.primary
+                                : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                            size: 20,
+                          ),
+                        ),
+                      );
+                    }
                   ),
                 ],
               ),

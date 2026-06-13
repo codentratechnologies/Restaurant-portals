@@ -9,6 +9,7 @@ import '../models/address.dart';
 import '../models/order.dart';
 import '../models/cart_item.dart';
 import '../models/branch.dart';
+import '../models/support_ticket.dart';
 import '../mock/mock_database.dart';
 
 
@@ -16,6 +17,43 @@ String generateFirebaseUid() {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   final random = Random();
   return List.generate(28, (index) => chars[random.nextInt(chars.length)]).join();
+}
+
+Future<String> _getOrFetchAdminId() async {
+  if (MockDatabase.currentAdminId != null) {
+    return MockDatabase.currentAdminId!;
+  }
+  // Try getting from branch.json
+  try {
+    final response = await http.get(Uri.parse('https://dineos-123-default-rtdb.asia-southeast1.firebasedatabase.app/branch.json')).timeout(const Duration(seconds: 5));
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+      if (decoded is Map && decoded.isNotEmpty) {
+        final adminId = decoded.keys.first.toString();
+        MockDatabase.currentAdminId = adminId;
+        return adminId;
+      }
+    }
+  } catch (e) {
+    print('Error getting adminId from branch: $e');
+  }
+
+  // Try getting from menu.json
+  try {
+    final response = await http.get(Uri.parse('https://dineos-123-default-rtdb.asia-southeast1.firebasedatabase.app/menu.json')).timeout(const Duration(seconds: 5));
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+      if (decoded is Map && decoded.isNotEmpty) {
+        final adminId = decoded.keys.first.toString();
+        MockDatabase.currentAdminId = adminId;
+        return adminId;
+      }
+    }
+  } catch (e) {
+    print('Error getting adminId from menu: $e');
+  }
+
+  return 'IjrrNmUTrlSP2qsK47DcCLNZSI22'; // Database default admin ID fallback
 }
 
 class AuthRepository {
@@ -28,9 +66,18 @@ class AuthRepository {
         final decoded = json.decode(response.body);
         if (decoded is Map) {
           final result = <String, Map<String, dynamic>>{};
-          decoded.forEach((key, val) {
-            if (val is Map) {
-              result[key.toString()] = Map<String, dynamic>.from(val);
+          decoded.forEach((adminKey, adminMap) {
+            if (adminMap is Map) {
+              adminMap.forEach((userKey, userVal) {
+                if (userVal is Map) {
+                  final userRecord = Map<String, dynamic>.from(userVal);
+                  userRecord['adminId'] = adminKey.toString();
+                  result[userKey.toString()] = userRecord;
+                }
+              });
+            } else {
+              // Fallback for legacy un-nested users if any
+              result[adminKey.toString()] = Map<String, dynamic>.from(adminMap);
             }
           });
           // Sync to local mock database
@@ -40,7 +87,6 @@ class AuthRepository {
         }
       }
     } catch (e) {
-      // Print error for debug and fall back
       print('Error fetching users from Firebase RTDB: $e');
     }
     return MockDatabase.userCustomerTable;
@@ -63,6 +109,7 @@ class AuthRepository {
     });
 
     if (foundUserId != null && foundUserRecord != null) {
+      MockDatabase.currentAdminId = foundUserRecord!['adminId'];
       return UserModel(
         id: foundUserId!,
         fullName: foundUserRecord!['fullName'] ?? '',
@@ -102,6 +149,7 @@ class AuthRepository {
 
     final String userId = generateFirebaseUid();
     final formattedMobile = mobileNumber.startsWith('+91') ? mobileNumber : '+91$mobileNumber';
+    final String adminId = await _getOrFetchAdminId();
 
     final record = {
       'fullName': fullName,
@@ -113,7 +161,7 @@ class AuthRepository {
 
     try {
       final response = await http.put(
-        Uri.parse('$_dbUrl/user_customer/$userId.json'),
+        Uri.parse('$_dbUrl/user_customer/$adminId/$userId.json'),
         body: json.encode(record),
       ).timeout(const Duration(seconds: 5));
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -124,6 +172,7 @@ class AuthRepository {
     }
 
     MockDatabase.userCustomerTable[userId] = record;
+    MockDatabase.currentAdminId = adminId;
 
     return UserModel(
       id: userId,
@@ -136,6 +185,7 @@ class AuthRepository {
   }
 
   Future<UserModel> updateProfile(UserModel user) async {
+    final adminId = await _getOrFetchAdminId();
     final record = {
       'fullName': user.fullName,
       'mobileNumber': user.mobileNumber,
@@ -146,7 +196,7 @@ class AuthRepository {
 
     try {
       final response = await http.patch(
-        Uri.parse('$_dbUrl/user_customer/${user.id}.json'),
+        Uri.parse('$_dbUrl/user_customer/$adminId/${user.id}.json'),
         body: json.encode(record),
       ).timeout(const Duration(seconds: 5));
       if (response.statusCode != 200) {
@@ -179,50 +229,54 @@ class FoodRepository {
           final List<FoodItem> loadedItems = [];
           final Set<String> loadedCategories = {'All'};
 
-          decoded.forEach((restaurantId, itemsMap) {
-            if (itemsMap is Map) {
-              itemsMap.forEach((itemId, itemVal) {
-                if (itemVal is Map) {
-                  final category = itemVal['category']?.toString() ?? 'Other';
-                  loadedCategories.add(category);
+          decoded.forEach((restaurantId, categoriesMap) {
+            if (categoriesMap is Map) {
+              categoriesMap.forEach((categoryName, itemsMap) {
+                if (itemsMap is Map) {
+                  itemsMap.forEach((itemId, itemVal) {
+                    if (itemVal is Map) {
+                      final category = itemVal['category']?.toString() ?? categoryName.toString();
+                      loadedCategories.add(category);
 
-                  // Dynamically map customization options from the database
-                  List<CustomizationGroup> custGroups = [];
-                  if (itemVal.containsKey('customizations') && itemVal['customizations'] is List) {
-                    final custs = itemVal['customizations'] as List;
-                    if (custs.isNotEmpty) {
-                      final List<CustomizationOption> options = [];
-                      for (var c in custs) {
-                        if (c is Map) {
-                          options.add(CustomizationOption(
-                            name: c['label']?.toString() ?? '',
-                            additionalPrice: (c['price'] as num?)?.toDouble() ?? 0.0,
-                            isSelected: false,
-                          ));
+                      // Dynamically map customization options from the database
+                      List<CustomizationGroup> custGroups = [];
+                      if (itemVal.containsKey('customizations') && itemVal['customizations'] is List) {
+                        final custs = itemVal['customizations'] as List;
+                        if (custs.isNotEmpty) {
+                          final List<CustomizationOption> options = [];
+                          for (var c in custs) {
+                            if (c is Map) {
+                              options.add(CustomizationOption(
+                                name: c['label']?.toString() ?? '',
+                                additionalPrice: (c['price'] as num?)?.toDouble() ?? 0.0,
+                                isSelected: false,
+                              ));
+                            }
+                          }
+                          if (options.isNotEmpty) {
+                            custGroups.add(CustomizationGroup(
+                              title: 'Customizations',
+                              isMultiSelect: true,
+                              options: options,
+                            ));
+                          }
                         }
                       }
-                      if (options.isNotEmpty) {
-                        custGroups.add(CustomizationGroup(
-                          title: 'Customizations',
-                          isMultiSelect: true,
-                          options: options,
-                        ));
-                      }
-                    }
-                  }
 
-                  loadedItems.add(FoodItem(
-                    id: itemId.toString(),
-                    name: itemVal['name']?.toString() ?? '',
-                    description: itemVal['description']?.toString() ?? '',
-                    basePrice: (itemVal['price'] as num?)?.toDouble() ?? 0.0,
-                    imageUrl: itemVal['image_url']?.toString() ?? 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
-                    rating: 4.5 + (Random().nextDouble() * 0.4),
-                    reviewsCount: 30 + Random().nextInt(100),
-                    category: category,
-                    isVeg: itemVal['is_vegetarian'] ?? false,
-                    customizationGroups: custGroups,
-                  ));
+                      loadedItems.add(FoodItem(
+                        id: itemId.toString(),
+                        name: itemVal['name']?.toString() ?? '',
+                        description: itemVal['description']?.toString() ?? '',
+                        basePrice: (itemVal['price'] as num?)?.toDouble() ?? 0.0,
+                        imageUrl: itemVal['image_url']?.toString() ?? 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
+                        rating: 4.5 + (Random().nextDouble() * 0.4),
+                        reviewsCount: 30 + Random().nextInt(100),
+                        category: category,
+                        isVeg: itemVal['is_vegetarian'] ?? false,
+                        customizationGroups: custGroups,
+                      ));
+                    }
+                  });
                 }
               });
             }
@@ -263,6 +317,9 @@ class FoodRepository {
           final Map<String, Coupon> listMap = {};
           
           decoded.forEach((adminId, adminData) {
+            if (MockDatabase.currentAdminId != null && adminId != MockDatabase.currentAdminId) {
+              return;
+            }
             if (adminData is Map) {
               adminData.forEach((couponKey, couponData) {
                 if (couponData is Map) {
@@ -533,10 +590,12 @@ Map<String, dynamic> _orderToMap(OrderModel order) {
   return {
     'id': order.id,
     'branchId': order.branchId,
+    'customerId': order.customerId ?? MockDatabase.currentUserId,
     'orderDate': order.orderDate.toIso8601String(),
     'status': order.status,
     'deliveryAddress': _addressToMap(order.deliveryAddress),
     'paymentMethod': order.paymentMethod,
+    'paymentStatus': order.paymentStatus,
     'couponApplied': order.couponApplied != null ? _couponToMap(order.couponApplied!) : null,
     'subtotal': order.subtotal,
     'deliveryFee': order.deliveryFee,
@@ -550,13 +609,17 @@ Map<String, dynamic> _orderToMap(OrderModel order) {
 OrderModel _mapToOrder(String id, Map map) {
   final itemsList = map['items'] as List? ?? [];
   final items = itemsList.map((iMap) => _mapToCartItem(iMap as Map)).toList();
+  final methodLower = (map['paymentMethod']?.toString() ?? '').toLowerCase().trim();
+  final computedStatus = (methodLower == 'cash on delivery' || methodLower == 'cod') ? 'Postpaid' : 'Prepaid';
   return OrderModel(
     id: id,
     branchId: map['branchId']?.toString() ?? '',
+    customerId: map['customerId']?.toString(),
     orderDate: DateTime.tryParse(map['orderDate'] ?? '') ?? DateTime.now(),
     status: map['status'] ?? 'Placed',
     deliveryAddress: _mapToAddress(map['deliveryAddress'] as Map? ?? {}),
     paymentMethod: map['paymentMethod'] ?? '',
+    paymentStatus: map['paymentStatus'] ?? computedStatus,
     couponApplied: map['couponApplied'] != null ? _mapToCoupon(map['couponApplied'] as Map) : null,
     subtotal: (map['subtotal'] as num?)?.toDouble() ?? 0.0,
     deliveryFee: (map['deliveryFee'] as num?)?.toDouble() ?? 0.0,
@@ -579,7 +642,8 @@ class AddressRepository {
     }
 
     try {
-      final response = await http.get(Uri.parse('$_dbUrl/user_customer/$userId/addresses.json')).timeout(const Duration(seconds: 5));
+      final adminId = await _getOrFetchAdminId();
+      final response = await http.get(Uri.parse('$_dbUrl/user_customer/$adminId/$userId/addresses.json')).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         if (decoded is Map) {
@@ -633,8 +697,9 @@ class AddressRepository {
     };
 
     try {
+      final adminId = await _getOrFetchAdminId();
       final response = await http.put(
-        Uri.parse('$_dbUrl/user_customer/$userId/addresses/$newId.json'),
+        Uri.parse('$_dbUrl/user_customer/$adminId/$userId/addresses/$newId.json'),
         body: json.encode(data),
       ).timeout(const Duration(seconds: 5));
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -668,8 +733,9 @@ class AddressRepository {
     };
 
     try {
+      final adminId = await _getOrFetchAdminId();
       final response = await http.put(
-        Uri.parse('$_dbUrl/user_customer/$userId/addresses/${address.id}.json'),
+        Uri.parse('$_dbUrl/user_customer/$adminId/$userId/addresses/${address.id}.json'),
         body: json.encode(data),
       ).timeout(const Duration(seconds: 5));
       if (response.statusCode != 200) {
@@ -695,8 +761,9 @@ class AddressRepository {
     }
 
     try {
+      final adminId = await _getOrFetchAdminId();
       final response = await http.delete(
-        Uri.parse('$_dbUrl/user_customer/$userId/addresses/$id.json'),
+        Uri.parse('$_dbUrl/user_customer/$adminId/$userId/addresses/$id.json'),
       ).timeout(const Duration(seconds: 5));
       if (response.statusCode != 200) {
         throw Exception('Status ${response.statusCode}');
@@ -722,30 +789,28 @@ class OrderRepository {
     }
 
     try {
-      final response = await http.get(Uri.parse('$_dbUrl/user_customer/$userId/orders.json')).timeout(const Duration(seconds: 5));
+      final adminId = await _getOrFetchAdminId();
+      final response = await http.get(Uri.parse('$_dbUrl/order/$adminId.json')).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         if (decoded is Map) {
           final list = <OrderModel>[];
-          decoded.forEach((key, val) {
-            if (val is Map) {
-              list.add(_mapToOrder(key.toString(), val));
+          decoded.forEach((branchId, ordersMap) {
+            if (ordersMap is Map) {
+              ordersMap.forEach((orderId, orderVal) {
+                if (orderVal is Map) {
+                  final order = _mapToOrder(orderId.toString(), orderVal);
+                  if (order.customerId == userId) {
+                    list.add(order);
+                  }
+                }
+              });
             }
           });
           list.sort((a, b) => b.orderDate.compareTo(a.orderDate));
           return list;
         } else if (decoded == null) {
-          // Seed initial orders for test user
-          final list = List<OrderModel>.from(MockDatabase.initialOrders);
-          for (final order in list) {
-            final orderData = _orderToMap(order);
-            await http.put(
-              Uri.parse('$_dbUrl/user_customer/$userId/orders/${order.id}.json'),
-              body: json.encode(orderData),
-            );
-          }
-          list.sort((a, b) => b.orderDate.compareTo(a.orderDate));
-          return list;
+          return [];
         }
       }
     } catch (e) {
@@ -758,16 +823,83 @@ class OrderRepository {
 
   /// Fetches only the status string for a single order from Firebase.
   /// Returns null if the order isn't found or network fails.
-  Future<String?> fetchOrderStatus(String orderId) async {
+  Future<String?> fetchOrderStatus(String orderId, {String? branchId}) async {
     final userId = MockDatabase.currentUserId;
     if (userId == null) return null;
     try {
+      final adminId = await _getOrFetchAdminId();
+      String resolvedBranchId = branchId ?? '';
+      if (resolvedBranchId.isEmpty) {
+        for (var o in MockDatabase.initialOrders) {
+          if (o.id == orderId) {
+            resolvedBranchId = o.branchId;
+            break;
+          }
+        }
+      }
+      if (resolvedBranchId.isEmpty) {
+        final response = await http.get(Uri.parse('$_dbUrl/order/$adminId.json')).timeout(const Duration(seconds: 5));
+        if (response.statusCode == 200) {
+          final decoded = json.decode(response.body);
+          if (decoded is Map) {
+            decoded.forEach((bId, ordersMap) {
+              if (ordersMap is Map && ordersMap.containsKey(orderId)) {
+                resolvedBranchId = bId.toString();
+              }
+            });
+          }
+        }
+      }
+      if (resolvedBranchId.isEmpty) return null;
+
       final response = await http
-          .get(Uri.parse('$_dbUrl/user_customer/$userId/orders/$orderId/status.json'))
+          .get(Uri.parse('$_dbUrl/order/$adminId/$resolvedBranchId/$orderId/status.json'))
           .timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         if (decoded is String) return decoded;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Fetches delivery info (partner name, phone, otp) for a given order by searching across all drivers.
+  Future<Map<String, dynamic>?> fetchDeliveryInfo(String orderId, {String? branchId}) async {
+    final userId = MockDatabase.currentUserId;
+    if (userId == null) return null;
+    try {
+      final adminId = await _getOrFetchAdminId();
+      String resolvedBranchId = branchId ?? '';
+      if (resolvedBranchId.isEmpty) {
+        for (var o in MockDatabase.initialOrders) {
+          if (o.id == orderId) {
+            resolvedBranchId = o.branchId;
+            break;
+          }
+        }
+      }
+      if (resolvedBranchId.isEmpty) return null;
+
+      final response = await http
+          .get(Uri.parse('$_dbUrl/delivery/$adminId/$resolvedBranchId.json'))
+          .timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded is Map) {
+          for (var driverId in decoded.keys) {
+            final ordersMap = decoded[driverId];
+            if (ordersMap is Map && ordersMap.containsKey(orderId)) {
+              final deliveryData = ordersMap[orderId];
+              if (deliveryData is Map) {
+                return {
+                  'deliveryPartnerName': deliveryData['deliveryPartnerName'],
+                  'mobileNumber': deliveryData['mobileNumber'],
+                  'otp': deliveryData['otp'],
+                };
+              }
+            }
+          }
+        }
       }
     } catch (_) {}
     return null;
@@ -787,14 +919,19 @@ class OrderRepository {
   ) async {
     final userId = MockDatabase.currentUserId;
     final orderId = 'ORD-${10000 + DateTime.now().millisecondsSinceEpoch % 90000}';
+    final methodLower = paymentMethod.toLowerCase().trim();
+    final paymentStatus = (methodLower == 'cash on delivery' || methodLower == 'cod') ? 'Postpaid' : 'Prepaid';
+
     final newOrder = OrderModel(
       id: orderId,
       branchId: branchId,
+      customerId: userId,
       items: items.map((e) => e.copyWith()).toList(),
       orderDate: DateTime.now(),
       status: 'Placed',
       deliveryAddress: address,
       paymentMethod: paymentMethod,
+      paymentStatus: paymentStatus,
       couponApplied: coupon,
       subtotal: subtotal,
       deliveryFee: deliveryFee,
@@ -812,8 +949,9 @@ class OrderRepository {
     final orderData = _orderToMap(newOrder);
 
     try {
+      final adminId = await _getOrFetchAdminId();
       final response = await http.put(
-        Uri.parse('$_dbUrl/user_customer/$userId/orders/$orderId.json'),
+        Uri.parse('$_dbUrl/order/$adminId/$branchId/$orderId.json'),
         body: json.encode(orderData),
       ).timeout(const Duration(seconds: 5));
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -831,6 +969,47 @@ class OrderRepository {
 class BranchRepository {
   static const String _dbUrl = 'https://dineos-123-default-rtdb.asia-southeast1.firebasedatabase.app';
 
+  Future<void> _resolveBranchCoordinates(Branch branch) async {
+    final url = branch.googleMapUrl;
+    if (url == null || url.isEmpty) return;
+
+    try {
+      final client = http.Client();
+      final request = http.Request('GET', Uri.parse(url))..followRedirects = false;
+      final response = await client.send(request).timeout(const Duration(seconds: 2));
+      final location = response.headers['location'];
+      if (location != null) {
+        // Parse from !3d...!4d...
+        final match3d4d = RegExp(r'!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)').firstMatch(location);
+        if (match3d4d != null) {
+          final lat = double.tryParse(match3d4d.group(1) ?? '');
+          final lng = double.tryParse(match3d4d.group(2) ?? '');
+          if (lat != null && lng != null) {
+            branch.latitude = lat;
+            branch.longitude = lng;
+            print('Resolved coordinates for branch ${branch.name} from URL redirect (!3d!4d): lat=$lat, lng=$lng');
+            return;
+          }
+        }
+
+        // Parse from @lat,lng
+        final matchAt = RegExp(r'@(-?\d+\.\d+),(-?\d+\.\d+)').firstMatch(location);
+        if (matchAt != null) {
+          final lat = double.tryParse(matchAt.group(1) ?? '');
+          final lng = double.tryParse(matchAt.group(2) ?? '');
+          if (lat != null && lng != null) {
+            branch.latitude = lat;
+            branch.longitude = lng;
+            print('Resolved coordinates for branch ${branch.name} from URL redirect (@lat,lng): lat=$lat, lng=$lng');
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      print('Error resolving coordinates for branch ${branch.name}: $e');
+    }
+  }
+
   Future<List<Branch>> getBranches() async {
     try {
       final response = await http.get(Uri.parse('$_dbUrl/branch.json')).timeout(const Duration(seconds: 5));
@@ -842,11 +1021,20 @@ class BranchRepository {
             if (branchesMap is Map) {
               branchesMap.forEach((branchId, branchVal) {
                 if (branchVal is Map) {
-                  branches.add(Branch.fromMap(branchId.toString(), branchVal));
+                  branches.add(Branch.fromMap(branchId.toString(), branchVal, adminId: adminId.toString()));
                 }
               });
             }
           });
+
+          // Resolve Google Maps coordinates for each branch in parallel
+          await Future.wait(
+            branches.map((branch) => _resolveBranchCoordinates(branch)),
+          ).timeout(const Duration(seconds: 3), onTimeout: () {
+            print('Warning: Branch coordinate resolution timed out (some branches may use fallbacks).');
+            return [];
+          });
+
           return branches;
         }
       }
@@ -854,6 +1042,80 @@ class BranchRepository {
       print('Error loading branches from Firebase: $e');
     }
     return [];
+  }
+}
+
+class SupportRepository {
+  static const String _dbUrl = 'https://dineos-123-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+  Future<List<SupportTicket>> getTickets() async {
+    final userId = MockDatabase.currentUserId;
+    if (userId == null) return [];
+
+    try {
+      final adminId = await _getOrFetchAdminId();
+      final response = await http.get(Uri.parse('$_dbUrl/customer_support/$adminId.json')).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded is Map) {
+          final List<SupportTicket> list = [];
+          decoded.forEach((branchId, branchData) {
+            if (branchData is Map) {
+              branchData.forEach((ticketId, ticketVal) {
+                if (ticketVal is Map) {
+                  final ticket = SupportTicket.fromMap(ticketId.toString(), ticketVal);
+                  if (ticket.customerId == userId) {
+                    list.add(ticket);
+                  }
+                }
+              });
+            }
+          });
+          list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return list;
+        }
+      }
+    } catch (e) {
+      print('Firebase RTDB getTickets failed: $e');
+    }
+    return [];
+  }
+
+  Future<SupportTicket> createTicket(String branchId, String message) async {
+    final userId = MockDatabase.currentUserId ?? 'guest';
+    final adminId = await _getOrFetchAdminId();
+    final ticketId = 'TKT-${DateTime.now().millisecondsSinceEpoch}';
+
+    String customerName = 'Customer';
+    final userMap = MockDatabase.userCustomerTable[userId];
+    if (userMap != null) {
+      customerName = userMap['fullName']?.toString() ?? 'Customer';
+    }
+
+    final newTicket = SupportTicket(
+      id: ticketId,
+      customerId: userId,
+      customerName: customerName,
+      branchId: branchId,
+      adminId: adminId,
+      message: message,
+      status: 'Open',
+      createdAt: DateTime.now(),
+    );
+
+    try {
+      final response = await http.put(
+        Uri.parse('$_dbUrl/customer_support/$adminId/$branchId/$ticketId.json'),
+        body: json.encode(newTicket.toMap()),
+      ).timeout(const Duration(seconds: 5));
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Status ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Firebase RTDB createTicket failed: $e');
+    }
+
+    return newTicket;
   }
 }
 

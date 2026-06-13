@@ -6,6 +6,7 @@ import '../../core/widgets/elastic_button.dart';
 import '../../core/widgets/page_transitions.dart';
 import '../../state/order_state.dart';
 import '../../state/cart_state.dart';
+import '../../state/branch_state.dart';
 import 'recent_order_detail_screen.dart';
 import '../order/order_detail_screen.dart';
 
@@ -192,33 +193,60 @@ class _RecentOrdersScreenState extends State<RecentOrdersScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 // Reorder button
-                                ElasticButton(
-                                  onTap: () {
+                                Builder(
+                                  builder: (context) {
+                                    final branchState = Provider.of<BranchState>(context, listen: false);
+                                    bool allAvailable = true;
                                     for (var item in order.items) {
-                                      cartState.addToCart(item.foodItem, quantity: item.quantity);
+                                      final isAvailable = branchState.selectedBranch?.isItemAvailable(item.foodItem.id) ?? true;
+                                      if (!isAvailable) {
+                                        allAvailable = false;
+                                        break;
+                                      }
                                     }
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Items added to cart!'),
-                                        backgroundColor: AppColors.success,
+
+                                    return ElasticButton(
+                                      onTap: () {
+                                        if (!allAvailable) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Some items in this order are not available at this branch.'),
+                                              backgroundColor: AppColors.danger,
+                                            ),
+                                          );
+                                          return;
+                                        }
+                                        for (var item in order.items) {
+                                          cartState.addToCart(item.foodItem, quantity: item.quantity);
+                                        }
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Items added to cart!'),
+                                            backgroundColor: AppColors.success,
+                                          ),
+                                        );
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: allAvailable
+                                              ? AppColors.primary
+                                              : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          'Reorder',
+                                          style: AppTypography.outfit(
+                                            color: allAvailable
+                                                ? Colors.white
+                                                : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
                                       ),
                                     );
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      'Reorder',
-                                      style: AppTypography.outfit(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
+                                  }
                                 ),
                               ],
                             ),

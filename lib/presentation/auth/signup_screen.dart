@@ -8,6 +8,7 @@ import '../../core/widgets/page_transitions.dart';
 import '../../state/auth_state.dart';
 import '../../state/address_state.dart';
 import '../../state/order_state.dart';
+import '../../state/branch_state.dart';
 import '../main_navigation.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -52,6 +53,7 @@ class _SignupScreenState extends State<SignupScreen> {
         // Refresh address and order state for the signed-up user
         Provider.of<AddressState>(context, listen: false).loadAddresses();
         Provider.of<OrderState>(context, listen: false).loadOrders();
+        Provider.of<BranchState>(context, listen: false).autoSelectNearestBranch();
 
         Navigator.of(context).pushAndRemoveUntil(
           SlidePageRoute(page: const MainNavigation()),

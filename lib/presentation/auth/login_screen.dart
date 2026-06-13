@@ -8,6 +8,7 @@ import '../../core/widgets/page_transitions.dart';
 import '../../state/auth_state.dart';
 import '../../state/address_state.dart';
 import '../../state/order_state.dart';
+import '../../state/branch_state.dart';
 import '../main_navigation.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
@@ -43,6 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Refresh address and order state for the logged-in user
         Provider.of<AddressState>(context, listen: false).loadAddresses();
         Provider.of<OrderState>(context, listen: false).loadOrders();
+        Provider.of<BranchState>(context, listen: false).autoSelectNearestBranch();
 
         Navigator.of(context).pushReplacement(
           SlidePageRoute(page: const MainNavigation()),

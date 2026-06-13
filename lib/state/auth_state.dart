@@ -32,6 +32,7 @@ class AuthState extends ChangeNotifier {
         final Map<String, dynamic> map = json.decode(userJson);
         _currentUser = UserModel.fromMap(map);
         MockDatabase.currentUserId = _currentUser?.id;
+        MockDatabase.currentAdminId = map['adminId']?.toString();
       }
     } catch (e) {
       print('Error loading user session: $e');
@@ -51,7 +52,9 @@ class AuthState extends ChangeNotifier {
       MockDatabase.currentUserId = _currentUser?.id;
       
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_session', json.encode(_currentUser!.toMap()));
+      final sessionData = _currentUser!.toMap();
+      sessionData['adminId'] = MockDatabase.currentAdminId;
+      await prefs.setString('user_session', json.encode(sessionData));
 
       _isLoading = false;
       notifyListeners();
@@ -86,7 +89,9 @@ class AuthState extends ChangeNotifier {
       MockDatabase.currentUserId = _currentUser?.id;
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_session', json.encode(_currentUser!.toMap()));
+      final sessionData = _currentUser!.toMap();
+      sessionData['adminId'] = MockDatabase.currentAdminId;
+      await prefs.setString('user_session', json.encode(sessionData));
 
       _isLoading = false;
       notifyListeners();
@@ -129,6 +134,7 @@ class AuthState extends ChangeNotifier {
   void logout() async {
     _currentUser = null;
     MockDatabase.currentUserId = null;
+    MockDatabase.currentAdminId = null;
     
     try {
       final prefs = await SharedPreferences.getInstance();

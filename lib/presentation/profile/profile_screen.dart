@@ -7,11 +7,13 @@ import '../../state/auth_state.dart';
 import '../../state/theme_state.dart';
 import '../../state/address_state.dart';
 import '../../state/order_state.dart';
+import '../../state/support_state.dart';
 import '../auth/login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'food_collection_screen.dart';
 import 'recent_orders_screen.dart';
 import 'address_book_screen.dart';
+import 'support_screen.dart';
 
 
 class ProfileScreen extends StatefulWidget {
@@ -26,8 +28,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) return;
     final orderState = Provider.of<OrderState>(context, listen: false);
     final addressState = Provider.of<AddressState>(context, listen: false);
+    final supportState = Provider.of<SupportState>(context, listen: false);
     await orderState.loadOrders();
     await addressState.loadAddresses();
+    await supportState.loadTickets();
   }
 
   @override
@@ -157,9 +161,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: 'Delivery Address Book',
                     isDark: isDark,
                     onTap: () {
+                       Navigator.push(
+                         context,
+                         SlidePageRoute(page: const AddressBookScreen()),
+                       );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  _buildMenuRow(
+                    icon: Icons.support_agent_rounded,
+                    title: 'Customer Help & Support',
+                    isDark: isDark,
+                    onTap: () {
                       Navigator.push(
                         context,
-                        SlidePageRoute(page: const AddressBookScreen()),
+                        SlidePageRoute(page: const SupportScreen()),
                       );
                     },
                   ),
@@ -176,6 +192,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       authState.logout();
                       Provider.of<AddressState>(context, listen: false).loadAddresses();
                       Provider.of<OrderState>(context, listen: false).loadOrders();
+                      Provider.of<SupportState>(context, listen: false).loadTickets();
                       Navigator.of(context).pushAndRemoveUntil(
                         SlidePageRoute(page: const LoginScreen()),
                         (route) => false,

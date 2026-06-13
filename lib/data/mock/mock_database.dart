@@ -7,6 +7,7 @@ class MockDatabase {
   // Simulated database table: user_customer
   static final Map<String, Map<String, dynamic>> userCustomerTable = {};
   static String? currentUserId;
+  static String? currentAdminId;
 
   static final List<String> categories = ['All'];
 

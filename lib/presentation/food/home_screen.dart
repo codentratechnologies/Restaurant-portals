@@ -54,7 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<FoodItem> _getFilteredItems(Branch? selectedBranch) {
     return _allFoodItems.where((item) {
-      if (selectedBranch != null && !selectedBranch.assignedMenuIds.contains(item.id)) {
+      if (selectedBranch != null &&
+          selectedBranch.assignedMenuIds.isNotEmpty &&
+          !selectedBranch.assignedMenuIds.contains(item.id)) {
         return false;
       }
       final matchesCategory = _selectedCategory == 'All' || item.category == _selectedCategory;
@@ -518,13 +520,24 @@ class _HomeScreenState extends State<HomeScreen> {
                             delegate: SliverChildBuilderDelegate(
                               (context, index) {
                                 final item = filteredItems[index];
+                                final isAvailable = branchState.selectedBranch?.isItemAvailable(item.id) ?? true;
                                 return GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      SlidePageRoute(page: FoodDetailScreen(foodItem: item)),
-                                    );
-                                  },
+                                  onTap: !isAvailable
+                                      ? () {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('${item.name} is not available at this branch.'),
+                                              duration: const Duration(seconds: 1),
+                                              backgroundColor: AppColors.danger,
+                                            ),
+                                          );
+                                        }
+                                      : () {
+                                          Navigator.push(
+                                            context,
+                                            SlidePageRoute(page: FoodDetailScreen(foodItem: item)),
+                                          );
+                                        },
                                   child: Card(
                                     clipBehavior: Clip.antiAlias,
                                     shape: RoundedRectangleBorder(
@@ -533,122 +546,150 @@ class _HomeScreenState extends State<HomeScreen> {
                                         color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
                                       ),
                                     ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        // Food image + Badge
-                                        Expanded(
-                                          child: Stack(
-                                            children: [
-                                              Image.network(
-                                                item.imageUrl,
-                                                width: double.infinity,
-                                                height: double.infinity,
-                                                fit: BoxFit.cover,
-                                              ),
-                                              Positioned(
-                                                top: 8,
-                                                left: 8,
-                                                child: Container(
-                                                  padding: const EdgeInsets.all(4),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    borderRadius: BorderRadius.circular(6),
-                                                    border: Border.all(
-                                                      color: item.isVeg ? AppColors.success : AppColors.danger,
-                                                      width: 1.5,
-                                                    ),
-                                                  ),
-                                                  child: Container(
-                                                    width: 6,
-                                                    height: 6,
-                                                    decoration: BoxDecoration(
-                                                      color: item.isVeg ? AppColors.success : AppColors.danger,
-                                                      shape: BoxShape.circle,
-                                                    ),
-                                                  ),
+                                    child: Opacity(
+                                      opacity: isAvailable ? 1.0 : 0.6,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Food image + Badge
+                                          Expanded(
+                                            child: Stack(
+                                              children: [
+                                                Image.network(
+                                                  item.imageUrl,
+                                                  width: double.infinity,
+                                                  height: double.infinity,
+                                                  fit: BoxFit.cover,
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        // Title and price
-                                        Padding(
-                                          padding: const EdgeInsets.all(12),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                item.name,
-                                                style: AppTypography.outfit(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 14,
-                                                ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                item.description,
-                                                style: AppTypography.inter(
-                                                  fontSize: 11,
-                                                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                                                ),
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  Text(
-                                                    '₹${item.basePrice.toStringAsFixed(2)}',
-                                                    style: AppTypography.inter(
-                                                      fontWeight: FontWeight.bold,
-                                                      fontSize: 15,
-                                                      color: AppColors.primary,
-                                                    ),
-                                                  ),
-                                                  // Quick Plus Button
-                                                  ElasticButton(
-                                                    onTap: () {
-                                                      // Quick add or detail open
-                                                      if (item.customizationGroups.isEmpty) {
-                                                        cartState.addToCart(item);
-                                                        ScaffoldMessenger.of(context).showSnackBar(
-                                                          SnackBar(
-                                                            content: Text('${item.name} added to cart!'),
-                                                            duration: const Duration(seconds: 1),
-                                                            backgroundColor: AppColors.success,
-                                                          ),
-                                                        );
-                                                      } else {
-                                                        // Item has customization, must open customization sheet
-                                                        Navigator.push(
-                                                          context,
-                                                          SlidePageRoute(page: FoodDetailScreen(foodItem: item)),
-                                                        );
-                                                      }
-                                                    },
+                                                if (!isAvailable)
+                                                  Positioned.fill(
                                                     child: Container(
-                                                      padding: const EdgeInsets.all(6),
-                                                      decoration: BoxDecoration(
-                                                        color: AppColors.primary,
-                                                        borderRadius: BorderRadius.circular(10),
-                                                      ),
-                                                      child: const Icon(
-                                                        Icons.add,
-                                                        color: Colors.white,
-                                                        size: 16,
+                                                      color: Colors.black.withOpacity(0.35),
+                                                      child: Center(
+                                                        child: Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                          decoration: BoxDecoration(
+                                                            color: Colors.black.withOpacity(0.85),
+                                                            borderRadius: BorderRadius.circular(8),
+                                                          ),
+                                                          child: Text(
+                                                            'UNAVAILABLE',
+                                                            style: AppTypography.outfit(
+                                                              color: Colors.white,
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 10,
+                                                            ),
+                                                          ),
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
-                                                ],
-                                              ),
-                                            ],
+                                                Positioned(
+                                                  top: 8,
+                                                  left: 8,
+                                                  child: Container(
+                                                    padding: const EdgeInsets.all(4),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius: BorderRadius.circular(6),
+                                                      border: Border.all(
+                                                        color: item.isVeg ? AppColors.success : AppColors.danger,
+                                                        width: 1.5,
+                                                      ),
+                                                    ),
+                                                    child: Container(
+                                                      width: 6,
+                                                      height: 6,
+                                                      decoration: BoxDecoration(
+                                                        color: item.isVeg ? AppColors.success : AppColors.danger,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                          // Title and price
+                                          Padding(
+                                            padding: const EdgeInsets.all(12),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  item.name,
+                                                  style: AppTypography.outfit(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  item.description,
+                                                  style: AppTypography.inter(
+                                                    fontSize: 11,
+                                                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      '₹${item.basePrice.toStringAsFixed(2)}',
+                                                      style: AppTypography.inter(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 15,
+                                                        color: AppColors.primary,
+                                                      ),
+                                                    ),
+                                                    // Quick Plus Button
+                                                    ElasticButton(
+                                                      onTap: !isAvailable
+                                                          ? null
+                                                          : () {
+                                                              // Quick add or detail open
+                                                              if (item.customizationGroups.isEmpty) {
+                                                                cartState.addToCart(item);
+                                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                                  SnackBar(
+                                                                    content: Text('${item.name} added to cart!'),
+                                                                    duration: const Duration(seconds: 1),
+                                                                    backgroundColor: AppColors.success,
+                                                                  ),
+                                                                );
+                                                              } else {
+                                                                // Item has customization, must open customization sheet
+                                                                Navigator.push(
+                                                                  context,
+                                                                  SlidePageRoute(page: FoodDetailScreen(foodItem: item)),
+                                                                );
+                                                              }
+                                                            },
+                                                      child: Container(
+                                                        padding: const EdgeInsets.all(6),
+                                                        decoration: BoxDecoration(
+                                                          color: isAvailable ? AppColors.primary : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                                                          borderRadius: BorderRadius.circular(10),
+                                                        ),
+                                                        child: Icon(
+                                                          Icons.add,
+                                                          color: isAvailable ? Colors.white : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                                                          size: 16,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 );

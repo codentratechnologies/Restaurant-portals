@@ -163,7 +163,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                updatedOrder.status,
+                                _getFriendlyStatusLabel(updatedOrder.status),
                                 style: AppTypography.outfit(
                                   color: _getStatusColor(updatedOrder.status),
                                   fontWeight: FontWeight.bold,
@@ -334,6 +334,125 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  Text(
+                    'Payment Details',
+                    style: AppTypography.outfit(
+                      style: theme.textTheme.titleMedium,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.payment_rounded, color: AppColors.primary, size: 24),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Payment Method',
+                                style: AppTypography.outfit(fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${updatedOrder.paymentMethod} • ${updatedOrder.paymentStatus}',
+                                style: AppTypography.inter(
+                                  fontSize: 12,
+                                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  if (updatedOrder.deliveryPartnerName != null) ...[
+                    Text(
+                      'Delivery Partner',
+                      style: AppTypography.outfit(
+                        style: theme.textTheme.titleMedium,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.delivery_dining_rounded, color: AppColors.primary, size: 28),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  updatedOrder.deliveryPartnerName!,
+                                  style: AppTypography.outfit(fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Mobile: ${updatedOrder.deliveryPartnerMobile ?? 'N/A'}',
+                                  style: AppTypography.inter(
+                                    fontSize: 13,
+                                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (updatedOrder.otp != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'OTP',
+                                    style: AppTypography.inter(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                  Text(
+                                    updatedOrder.otp!,
+                                    style: AppTypography.outfit(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                   // Auto-refresh hint
                   Center(
                     child: Text(
@@ -360,12 +479,63 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         return AppColors.warning;
       case 'Preparing':
         return Colors.blue;
+      case 'Assigned':
+        return Colors.orange;
+      case 'Arrived Store':
+        return Colors.deepOrange;
       case 'Out for Delivery':
         return AppColors.primary;
+      case 'Arrived Customer':
+        return Colors.indigo;
       case 'Delivered':
         return AppColors.success;
       default:
         return AppColors.lightTextSecondary;
+    }
+  }
+
+  /// Returns a customer-friendly label for any order status string.
+  String _getFriendlyStatusLabel(String status) {
+    switch (status.trim()) {
+      case 'Placed':
+        return 'Placed';
+      case 'Preparing':
+        return 'Preparing';
+      case 'Assigned':
+        return 'Preparing'; // Driver assigned → customer sees "Preparing"
+      case 'Arrived Store':
+        return 'Preparing'; // Driver at store → customer sees "Preparing"
+      case 'Out for Delivery':
+        return 'Out for Delivery';
+      case 'Arrived Customer':
+        return 'Out for Delivery'; // Driver at door → customer sees "Out for Delivery"
+      case 'Delivered':
+        return 'Delivered';
+      default:
+        return status;
+    }
+  }
+
+  /// Maps any status string (from customer or delivery app) to a timeline index.
+  /// Timeline steps: 0=Placed, 1=Preparing/Assigned, 2=Out for Delivery, 3=Delivered
+  int _statusToTimelineIndex(String status) {
+    switch (status.trim()) {
+      case 'Placed':
+        return 0;
+      case 'Preparing':
+        return 1;
+      case 'Assigned':
+        return 1; // Driver accepted → still in "Preparing" stage for customer
+      case 'Arrived Store':
+        return 1; // Driver at restaurant → still "Preparing" from customer view
+      case 'Out for Delivery':
+        return 2;
+      case 'Arrived Customer':
+        return 2; // Driver at door → still "Out for Delivery" from customer view
+      case 'Delivered':
+        return 3;
+      default:
+        return 0; // Default to "Placed" for unknown statuses
     }
   }
 
@@ -378,7 +548,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       'Order completed! Enjoy your delicious meal!'
     ];
 
-    int currentIndex = steps.indexOf(currentStatus);
+    int currentIndex = _statusToTimelineIndex(currentStatus);
 
     return Column(
       children: List.generate(steps.length, (index) {

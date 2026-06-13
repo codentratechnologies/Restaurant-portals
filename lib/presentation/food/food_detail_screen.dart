@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/elastic_button.dart';
 import '../../data/models/food_item.dart';
 import '../../state/cart_state.dart';
+import '../../state/branch_state.dart';
 import 'food_customization_screen.dart';
 
 class FoodDetailScreen extends StatefulWidget {
@@ -338,45 +339,65 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   // CTA button
                   Expanded(
                     flex: 2,
-                    child: ElasticButton(
-                      onTap: () {
-                        if (widget.foodItem.customizationGroups.isEmpty) {
-                          cartState.addToCart(widget.foodItem);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${widget.foodItem.name} added to cart!'),
-                              duration: const Duration(seconds: 1),
-                              backgroundColor: AppColors.success,
+                    child: Builder(
+                      builder: (context) {
+                        final branchState = Provider.of<BranchState>(context, listen: false);
+                        final isAvailable = branchState.selectedBranch?.isItemAvailable(widget.foodItem.id) ?? true;
+
+                        return ElasticButton(
+                          onTap: !isAvailable
+                              ? null
+                              : () {
+                                  if (widget.foodItem.customizationGroups.isEmpty) {
+                                    cartState.addToCart(widget.foodItem);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('${widget.foodItem.name} added to cart!'),
+                                        duration: const Duration(seconds: 1),
+                                        backgroundColor: AppColors.success,
+                                      ),
+                                    );
+                                  } else {
+                                    _openCustomizationSheet();
+                                  }
+                                },
+                          child: Container(
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: isAvailable
+                                  ? AppColors.primary
+                                  : (isDark ? AppColors.darkSurface : AppColors.lightSurface),
+                              borderRadius: BorderRadius.circular(16),
+                              border: isAvailable
+                                  ? null
+                                  : Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                              boxShadow: isAvailable
+                                  ? [
+                                      BoxShadow(
+                                        color: AppColors.primary.withOpacity(0.3),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 8),
+                                      )
+                                    ]
+                                  : null,
                             ),
-                          );
-                        } else {
-                          _openCustomizationSheet();
-                        }
-                      },
-                      child: Container(
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withOpacity(0.3),
-                              blurRadius: 16,
-                              offset: const Offset(0, 8),
-                            )
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            widget.foodItem.customizationGroups.isEmpty ? 'Add To Cart' : 'Customize & Add',
-                            style: AppTypography.outfit(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                            child: Center(
+                              child: Text(
+                                isAvailable
+                                    ? (widget.foodItem.customizationGroups.isEmpty ? 'Add To Cart' : 'Customize & Add')
+                                    : 'Unavailable at this Branch',
+                                style: AppTypography.outfit(
+                                  color: isAvailable
+                                      ? Colors.white
+                                      : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      }
                     ),
                   ),
                 ],

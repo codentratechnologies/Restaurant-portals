@@ -222,7 +222,7 @@ class RecentOrderDetailScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              order.paymentMethod,
+                              '${order.paymentMethod} • ${order.paymentStatus}',
                               style: AppTypography.inter(
                                 fontSize: 11,
                                 color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,

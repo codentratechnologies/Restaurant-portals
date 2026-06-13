@@ -8,6 +8,7 @@ import 'state/cart_state.dart';
 import 'state/address_state.dart';
 import 'state/order_state.dart';
 import 'state/branch_state.dart';
+import 'state/support_state.dart';
 import 'presentation/auth/login_screen.dart';
 import 'presentation/main_navigation.dart';
 
@@ -22,6 +23,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => AddressState()),
         ChangeNotifierProvider(create: (_) => OrderState()),
         ChangeNotifierProvider(create: (_) => BranchState()),
+        ChangeNotifierProvider(create: (_) => SupportState()),
       ],
       child: const MyApp(),
     ),
@@ -64,9 +66,12 @@ class _AppStartupWrapperState extends State<AppStartupWrapper> {
       if (!authState.isInitializing) {
         _initialized = true;
         if (authState.isAuthenticated) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
             Provider.of<AddressState>(context, listen: false).loadAddresses();
             Provider.of<OrderState>(context, listen: false).loadOrders();
+            Provider.of<SupportState>(context, listen: false).loadTickets();
+            await Provider.of<BranchState>(context, listen: false).loadBranches();
+            await Provider.of<BranchState>(context, listen: false).autoSelectNearestBranch();
           });
         }
       }

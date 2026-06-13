@@ -71,21 +71,67 @@ class OrderState extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Polls Firebase for the latest status of a single order and updates it
-  /// in the local list. Lightweight — only reads the status field.
   Future<void> fetchAndUpdateOrderStatus(String orderId) async {
-    final newStatus = await _orderRepository.fetchOrderStatus(orderId);
-    if (newStatus == null) return;
-
+    String? branchId;
     final idx = _orders.indexWhere((o) => o.id == orderId);
-    if (idx != -1 && _orders[idx].status != newStatus) {
-      _orders[idx] = _orders[idx].copyWith(status: newStatus);
-      notifyListeners();
+    if (idx != -1) {
+      branchId = _orders[idx].branchId;
+    } else if (_activeOrder?.id == orderId) {
+      branchId = _activeOrder!.branchId;
+    }
+
+    final newStatus = await _orderRepository.fetchOrderStatus(orderId, branchId: branchId);
+    if (newStatus == null) return;
+    
+    final deliveryInfo = await _orderRepository.fetchDeliveryInfo(orderId, branchId: branchId);
+
+    final updatedIdx = _orders.indexWhere((o) => o.id == orderId);
+    if (updatedIdx != -1) {
+      bool changed = false;
+      var currentOrder = _orders[updatedIdx];
+      if (currentOrder.status != newStatus) {
+        currentOrder = currentOrder.copyWith(status: newStatus);
+        changed = true;
+      }
+      if (deliveryInfo != null) {
+        if (currentOrder.deliveryPartnerName != deliveryInfo['deliveryPartnerName'] ||
+            currentOrder.otp != deliveryInfo['otp']) {
+          currentOrder = currentOrder.copyWith(
+            deliveryPartnerName: deliveryInfo['deliveryPartnerName']?.toString(),
+            deliveryPartnerMobile: deliveryInfo['mobileNumber']?.toString(),
+            otp: deliveryInfo['otp']?.toString(),
+          );
+          changed = true;
+        }
+      }
+      if (changed) {
+        _orders[updatedIdx] = currentOrder;
+        notifyListeners();
+      }
     }
     // Also update activeOrder if it matches
-    if (_activeOrder?.id == orderId && _activeOrder!.status != newStatus) {
-      _activeOrder = _activeOrder!.copyWith(status: newStatus);
-      notifyListeners();
+    if (_activeOrder?.id == orderId) {
+      bool changed = false;
+      var currentOrder = _activeOrder!;
+      if (currentOrder.status != newStatus) {
+        currentOrder = currentOrder.copyWith(status: newStatus);
+        changed = true;
+      }
+      if (deliveryInfo != null) {
+        if (currentOrder.deliveryPartnerName != deliveryInfo['deliveryPartnerName'] ||
+            currentOrder.otp != deliveryInfo['otp']) {
+          currentOrder = currentOrder.copyWith(
+            deliveryPartnerName: deliveryInfo['deliveryPartnerName']?.toString(),
+            deliveryPartnerMobile: deliveryInfo['mobileNumber']?.toString(),
+            otp: deliveryInfo['otp']?.toString(),
+          );
+          changed = true;
+        }
+      }
+      if (changed) {
+        _activeOrder = currentOrder;
+        notifyListeners();
+      }
     }
   }
 }
