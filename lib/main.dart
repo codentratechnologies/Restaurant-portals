@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
       builder: (context, _) {
         final state = AppState();
         return MaterialApp(
-          title: 'DineOs Delivery',
+          title: 'DineOS Delivery',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.getLightTheme(),
           darkTheme: AppTheme.getDarkTheme(),

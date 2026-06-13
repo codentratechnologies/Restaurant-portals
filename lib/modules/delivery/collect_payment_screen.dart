@@ -271,7 +271,7 @@ class _CollectPaymentScreenState extends State<CollectPaymentScreen> {
                                   border: Border.all(color: Colors.grey.shade300, width: 2),
                                 ),
                                 child: Image.network(
-                                  'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=dineos@icici%26pn=DineOs%26am=${order.collectAmount}%26cu=INR',
+                                  'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=dineos@icici%26pn=DineOS%26am=${order.collectAmount}%26cu=INR',
                                   loadingBuilder: (context, child, loadingProgress) {
                                     if (loadingProgress == null) return child;
                                     return const Center(child: CircularProgressIndicator());

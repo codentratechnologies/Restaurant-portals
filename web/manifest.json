@@ -1,6 +1,6 @@
 {
-    "name": "dineos_delivery",
-    "short_name": "dineos_delivery",
+    "name": "DineOS Delivery",
+    "short_name": "DineOS Delivery",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

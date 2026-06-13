@@ -66,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Please contact the DineOs administrator of your branch to reset your credentials.',
+                'Please contact the DineOS administrator of your branch to reset your credentials.',
                 style: TextStyle(
                   fontFamily: 'Inter',
                   color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -143,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'DineOs',
+                        'DineOS',
                         style: theme.textTheme.displayMedium?.copyWith(
                           color: AppColors.primary,
                           fontFamily: 'Outfit',
