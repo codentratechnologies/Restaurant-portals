@@ -603,6 +603,10 @@ Map<String, dynamic> _orderToMap(OrderModel order) {
     'discount': order.discount,
     'total': order.total,
     'items': order.items.map((i) => _cartItemToMap(i)).toList(),
+    'deliveryPartnerName': order.deliveryPartnerName,
+    'deliveryPartnerMobile': order.deliveryPartnerMobile,
+    'otp': order.otp,
+    'customer_review': order.customerReview?.toMap(),
   };
 }
 
@@ -627,6 +631,10 @@ OrderModel _mapToOrder(String id, Map map) {
     discount: (map['discount'] as num?)?.toDouble() ?? 0.0,
     total: (map['total'] as num?)?.toDouble() ?? 0.0,
     items: items,
+    deliveryPartnerName: map['deliveryPartnerName']?.toString(),
+    deliveryPartnerMobile: map['deliveryPartnerMobile']?.toString(),
+    otp: map['otp']?.toString(),
+    customerReview: map['customer_review'] != null ? CustomerReview.fromMap(map['customer_review'] as Map) : null,
   );
 }
 
@@ -964,6 +972,36 @@ class OrderRepository {
     _localOrders.insert(0, newOrder);
     return newOrder;
   }
+
+  Future<CustomerReview> submitOrderReview({
+    required String orderId,
+    required String branchId,
+    required double rating,
+    required String comment,
+  }) async {
+    final review = CustomerReview(rating: rating, comment: comment);
+    final adminId = await _getOrFetchAdminId();
+
+    try {
+      final response = await http.put(
+        Uri.parse('$_dbUrl/order/$adminId/$branchId/$orderId/customer_review.json'),
+        body: json.encode(review.toMap()),
+      ).timeout(const Duration(seconds: 5));
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Status ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Firebase RTDB submitOrderReview failed: $e');
+    }
+
+    // Also update local orders list
+    final index = _localOrders.indexWhere((element) => element.id == orderId);
+    if (index != -1) {
+      _localOrders[index] = _localOrders[index].copyWith(customerReview: review);
+    }
+
+    return review;
+  }
 }
 
 class BranchRepository {
@@ -1061,14 +1099,28 @@ class SupportRepository {
           final List<SupportTicket> list = [];
           decoded.forEach((branchId, branchData) {
             if (branchData is Map) {
+              // Read flat tickets directly under branchId
               branchData.forEach((ticketId, ticketVal) {
-                if (ticketVal is Map) {
+                if (ticketId != 'customer_ticket' && ticketId != 'Customer Ticket' && ticketVal is Map) {
                   final ticket = SupportTicket.fromMap(ticketId.toString(), ticketVal);
                   if (ticket.customerId == userId) {
                     list.add(ticket);
                   }
                 }
               });
+
+              // Fallback support for nested structure
+              final customerTicketsMap = branchData['customer_ticket'] ?? branchData['Customer Ticket'];
+              if (customerTicketsMap is Map) {
+                customerTicketsMap.forEach((ticketId, ticketVal) {
+                  if (ticketVal is Map) {
+                    final ticket = SupportTicket.fromMap(ticketId.toString(), ticketVal);
+                    if (ticket.customerId == userId) {
+                      list.add(ticket);
+                    }
+                  }
+                });
+              }
             }
           });
           list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -1081,26 +1133,35 @@ class SupportRepository {
     return [];
   }
 
-  Future<SupportTicket> createTicket(String branchId, String message) async {
+  Future<SupportTicket> createTicket({
+    required String branchId,
+    required String subject,
+    required String description,
+    required String issueType,
+    required String priority,
+    required String customerName,
+    String? orderId,
+  }) async {
     final userId = MockDatabase.currentUserId ?? 'guest';
     final adminId = await _getOrFetchAdminId();
     final ticketId = 'TKT-${DateTime.now().millisecondsSinceEpoch}';
-
-    String customerName = 'Customer';
-    final userMap = MockDatabase.userCustomerTable[userId];
-    if (userMap != null) {
-      customerName = userMap['fullName']?.toString() ?? 'Customer';
-    }
+    final id = DateTime.now().millisecondsSinceEpoch;
 
     final newTicket = SupportTicket(
-      id: ticketId,
+      id: id,
+      ticketId: ticketId,
       customerId: userId,
       customerName: customerName,
+      orderId: orderId,
       branchId: branchId,
       adminId: adminId,
-      message: message,
+      subject: subject,
+      description: description,
+      issueType: issueType,
+      priority: priority,
       status: 'Open',
       createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
 
     try {

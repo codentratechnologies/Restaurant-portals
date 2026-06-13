@@ -2,6 +2,30 @@ import 'cart_item.dart';
 import 'address.dart';
 import 'coupon.dart';
 
+class CustomerReview {
+  final double rating;
+  final String comment;
+
+  CustomerReview({
+    required this.rating,
+    required this.comment,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'rating': rating,
+      'comment': comment,
+    };
+  }
+
+  factory CustomerReview.fromMap(Map<dynamic, dynamic> map) {
+    return CustomerReview(
+      rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
+      comment: map['comment']?.toString() ?? '',
+    );
+  }
+}
+
 class OrderModel {
   final String id;
   final String branchId;
@@ -21,6 +45,7 @@ class OrderModel {
   final String? deliveryPartnerName;
   final String? deliveryPartnerMobile;
   final String? otp;
+  final CustomerReview? customerReview;
 
   OrderModel({
     required this.id,
@@ -41,6 +66,7 @@ class OrderModel {
     this.deliveryPartnerName,
     this.deliveryPartnerMobile,
     this.otp,
+    this.customerReview,
   });
 
   OrderModel copyWith({
@@ -62,6 +88,7 @@ class OrderModel {
     String? deliveryPartnerName,
     String? deliveryPartnerMobile,
     String? otp,
+    CustomerReview? customerReview,
   }) {
     return OrderModel(
       id: id ?? this.id,
@@ -82,6 +109,7 @@ class OrderModel {
       deliveryPartnerName: deliveryPartnerName ?? this.deliveryPartnerName,
       deliveryPartnerMobile: deliveryPartnerMobile ?? this.deliveryPartnerMobile,
       otp: otp ?? this.otp,
+      customerReview: customerReview ?? this.customerReview,
     );
   }
 }

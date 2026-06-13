@@ -4,6 +4,8 @@ import '../../core/theme/colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../state/support_state.dart';
 import '../../state/branch_state.dart';
+import '../../state/order_state.dart';
+import '../../state/auth_state.dart';
 import '../../data/models/support_ticket.dart';
 import 'package:intl/intl.dart';
 
@@ -21,6 +23,7 @@ class _SupportScreenState extends State<SupportScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<SupportState>(context, listen: false).loadTickets();
       Provider.of<BranchState>(context, listen: false).loadBranches();
+      Provider.of<OrderState>(context, listen: false).loadOrders();
     });
   }
 
@@ -117,23 +120,26 @@ class _SupportScreenState extends State<SupportScreen> {
                 color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
               ),
             ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onPressed: () => _showNewTicketModal(context),
-              child: Text(
-                'Create First Ticket',
-                style: AppTypography.outfit(fontWeight: FontWeight.bold),
-              ),
-            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBadge(String label, Color color, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.outfit(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: color,
         ),
       ),
     );
@@ -185,11 +191,11 @@ class _SupportScreenState extends State<SupportScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Ticket #${ticket.id.split('-').last}',
+                      'Ticket #${ticket.ticketId.split('-').last}',
                       style: AppTypography.outfit(
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                        fontSize: 13,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
                       ),
                     ),
                     Container(
@@ -211,6 +217,42 @@ class _SupportScreenState extends State<SupportScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
+                  ticket.subject,
+                  style: AppTypography.outfit(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    _buildBadge(ticket.issueType, AppColors.primary, isDark),
+                    const SizedBox(width: 8),
+                    _buildBadge(
+                      '${ticket.priority} Priority',
+                      ticket.priority.toLowerCase() == 'high'
+                          ? AppColors.danger
+                          : (ticket.priority.toLowerCase() == 'medium'
+                              ? AppColors.warning
+                              : Colors.blueGrey),
+                      isDark,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (ticket.orderId != null && ticket.orderId!.isNotEmpty) ...[
+                  Text(
+                    'Linked Order: #${ticket.orderId}',
+                    style: AppTypography.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                ],
+                Text(
                   'Branch: $branchName',
                   style: AppTypography.inter(
                     fontWeight: FontWeight.w600,
@@ -226,9 +268,9 @@ class _SupportScreenState extends State<SupportScreen> {
                     color: isDark ? AppColors.darkTextSecondary.withOpacity(0.7) : AppColors.lightTextSecondary.withOpacity(0.7),
                   ),
                 ),
-                const Divider(height: 24),
+                const Divider(height: 20),
                 Text(
-                  ticket.message,
+                  ticket.description,
                   style: AppTypography.inter(
                     fontSize: 14,
                     color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
@@ -253,13 +295,59 @@ class NewTicketBottomSheet extends StatefulWidget {
 class _NewTicketBottomSheetState extends State<NewTicketBottomSheet> {
   final _formKey = GlobalKey<FormState>();
   String? _selectedBranchId;
-  final _messageController = TextEditingController();
+  String? _selectedOrderId;
+  String _selectedIssueType = 'Other';
+  String _selectedPriority = 'Low';
+  
+  final _subjectController = TextEditingController();
+  final _descriptionController = TextEditingController();
   bool _isSubmitting = false;
+
+  final List<String> _issueTypes = [
+    'Food Quality',
+    'Delivery Delay',
+    'Missing Items',
+    'Payment Issue',
+    'Wrong Order',
+    'Other'
+  ];
+
+  final List<String> _priorities = ['Low', 'Medium', 'High'];
 
   @override
   void dispose() {
-    _messageController.dispose();
+    _subjectController.dispose();
+    _descriptionController.dispose();
     super.dispose();
+  }
+
+  InputDecoration _buildInputDecoration(bool isDark, {String? hintText}) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: AppTypography.inter(
+        fontSize: 14,
+        color: isDark ? AppColors.darkTextSecondary.withOpacity(0.7) : AppColors.lightTextSecondary.withOpacity(0.7),
+      ),
+      filled: true,
+      fillColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.primary),
+      ),
+    );
   }
 
   Future<void> _submitTicket() async {
@@ -275,7 +363,18 @@ class _NewTicketBottomSheetState extends State<NewTicketBottomSheet> {
 
     try {
       final supportState = Provider.of<SupportState>(context, listen: false);
-      await supportState.createTicket(_selectedBranchId!, _messageController.text);
+      final authState = Provider.of<AuthState>(context, listen: false);
+      final customerName = authState.currentUser?.fullName ?? 'Customer';
+
+      await supportState.createTicket(
+        branchId: _selectedBranchId!,
+        subject: _subjectController.text.trim(),
+        description: _descriptionController.text.trim(),
+        issueType: _selectedIssueType,
+        priority: _selectedPriority,
+        customerName: customerName,
+        orderId: _selectedOrderId,
+      );
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -306,6 +405,8 @@ class _NewTicketBottomSheetState extends State<NewTicketBottomSheet> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final branchState = Provider.of<BranchState>(context);
+    final orderState = Provider.of<OrderState>(context);
+    final ordersList = orderState.orders;
 
     return Container(
       decoration: BoxDecoration(
@@ -320,164 +421,280 @@ class _NewTicketBottomSheetState extends State<NewTicketBottomSheet> {
       ),
       child: Form(
         key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Raise Support Ticket',
-                  style: AppTypography.outfit(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Select Branch',
-              style: AppTypography.outfit(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: _selectedBranchId,
-              hint: Text(
-                'Choose restaurant branch',
-                style: AppTypography.inter(
-                  fontSize: 14,
-                  color: isDark ? AppColors.darkTextSecondary.withOpacity(0.7) : AppColors.lightTextSecondary.withOpacity(0.7),
-                ),
-              ),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.primary),
-                ),
-              ),
-              dropdownColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-              style: AppTypography.inter(
-                color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-              ),
-              items: branchState.branches.map((b) {
-                return DropdownMenuItem<String>(
-                  value: b.id,
-                  child: Text(b.name),
-                );
-              }).toList(),
-              onChanged: (val) {
-                setState(() => _selectedBranchId = val);
-              },
-              validator: (val) => val == null ? 'Please select a branch' : null,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Describe your Issue / Message',
-              style: AppTypography.outfit(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _messageController,
-              maxLines: 4,
-              keyboardType: TextInputType.multiline,
-              style: AppTypography.inter(
-                color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-              ),
-              decoration: InputDecoration(
-                hintText: 'What issue are you facing with your order?',
-                hintStyle: AppTypography.inter(
-                  fontSize: 14,
-                  color: isDark ? AppColors.darkTextSecondary.withOpacity(0.7) : AppColors.lightTextSecondary.withOpacity(0.7),
-                ),
-                filled: true,
-                fillColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.primary),
-                ),
-              ),
-              validator: (val) {
-                if (val == null || val.trim().isEmpty) {
-                  return 'Please write your message';
-                }
-                if (val.trim().length < 10) {
-                  return 'Please describe the issue in at least 10 characters';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              onPressed: _isSubmitting ? null : _submitTicket,
-              child: _isSubmitting
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : Text(
-                      'Submit Support Ticket',
-                      style: AppTypography.outfit(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Raise Support Ticket',
+                    style: AppTypography.outfit(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
                     ),
-            ),
-          ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              
+              // Select Order (Optional)
+              Text(
+                'Link Order (Optional)',
+                style: AppTypography.outfit(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _selectedOrderId ?? '',
+                decoration: _buildInputDecoration(isDark),
+                dropdownColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                style: AppTypography.inter(
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                ),
+                items: [
+                  const DropdownMenuItem<String>(
+                    value: '',
+                    child: Text('None / General Issue'),
+                  ),
+                  ...ordersList.map((order) {
+                    final formattedDate = DateFormat('dd MMM, hh:mm a').format(order.orderDate);
+                    return DropdownMenuItem<String>(
+                      value: order.id,
+                      child: Text('${order.id} ($formattedDate) - ₹${order.total.toStringAsFixed(0)}'),
+                    );
+                  }),
+                ],
+                onChanged: (val) {
+                  setState(() {
+                    if (val == null || val.isEmpty) {
+                      _selectedOrderId = null;
+                    } else {
+                      _selectedOrderId = val;
+                      try {
+                        final matchedOrder = ordersList.firstWhere((o) => o.id == val);
+                        _selectedBranchId = matchedOrder.branchId;
+                      } catch (_) {}
+                    }
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Select Branch
+              Text(
+                'Select Branch',
+                style: AppTypography.outfit(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _selectedBranchId,
+                hint: Text(
+                  'Choose restaurant branch',
+                  style: AppTypography.inter(
+                    fontSize: 14,
+                    color: isDark ? AppColors.darkTextSecondary.withOpacity(0.7) : AppColors.lightTextSecondary.withOpacity(0.7),
+                  ),
+                ),
+                decoration: _buildInputDecoration(isDark),
+                dropdownColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                style: AppTypography.inter(
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                ),
+                items: branchState.branches.map((b) {
+                  return DropdownMenuItem<String>(
+                    value: b.id,
+                    child: Text(b.name),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  setState(() => _selectedBranchId = val);
+                },
+                validator: (val) => val == null ? 'Please select a branch' : null,
+              ),
+              const SizedBox(height: 16),
+
+              // Subject
+              Text(
+                'Subject',
+                style: AppTypography.outfit(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _subjectController,
+                style: AppTypography.inter(
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                ),
+                decoration: _buildInputDecoration(isDark, hintText: 'Short summary of the issue'),
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Please enter a subject';
+                  }
+                  if (val.trim().length < 3) {
+                    return 'Subject must be at least 3 characters';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Row for Issue Type & Priority
+              Row(
+                children: [
+                  // Issue Type
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Issue Type',
+                          style: AppTypography.outfit(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          value: _selectedIssueType,
+                          decoration: _buildInputDecoration(isDark),
+                          dropdownColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                          style: AppTypography.inter(
+                            color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                          ),
+                          items: _issueTypes.map((type) {
+                            return DropdownMenuItem<String>(
+                              value: type,
+                              child: Text(type),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() => _selectedIssueType = val);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Priority
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Priority',
+                          style: AppTypography.outfit(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          value: _selectedPriority,
+                          decoration: _buildInputDecoration(isDark),
+                          dropdownColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                          style: AppTypography.inter(
+                            color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                          ),
+                          items: _priorities.map((prio) {
+                            return DropdownMenuItem<String>(
+                              value: prio,
+                              child: Text(prio),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() => _selectedPriority = val);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Description
+              Text(
+                'Describe your Issue / Message',
+                style: AppTypography.outfit(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 4,
+                keyboardType: TextInputType.multiline,
+                style: AppTypography.inter(
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                ),
+                decoration: _buildInputDecoration(isDark, hintText: 'What issue are you facing with your order?'),
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Please describe your issue';
+                  }
+                  if (val.trim().length < 10) {
+                    return 'Please describe the issue in at least 10 characters';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: _isSubmitting ? null : _submitTicket,
+                child: _isSubmitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        'Submit Support Ticket',
+                        style: AppTypography.outfit(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );

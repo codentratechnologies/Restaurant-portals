@@ -134,4 +134,35 @@ class OrderState extends ChangeNotifier {
       }
     }
   }
+
+  Future<void> submitOrderReview({
+    required String orderId,
+    required String branchId,
+    required double rating,
+    required String comment,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final review = await _orderRepository.submitOrderReview(
+        orderId: orderId,
+        branchId: branchId,
+        rating: rating,
+        comment: comment,
+      );
+
+      // Update in local lists
+      final index = _orders.indexWhere((o) => o.id == orderId);
+      if (index != -1) {
+        _orders[index] = _orders[index].copyWith(customerReview: review);
+      }
+      if (_activeOrder?.id == orderId) {
+        _activeOrder = _activeOrder!.copyWith(customerReview: review);
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

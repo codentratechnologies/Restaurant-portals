@@ -25,12 +25,28 @@ class SupportState extends ChangeNotifier {
     }
   }
 
-  Future<SupportTicket> createTicket(String branchId, String message) async {
+  Future<SupportTicket> createTicket({
+    required String branchId,
+    required String subject,
+    required String description,
+    required String issueType,
+    required String priority,
+    required String customerName,
+    String? orderId,
+  }) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      final ticket = await _supportRepository.createTicket(branchId, message);
+      final ticket = await _supportRepository.createTicket(
+        branchId: branchId,
+        subject: subject,
+        description: description,
+        issueType: issueType,
+        priority: priority,
+        customerName: customerName,
+        orderId: orderId,
+      );
       _tickets.insert(0, ticket);
       return ticket;
     } finally {

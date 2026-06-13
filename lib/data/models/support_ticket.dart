@@ -1,69 +1,117 @@
 class SupportTicket {
-  final String id;
+  final int? id;
+  final String ticketId;
   final String customerId;
   final String customerName;
+  final String? orderId;
   final String branchId;
-  final String adminId;
-  final String message;
+  final String? adminId;
+  final String subject;
+  final String description;
+  final String issueType;
+  final String priority;
   final String status;
+  final String? assignedTo;
   final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? resolvedAt;
 
   SupportTicket({
-    required this.id,
+    this.id,
+    required this.ticketId,
     required this.customerId,
     required this.customerName,
+    this.orderId,
     required this.branchId,
-    required this.adminId,
-    required this.message,
+    this.adminId,
+    required this.subject,
+    required this.description,
+    required this.issueType,
+    required this.priority,
     required this.status,
+    this.assignedTo,
     required this.createdAt,
+    required this.updatedAt,
+    this.resolvedAt,
   });
 
   SupportTicket copyWith({
-    String? id,
+    int? id,
+    String? ticketId,
     String? customerId,
     String? customerName,
+    String? orderId,
     String? branchId,
     String? adminId,
-    String? message,
+    String? subject,
+    String? description,
+    String? issueType,
+    String? priority,
     String? status,
+    String? assignedTo,
     DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? resolvedAt,
   }) {
     return SupportTicket(
       id: id ?? this.id,
+      ticketId: ticketId ?? this.ticketId,
       customerId: customerId ?? this.customerId,
       customerName: customerName ?? this.customerName,
+      orderId: orderId ?? this.orderId,
       branchId: branchId ?? this.branchId,
       adminId: adminId ?? this.adminId,
-      message: message ?? this.message,
+      subject: subject ?? this.subject,
+      description: description ?? this.description,
+      issueType: issueType ?? this.issueType,
+      priority: priority ?? this.priority,
       status: status ?? this.status,
+      assignedTo: assignedTo ?? this.assignedTo,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      resolvedAt: resolvedAt ?? this.resolvedAt,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'customerId': customerId,
+      'ticket_id': ticketId,
+      'customer_id': customerId,
       'customerName': customerName,
-      'branchId': branchId,
+      'order_id': orderId,
+      'branch_id': branchId,
       'adminId': adminId,
-      'message': message,
+      'subject': subject,
+      'description': description,
+      'issue_type': issueType,
+      'priority': priority,
       'status': status,
-      'createdAt': createdAt.toIso8601String(),
+      'assigned_to': assignedTo,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+      'resolved_at': resolvedAt?.toIso8601String(),
     };
   }
 
-  factory SupportTicket.fromMap(String id, Map<dynamic, dynamic> map) {
+  factory SupportTicket.fromMap(String defaultTicketId, Map<dynamic, dynamic> map) {
     return SupportTicket(
-      id: id,
-      customerId: map['customerId']?.toString() ?? '',
+      id: map['id'] != null ? int.tryParse(map['id'].toString()) : null,
+      ticketId: map['ticket_id']?.toString() ?? map['ticketId']?.toString() ?? defaultTicketId,
+      customerId: map['customer_id']?.toString() ?? map['customerId']?.toString() ?? '',
       customerName: map['customerName']?.toString() ?? '',
-      branchId: map['branchId']?.toString() ?? '',
+      orderId: map['order_id']?.toString() ?? map['orderId']?.toString(),
+      branchId: map['branch_id']?.toString() ?? map['branchId']?.toString() ?? '',
       adminId: map['adminId']?.toString() ?? '',
-      message: map['message']?.toString() ?? '',
+      subject: map['subject']?.toString() ?? '',
+      description: map['description']?.toString() ?? map['message']?.toString() ?? '',
+      issueType: map['issue_type']?.toString() ?? map['issueType']?.toString() ?? 'Other',
+      priority: map['priority']?.toString() ?? 'Low',
       status: map['status']?.toString() ?? 'Open',
-      createdAt: DateTime.tryParse(map['createdAt'] ?? '') ?? DateTime.now(),
+      assignedTo: map['assigned_to']?.toString() ?? map['assignedTo']?.toString(),
+      createdAt: DateTime.tryParse(map['created_at']?.toString() ?? map['createdAt']?.toString() ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(map['updated_at']?.toString() ?? map['updatedAt']?.toString() ?? '') ?? DateTime.now(),
+      resolvedAt: map['resolved_at'] != null ? DateTime.tryParse(map['resolved_at'].toString()) : (map['resolvedAt'] != null ? DateTime.tryParse(map['resolvedAt'].toString()) : null),
     );
   }
 }
