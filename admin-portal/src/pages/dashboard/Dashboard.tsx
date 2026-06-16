@@ -1,6 +1,10 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useOrders } from '../../hooks/useOrders';
+import { useBranches } from '../../hooks/useBranches';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar
@@ -13,40 +17,6 @@ import {
 } from 'lucide-react';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
-const revenueData = [
-  { name: 'Mon', revenue: 14000, prev: 11000 },
-  { name: 'Tue', revenue: 13000, prev: 12500 },
-  { name: 'Wed', revenue: 15000, prev: 14000 },
-  { name: 'Thu', revenue: 18500, prev: 16000 },
-  { name: 'Fri', revenue: 26000, prev: 21000 },
-  { name: 'Sat', revenue: 38000, prev: 31000 },
-  { name: 'Sun', revenue: 27500, prev: 24000 },
-];
-
-const ordersBar = [
-  { name: 'Mon', count: 42 },
-  { name: 'Tue', count: 38 },
-  { name: 'Wed', count: 55 },
-  { name: 'Thu', count: 61 },
-  { name: 'Fri', count: 87 },
-  { name: 'Sat', count: 112 },
-  { name: 'Sun', count: 79 },
-];
-
-const recentOrders = [
-  { id: '#4021', customer: 'Alexander Wolfe', amount: '₹450', status: 'Delivered', time: '2 min ago', branch: 'Downtown', avatar: 'AW' },
-  { id: '#4020', customer: 'Sarah Jenkins', amount: '₹820', status: 'Preparing', time: '12 min ago', branch: 'Westside', avatar: 'SJ' },
-  { id: '#4019', customer: 'Michael Chang', amount: '₹320', status: 'Pending', time: '25 min ago', branch: 'Downtown', avatar: 'MC' },
-  { id: '#4018', customer: 'Emma Thompson', amount: '₹1,215', status: 'Cancelled', time: '1 hr ago', branch: 'North Mall', avatar: 'ET' },
-  { id: '#4017', customer: 'David Garcia', amount: '₹850', status: 'Delivered', time: '2 hr ago', branch: 'Downtown', avatar: 'DG' },
-];
-
-const topItems = [
-  { rank: 1, name: 'Chicken Biryani', orders: 124, revenue: '₹43,400', change: '+12%', up: true, image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=80&h=80&fit=crop' },
-  { rank: 2, name: 'Margherita Pizza', orders: 98, revenue: '₹29,400', change: '+8%', up: true, image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=80&h=80&fit=crop' },
-  { rank: 3, name: 'Garlic Bread', orders: 85, revenue: '₹12,750', change: '-2%', up: false, image: 'https://images.unsplash.com/photo-1573140247632-f8fd74997d5c?w=80&h=80&fit=crop' },
-  { rank: 4, name: 'Paneer Tikka', orders: 76, revenue: '₹19,000', change: '+15%', up: true, image: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=80&h=80&fit=crop' },
-];
 
 const quickActions = [
   {
@@ -219,17 +189,135 @@ function StatCard({ title, value, icon: Icon, trend, up, color, bg, delay }: any
 export default function Dashboard() {
   const [activeRange, setActiveRange] = useState('This Week');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const dashboardRef = useRef<HTMLDivElement>(null);
+
+  const { orders, loading: ordersLoading } = useOrders();
+  const { branches, loading: branchesLoading } = useBranches();
 
   const handleRefresh = () => {
     setIsRefreshing(true);
     setTimeout(() => setIsRefreshing(false), 800);
   };
 
+  const handleExportReport = async () => {
+    if (!dashboardRef.current) return;
+    setIsExporting(true);
+    try {
+      const canvas = await html2canvas(dashboardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`DineOS_Dashboard_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const dynamicStats = useMemo(() => {
+    let totalRevenue = 0;
+    let pendingCount = 0;
+    const itemsMap: Record<string, { name: string; orders: number; revenue: number; image?: string }> = {};
+
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      return {
+        date: d.toISOString().split('T')[0],
+        name: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        revenue: 0,
+        count: 0
+      };
+    });
+
+    orders.forEach(order => {
+      totalRevenue += order.billing?.total || 0;
+      if (order.status === 'Pending') pendingCount++;
+
+      const dateStr = new Date(order.created_at).toISOString().split('T')[0];
+      const dayIndex = last7Days.findIndex(d => d.date === dateStr);
+      if (dayIndex !== -1) {
+        last7Days[dayIndex].revenue += order.billing?.total || 0;
+        last7Days[dayIndex].count += 1;
+      }
+
+      order.items?.forEach(item => {
+        if (!itemsMap[item.name]) {
+          itemsMap[item.name] = { name: item.name, orders: 0, revenue: 0, image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=80&h=80&fit=crop' };
+        }
+        itemsMap[item.name].orders += item.qty || 1;
+        itemsMap[item.name].revenue += item.subtotal || 0;
+      });
+    });
+
+    const activeBranches = branches.filter(b => b.is_active).length;
+
+    const topItemsData = Object.values(itemsMap)
+      .sort((a, b) => b.orders - a.orders)
+      .slice(0, 4)
+      .map((item, index) => ({
+        rank: index + 1,
+        name: item.name,
+        orders: item.orders,
+        revenue: `₹${item.revenue.toLocaleString()}`,
+        change: 'New',
+        up: true,
+        image: item.image
+      }));
+
+    const recentOrdersData = orders.slice(0, 5).map(order => {
+      const custName = order.customer?.name || 'Unknown';
+      const initials = custName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      const timeDiff = Math.floor((new Date().getTime() - new Date(order.created_at).getTime()) / 60000);
+      let timeStr = `${timeDiff} min ago`;
+      if (timeDiff > 60) timeStr = `${Math.floor(timeDiff / 60)} hr ago`;
+      if (timeDiff > 1440) timeStr = `${Math.floor(timeDiff / 1440)} days ago`;
+
+      return {
+        id: `#${(order.id || '').toString().slice(-4)}`,
+        customer: custName,
+        amount: `₹${(order.billing?.total || 0).toLocaleString()}`,
+        status: order.status,
+        time: timeStr,
+        branch: order.branch,
+        avatar: initials
+      };
+    });
+
+    return {
+      totalRevenue: `₹${totalRevenue.toLocaleString()}`,
+      totalOrders: orders.length.toLocaleString(),
+      activeBranches: activeBranches.toString(),
+      pendingOrders: pendingCount.toString(),
+      topItems: topItemsData,
+      recentOrders: recentOrdersData,
+      revenueData: last7Days.map(d => ({ name: d.name, revenue: d.revenue, prev: 0 })),
+      ordersBar: last7Days.map(d => ({ name: d.name, count: d.count }))
+    };
+  }, [orders, branches]);
+
   const greeting = getGreeting();
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
+  if (ordersLoading || branchesLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <RefreshCw className="w-8 h-8 text-[#FF6B00] animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className="-mt-8 pb-16 space-y-6 relative" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div ref={dashboardRef} className="-mt-8 pb-16 space-y-6 relative" style={{ fontFamily: "'Inter', sans-serif" }}>
 
       {/* ── Decorative background blobs ── */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
@@ -284,9 +372,13 @@ export default function Dashboard() {
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#1a1f36] text-white text-sm font-bold rounded-xl hover:bg-[#2d3550] transition-all shadow-sm hover:shadow-md">
-            <Download className="w-4 h-4" />
-            Export Report
+          <button 
+            onClick={handleExportReport}
+            disabled={isExporting}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#1a1f36] text-white text-sm font-bold rounded-xl hover:bg-[#2d3550] transition-all shadow-sm hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {isExporting ? 'Exporting...' : 'Export Report'}
           </button>
         </div>
       </motion.div>
@@ -300,10 +392,10 @@ export default function Dashboard() {
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard title="Total Revenue" value="₹12,45,600" icon={DollarSign} trend="+12.5%" up color="#FF6B00" bg="#FFF3E8" delay={0.2} />
-        <StatCard title="Total Orders" value="3,842" icon={ShoppingBag} trend="+8.3%" up color="#7C3AED" bg="#F3EEFF" delay={0.25} />
-        <StatCard title="Active Branches" value="12" icon={Store} trend="Stable" up color="#0EA5E9" bg="#E6F6FD" delay={0.3} />
-        <StatCard title="Pending Orders" value="48" icon={Package} trend="-4 today" up={false} color="#EF4444" bg="#FFF0F0" delay={0.35} />
+        <StatCard title="Total Revenue" value={dynamicStats.totalRevenue} icon={DollarSign} trend="+12.5%" up color="#FF6B00" bg="#FFF3E8" delay={0.2} />
+        <StatCard title="Total Orders" value={dynamicStats.totalOrders} icon={ShoppingBag} trend="+8.3%" up color="#7C3AED" bg="#F3EEFF" delay={0.25} />
+        <StatCard title="Active Branches" value={dynamicStats.activeBranches} icon={Store} trend="Stable" up color="#0EA5E9" bg="#E6F6FD" delay={0.3} />
+        <StatCard title="Pending Orders" value={dynamicStats.pendingOrders} icon={Package} trend="Live" up={false} color="#EF4444" bg="#FFF0F0" delay={0.35} />
       </div>
 
       {/* ── Charts Row ── */}
@@ -334,7 +426,7 @@ export default function Dashboard() {
             </div>
             <div className="p-6 h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={revenueData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                <AreaChart data={dynamicStats.revenueData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gRevenue" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#FF6B00" stopOpacity={0.18} />
@@ -370,7 +462,7 @@ export default function Dashboard() {
             </div>
             <div className="p-6 h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={ordersBar} margin={{ top: 5, right: 5, left: -10, bottom: 0 }} barSize={20}>
+                <BarChart data={dynamicStats.ordersBar} margin={{ top: 5, right: 5, left: -10, bottom: 0 }} barSize={20}>
                   <defs>
                     <linearGradient id="gBar" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#FF6B00" stopOpacity={1} />
@@ -410,7 +502,9 @@ export default function Dashboard() {
               </Link>
             </div>
             <div className="divide-y divide-[#F4F6FA]">
-              {recentOrders.map((order, i) => {
+              {dynamicStats.recentOrders.length === 0 ? (
+                <div className="p-6 text-center text-sm text-[#8896AB]">No recent orders</div>
+              ) : dynamicStats.recentOrders.map((order, i) => {
                 const s = STATUS_MAP[order.status] || STATUS_MAP['Pending'];
                 return (
                   <motion.div
@@ -470,7 +564,9 @@ export default function Dashboard() {
             </div>
 
             <div className="p-4 space-y-1 flex-1">
-              {topItems.map((item, i) => (
+              {dynamicStats.topItems.length === 0 ? (
+                <div className="p-6 text-center text-sm text-[#8896AB]">No order data available yet</div>
+              ) : dynamicStats.topItems.map((item, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, x: 12 }}
