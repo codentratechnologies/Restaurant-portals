@@ -1,4 +1,6 @@
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { RefreshCw } from 'lucide-react';
 import DashboardHeader from './components/DashboardHeader';
 import FilterToolbar from './components/FilterToolbar';
 import KPISection from './components/KPISection';
@@ -6,7 +8,7 @@ import RevenueOrdersChart from './components/RevenueOrdersChart';
 import TopSellingItems from './components/TopSellingItems';
 import RecentOrdersTable from './components/RecentOrdersTable';
 import { useDashboardData } from './services/useDashboardData';
-import { mockChartData, mockTopItems, mockRecentOrders } from './services/mockData';
+import { useRestaurantOrders } from '../../hooks/useRestaurantOrders';
 
 export default function Dashboard() {
   const {
@@ -17,6 +19,102 @@ export default function Dashboard() {
     isConnected,
     isManager, setIsManager
   } = useDashboardData();
+
+  const { orders, loading, masterMenu } = useRestaurantOrders();
+
+  const dynamicStats = useMemo(() => {
+    let totalRevenue = 0;
+    let totalRejections = 0;
+    let totalCancellations = 0;
+    const itemsMap: Record<string, { name: string; orders: number; revenue: number; category: string }> = {};
+
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      return {
+        date: d.toISOString().split('T')[0],
+        name: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        revenue: 0,
+        orders: 0
+      };
+    });
+
+    orders.forEach(order => {
+      if (order.status !== 'Rejected' && order.status !== 'Cancelled') {
+        totalRevenue += order.billing?.total || 0;
+      }
+      if (order.status === 'Rejected') totalRejections++;
+      if (order.status === 'Cancelled') totalCancellations++;
+
+      const dateStr = new Date(order.created_at || Date.now()).toISOString().split('T')[0];
+      const dayIndex = last7Days.findIndex(d => d.date === dateStr);
+      if (dayIndex !== -1 && order.status !== 'Rejected' && order.status !== 'Cancelled') {
+        last7Days[dayIndex].revenue += order.billing?.total || 0;
+        last7Days[dayIndex].orders += 1;
+      }
+
+      if (order.status !== 'Rejected' && order.status !== 'Cancelled') {
+        order.items?.forEach(item => {
+          if (!itemsMap[item.name]) {
+            itemsMap[item.name] = { name: item.name, orders: 0, revenue: 0, category: 'Food' };
+          }
+          itemsMap[item.name].orders += item.qty || 1;
+          itemsMap[item.name].revenue += item.subtotal || 0;
+        });
+      }
+    });
+
+    // Fix float precisions
+    totalRevenue = parseFloat(totalRevenue.toFixed(2));
+    last7Days.forEach(day => {
+      day.revenue = parseFloat(day.revenue.toFixed(2));
+    });
+
+    const topItemsData = Object.values(itemsMap)
+      .sort((a, b) => b.orders - a.orders)
+      .slice(0, 4)
+      .map((item, index) => {
+        const menuItem = masterMenu.find(m => m.name.toLowerCase() === item.name.toLowerCase());
+        const imageUrl = menuItem?.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=80&h=80&fit=crop';
+        
+        return {
+          rank: index + 1,
+          name: item.name,
+          orders: item.orders,
+          revenue: `₹${parseFloat(item.revenue.toFixed(2)).toLocaleString()}`,
+          trend: '+New',
+          category: item.category,
+          progress: 100 - (index * 20),
+          image: imageUrl
+        };
+      });
+
+    const recentOrdersData = orders.slice(0, 5).map(order => {
+      const timeDiff = Math.floor((new Date().getTime() - new Date(order.created_at || Date.now()).getTime()) / 60000);
+      let timeStr = `${timeDiff} min ago`;
+      if (timeDiff > 60) timeStr = `${Math.floor(timeDiff / 60)} hr ago`;
+      if (timeDiff > 1440) timeStr = `${Math.floor(timeDiff / 1440)} days ago`;
+
+      return {
+        id: `#${(order.id || '').toString().slice(-4)}`,
+        items: order.items.map((i: any) => i.name).join(', '),
+        amount: `₹${(order.billing?.total || 0).toLocaleString()}`,
+        status: order.status,
+        time: timeStr,
+        method: order.payment?.method || 'Online'
+      };
+    });
+
+    return {
+      totalRevenue,
+      totalOrders: orders.length,
+      totalRejections,
+      totalCancellations,
+      topItems: topItemsData,
+      recentOrders: recentOrdersData,
+      chartData: last7Days
+    };
+  }, [orders, masterMenu]);
 
   // Animation variants
   const containerVariants = {
@@ -31,6 +129,14 @@ export default function Dashboard() {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <RefreshCw className="w-8 h-8 text-brand-orange-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-16 relative">
@@ -55,21 +161,27 @@ export default function Dashboard() {
         className="space-y-6"
       >
         <motion.div variants={itemVariants}>
-          <KPISection isManager={isManager} />
+          <KPISection 
+            isManager={isManager} 
+            totalRevenue={dynamicStats.totalRevenue}
+            totalOrders={dynamicStats.totalOrders}
+            totalRejections={dynamicStats.totalRejections}
+            totalCancellations={dynamicStats.totalCancellations}
+          />
         </motion.div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <motion.div variants={itemVariants} className="xl:col-span-2">
-            <RevenueOrdersChart data={mockChartData} isManager={isManager} />
+            <RevenueOrdersChart data={dynamicStats.chartData} isManager={isManager} />
           </motion.div>
 
           <motion.div variants={itemVariants} className="xl:col-span-1">
-            <TopSellingItems items={mockTopItems} />
+            <TopSellingItems items={dynamicStats.topItems} />
           </motion.div>
         </div>
 
         <motion.div variants={itemVariants}>
-          <RecentOrdersTable orders={mockRecentOrders} />
+          <RecentOrdersTable orders={dynamicStats.recentOrders} />
         </motion.div>
       </motion.div>
 

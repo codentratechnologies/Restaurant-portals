@@ -9,8 +9,9 @@ import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import OrderDrawer, { OrderData } from './components/OrderDrawer';
 
-import { ref, onValue, set, get, query, orderByChild, equalTo } from 'firebase/database';
+import { ref, set } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
+import { useRestaurantOrders } from '../../hooks/useRestaurantOrders';
 
 const TABS = [
   { id: 'accept', label: 'Accepted Orders', statuses: ['Accepted', 'Preparing', 'Ready For Pickup', 'Out For Delivery', 'Arrived', 'Arrived Customer'] },
@@ -89,8 +90,7 @@ export default function OrderTable() {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTab = searchParams.get('tab') || 'accept';
 
-  const [orders, setOrders] = useState<OrderData[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { orders, loading, currentUser, branchPushId } = useRestaurantOrders();
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -102,113 +102,6 @@ export default function OrderTable() {
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
-
-  useEffect(() => {
-    const userStr = localStorage.getItem('restaurant_user');
-    if (userStr) setCurrentUser(JSON.parse(userStr));
-  }, []);
-
-  const [rawOrders, setRawOrders] = useState<any[]>([]);
-  const [customersData, setCustomersData] = useState<any>({});
-  const [branchPushId, setBranchPushId] = useState<string>('');
-
-  // 1. Fetch branch push ID
-  useEffect(() => {
-    if (!currentUser) return;
-    
-    const unsub = onValue(ref(rtdb, `branch/${currentUser.adminId}`), (branchSnap) => {
-      if (branchSnap.exists()) {
-        const branches = branchSnap.val();
-        const matchedPushId = Object.keys(branches).find(key => 
-          branches[key].code?.toLowerCase() === currentUser.branch?.toLowerCase()
-        );
-        if (matchedPushId) {
-          setBranchPushId(matchedPushId);
-        } else {
-          setBranchPushId(currentUser.branch);
-        }
-      } else {
-        setBranchPushId(currentUser.branch);
-      }
-    });
-
-    return () => unsub();
-  }, [currentUser]);
-
-  // 2. Listen to customers
-  useEffect(() => {
-    const unsub = onValue(ref(rtdb, 'user_customer'), (snap) => {
-      if (snap.exists()) setCustomersData(snap.val());
-    });
-    return () => unsub();
-  }, []);
-
-  // 3. Listen to orders for this branch
-  useEffect(() => {
-    if (!currentUser || !branchPushId) return;
-    
-    const ordersRef = ref(rtdb, `order/${currentUser.adminId}/${branchPushId}`);
-    const unsub = onValue(ordersRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        const loaded: any[] = [];
-        
-        Object.keys(data).forEach(orderId => {
-          loaded.push({ ...data[orderId], _key: orderId });
-        });
-        
-        loaded.sort((a, b) => (b.orderDate ? new Date(b.orderDate).getTime() : 0) - (a.orderDate ? new Date(a.orderDate).getTime() : 0));
-        setRawOrders(loaded);
-      } else {
-        setRawOrders([]);
-      }
-    });
-    return () => unsub();
-  }, [currentUser, branchPushId]);
-
-  // 4. Merge data
-  useEffect(() => {
-    const mergedOrders: OrderData[] = rawOrders.map(rawOrder => {
-      const customer = customersData[rawOrder.customerId] || {};
-        const itemsList = Array.isArray(rawOrder.items) 
-          ? rawOrder.items 
-          : rawOrder.items ? Object.values(rawOrder.items) : [];
-
-        return {
-          id: rawOrder.id || rawOrder._key,
-          _key: rawOrder._key,
-          _customerId: rawOrder.customerId,
-          _branchId: branchPushId,
-          status: rawOrder.status === 'Placed' ? 'Pending' : rawOrder.status,
-          type: 'Delivery',
-          customer: {
-            name: customer.fullName || 'Customer',
-            phone: customer.mobileNumber || '',
-            address: rawOrder.deliveryAddress?.addressLine || ''
-          },
-          items: itemsList.map((i: any) => ({
-            name: i.name || 'Item',
-            qty: i.quantity || 1,
-            price: i.unit_price || 0,
-            subtotal: i.total_price || 0
-          })),
-        billing: {
-          subtotal: rawOrder.subtotal || 0,
-          tax: rawOrder.tax || 0,
-          total: rawOrder.total || 0
-        },
-        payment: {
-          method: rawOrder.paymentMethod || 'Online',
-          status: rawOrder.paymentStatus || 'Paid'
-        },
-        created_at: rawOrder.orderDate ? new Date(rawOrder.orderDate).getTime() : Date.now(),
-        acceptedAt: rawOrder.acceptedAt || null,
-        rejectionReason: rawOrder.rejectionReason,
-        rejectionNotes: rawOrder.rejectionNotes
-      };
-    });
-    setOrders(mergedOrders);
-  }, [rawOrders, customersData, branchPushId]);
 
   // ─── Auto-transition: Accepted → Preparing after 1 minute ────────────────
   useEffect(() => {

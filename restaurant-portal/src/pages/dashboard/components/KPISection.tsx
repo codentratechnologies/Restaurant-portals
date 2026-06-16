@@ -3,14 +3,18 @@ import KPICard from './KPICard';
 
 interface KPISectionProps {
   isManager: boolean;
+  totalRevenue: number;
+  totalOrders: number;
+  totalRejections: number;
+  totalCancellations: number;
 }
 
-export default function KPISection({ isManager }: KPISectionProps) {
+export default function KPISection({ isManager, totalRevenue, totalOrders, totalRejections, totalCancellations }: KPISectionProps) {
   const kpis = [
-    { title: 'Revenue', amount: '₹1,45,200', trend: '+12.5%', isUp: true, icon: DollarSign, colorClass: 'text-emerald-600', bgClass: 'bg-emerald-100', hiddenAmount: 'Hidden' },
-    { title: 'Orders', amount: '342', trend: '+8.3%', isUp: true, icon: ShoppingBag, colorClass: 'text-blue-600', bgClass: 'bg-blue-100', hiddenAmount: '342' },
-    { title: 'Rejections', amount: '8', trend: '2.3%', isUp: false, icon: XCircle, colorClass: 'text-red-600', bgClass: 'bg-red-100', hiddenAmount: '8' },
-    { title: 'Cancellations', amount: '2', trend: '0.6%', isUp: false, icon: AlertTriangle, colorClass: 'text-orange-600', bgClass: 'bg-orange-100', hiddenAmount: '2' },
+    { title: 'Revenue', amount: `₹${totalRevenue.toLocaleString()}`, trend: '+12.5%', isUp: true, icon: DollarSign, colorClass: 'text-emerald-600', bgClass: 'bg-emerald-100', hiddenAmount: 'Hidden' },
+    { title: 'Orders', amount: totalOrders.toString(), trend: '+8.3%', isUp: true, icon: ShoppingBag, colorClass: 'text-blue-600', bgClass: 'bg-blue-100', hiddenAmount: totalOrders.toString() },
+    { title: 'Rejections', amount: totalRejections.toString(), trend: '2.3%', isUp: false, icon: XCircle, colorClass: 'text-red-600', bgClass: 'bg-red-100', hiddenAmount: totalRejections.toString() },
+    { title: 'Cancellations', amount: totalCancellations.toString(), trend: '0.6%', isUp: false, icon: AlertTriangle, colorClass: 'text-orange-600', bgClass: 'bg-orange-100', hiddenAmount: totalCancellations.toString() },
   ];
 
   return (

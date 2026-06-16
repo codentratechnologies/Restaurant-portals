@@ -1,0 +1,154 @@
+import { useState, useEffect } from 'react';
+import { ref, onValue } from 'firebase/database';
+import { rtdb } from '../lib/firebase';
+import { OrderData } from '../pages/orders/components/OrderDrawer';
+
+export function useRestaurantOrders() {
+  const [orders, setOrders] = useState<OrderData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [rawOrders, setRawOrders] = useState<any[]>([]);
+  const [customersData, setCustomersData] = useState<any>({});
+  const [branchPushId, setBranchPushId] = useState<string>('');
+  const [masterMenu, setMasterMenu] = useState<any[]>([]);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('restaurant_user');
+    if (userStr) {
+      setCurrentUser(JSON.parse(userStr));
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  // 1. Fetch branch push ID
+  useEffect(() => {
+    if (!currentUser) return;
+    
+    const unsub = onValue(ref(rtdb, `branch/${currentUser.adminId}`), (branchSnap) => {
+      if (branchSnap.exists()) {
+        const branches = branchSnap.val();
+        const matchedPushId = Object.keys(branches).find(key => 
+          branches[key].code?.toLowerCase() === currentUser.branch?.toLowerCase()
+        );
+        if (matchedPushId) {
+          setBranchPushId(matchedPushId);
+        } else {
+          setBranchPushId(currentUser.branch);
+        }
+      } else {
+        setBranchPushId(currentUser.branch);
+      }
+    });
+
+    return () => unsub();
+  }, [currentUser]);
+
+  // 2. Listen to customers
+  useEffect(() => {
+    const unsub = onValue(ref(rtdb, 'user_customer'), (snap) => {
+      if (snap.exists()) setCustomersData(snap.val());
+    });
+    return () => unsub();
+  }, []);
+
+  // 3. Listen to orders for this branch
+  useEffect(() => {
+    if (!currentUser || !branchPushId) return;
+    setLoading(true);
+    
+    const ordersRef = ref(rtdb, `order/${currentUser.adminId}/${branchPushId}`);
+    const unsub = onValue(ordersRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const loaded: any[] = [];
+        
+        Object.keys(data).forEach(orderId => {
+          loaded.push({ ...data[orderId], _key: orderId });
+        });
+        
+        loaded.sort((a, b) => (b.orderDate ? new Date(b.orderDate).getTime() : 0) - (a.orderDate ? new Date(a.orderDate).getTime() : 0));
+        setRawOrders(loaded);
+      } else {
+        setRawOrders([]);
+      }
+      setLoading(false);
+    });
+    return () => unsub();
+  }, [currentUser, branchPushId]);
+
+  // 4. Merge data
+  useEffect(() => {
+    const mergedOrders: OrderData[] = rawOrders.map(rawOrder => {
+      const customer = customersData[rawOrder.customerId] || {};
+      const itemsList = Array.isArray(rawOrder.items) 
+        ? rawOrder.items 
+        : rawOrder.items ? Object.values(rawOrder.items) : [];
+
+      return {
+        id: rawOrder.id || rawOrder._key,
+        _key: rawOrder._key,
+        _customerId: rawOrder.customerId,
+        _branchId: branchPushId,
+        status: rawOrder.status === 'Placed' ? 'Pending' : rawOrder.status,
+        type: 'Delivery',
+        customer: {
+          name: customer.fullName || 'Customer',
+          phone: customer.mobileNumber || '',
+          address: rawOrder.deliveryAddress?.addressLine || ''
+        },
+        items: itemsList.map((i: any) => ({
+          name: i.name || 'Item',
+          qty: i.quantity || 1,
+          price: i.unit_price || 0,
+          subtotal: i.total_price || 0
+        })),
+        billing: {
+          subtotal: rawOrder.subtotal || 0,
+          tax: rawOrder.tax || 0,
+          total: rawOrder.total || 0
+        },
+        payment: {
+          method: rawOrder.paymentMethod || 'Online',
+          status: rawOrder.paymentStatus || 'Paid'
+        },
+        created_at: rawOrder.orderDate ? new Date(rawOrder.orderDate).getTime() : Date.now(),
+        acceptedAt: rawOrder.acceptedAt || null,
+        rejectionReason: rawOrder.rejectionReason,
+        rejectionNotes: rawOrder.rejectionNotes,
+        cancellationReason: rawOrder.cancellationReason
+      };
+    });
+    setOrders(mergedOrders);
+  }, [rawOrders, customersData, branchPushId]);
+
+  // 5. Listen to master menu
+  useEffect(() => {
+    if (!currentUser) return;
+    const unsub = onValue(ref(rtdb, `menu/${currentUser.adminId}`), (snap) => {
+      if (snap.exists()) {
+        const data = snap.val();
+        let itemsList: any[] = [];
+        
+        Object.keys(data).forEach((categoryKey) => {
+          const node = data[categoryKey];
+          if (typeof node === 'object' && node !== null) {
+            if (node.name !== undefined && node.price !== undefined) return;
+            Object.keys(node).forEach((foodIdKey) => {
+              const item = node[foodIdKey];
+              if (typeof item === 'object' && item !== null && item.name) {
+                itemsList.push(item);
+              }
+            });
+          }
+        });
+        setMasterMenu(itemsList);
+      } else {
+        setMasterMenu([]);
+      }
+    });
+    return () => unsub();
+  }, [currentUser]);
+
+  return { orders, loading, currentUser, branchPushId, masterMenu };
+}
