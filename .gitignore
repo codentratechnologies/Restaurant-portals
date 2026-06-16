@@ -1,0 +1,21 @@
+node_modules
+dist
+.env
+build
+
+# ── Python backend ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+
+# ── Firebase credentials (NEVER commit) ────────────────────────
+admin-backend/config/serviceAccountKey.json
+admin-backend/config/dineos-123-firebase-adminsdk-fbsvc-df51508bc7.json
+admin-backend/config/*.json
+*.json.key

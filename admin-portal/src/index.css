@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-text-primary font-sans antialiased;
+  }
+}
+
+@layer components {
+  .input-field {
+    @apply w-full bg-white border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 transition-all placeholder:text-text-secondary/60 shadow-sm;
+  }
+}
+
+/* ── Quick Action Button Effects ─────────────────────────────────────────── */
+
+/* Shimmer sweep across the card */
+@keyframes shimmer-sweep {
+  0%   { transform: translateX(-150%) skewX(-15deg); }
+  100% { transform: translateX(350%) skewX(-15deg); }
+}
+
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.28) 50%, transparent 100%);
+  transform: translateX(-150%) skewX(-15deg);
+  pointer-events: none;
+  border-radius: inherit;
+}
+.btn-shimmer:hover::after {
+  animation: shimmer-sweep 0.7s ease forwards;
+}
+
+/* Sparkle stars floating up */
+@keyframes sparkle-float {
+  0%   { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-48px) scale(0.4); opacity: 0; }
+}
+
+.sparkle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  pointer-events: none;
+  animation: sparkle-float 1s ease-out forwards;
+}
+
+/* Pulse ring radiating out */
+@keyframes ping-ring {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.btn-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid rgba(255,255,255,0.5);
+  animation: ping-ring 1.6s ease-out infinite;
+  pointer-events: none;
+}
+
+/* Floating orbs inside card */
+@keyframes orb-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(6px, -8px) scale(1.08); }
+  66%       { transform: translate(-4px, 6px) scale(0.95); }
+}
+.orb-drift {
+  animation: orb-drift 5s ease-in-out infinite;
+}
+.orb-drift-delay {
+  animation: orb-drift 6s ease-in-out infinite 1.5s;
+}
+
+/* Moving gradient background */
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.btn-gradient-animate {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Icon bounce on hover */
+@keyframes icon-bounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30%       { transform: translateY(-4px) rotate(-8deg); }
+  60%       { transform: translateY(-2px) rotate(6deg); }
+}
+.group:hover .icon-bounce {
+  animation: icon-bounce 0.5s ease;
+}
+
+/* Shine border */
+@keyframes border-rotate {
+  from { --angle: 0deg; }
+  to   { --angle: 360deg; }
+}
+
