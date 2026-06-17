@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useOrders } from '../../hooks/useOrders';
 import { useBranches } from '../../hooks/useBranches';
+import { useMenuItems } from '../../hooks/useMenuItems';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import {
@@ -194,6 +195,7 @@ export default function Dashboard() {
 
   const { orders, loading: ordersLoading } = useOrders();
   const { branches, loading: branchesLoading } = useBranches();
+  const { menuItems } = useMenuItems();
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -252,7 +254,9 @@ export default function Dashboard() {
 
       order.items?.forEach(item => {
         if (!itemsMap[item.name]) {
-          itemsMap[item.name] = { name: item.name, orders: 0, revenue: 0, image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=80&h=80&fit=crop' };
+          const menuItem = menuItems.find(m => m.name === item.name);
+          const imageUrl = menuItem?.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=80&h=80&fit=crop';
+          itemsMap[item.name] = { name: item.name, orders: 0, revenue: 0, image: imageUrl };
         }
         itemsMap[item.name].orders += item.qty || 1;
         itemsMap[item.name].revenue += item.subtotal || 0;
@@ -303,7 +307,7 @@ export default function Dashboard() {
       revenueData: last7Days.map(d => ({ name: d.name, revenue: d.revenue, prev: 0 })),
       ordersBar: last7Days.map(d => ({ name: d.name, count: d.count }))
     };
-  }, [orders, branches]);
+  }, [orders, branches, menuItems]);
 
   const greeting = getGreeting();
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
@@ -383,19 +387,25 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      {/* ── Quick Actions (TOP, full-color with effects) ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {quickActions.map((a, i) => (
-          <ActionCard key={i} action={a} />
-        ))}
+      {/* ── Quick Actions ── */}
+      <div>
+        <h3 className="text-lg font-bold text-[#1a1f36] mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {quickActions.map((a, i) => (
+            <ActionCard key={i} action={a} />
+          ))}
+        </div>
       </div>
 
-      {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard title="Total Revenue" value={dynamicStats.totalRevenue} icon={DollarSign} trend="+12.5%" up color="#FF6B00" bg="#FFF3E8" delay={0.2} />
-        <StatCard title="Total Orders" value={dynamicStats.totalOrders} icon={ShoppingBag} trend="+8.3%" up color="#7C3AED" bg="#F3EEFF" delay={0.25} />
-        <StatCard title="Active Branches" value={dynamicStats.activeBranches} icon={Store} trend="Stable" up color="#0EA5E9" bg="#E6F6FD" delay={0.3} />
-        <StatCard title="Pending Orders" value={dynamicStats.pendingOrders} icon={Package} trend="Live" up={false} color="#EF4444" bg="#FFF0F0" delay={0.35} />
+      {/* ── KPIs ── */}
+      <div>
+        <h3 className="text-lg font-bold text-[#1a1f36] mb-4">KPIs</h3>
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+          <StatCard title="Total Revenue" value={dynamicStats.totalRevenue} icon={DollarSign} trend="+12.5%" up color="#FF6B00" bg="#FFF3E8" delay={0.2} />
+          <StatCard title="Total Orders" value={dynamicStats.totalOrders} icon={ShoppingBag} trend="+8.3%" up color="#7C3AED" bg="#F3EEFF" delay={0.25} />
+          <StatCard title="Active Branches" value={dynamicStats.activeBranches} icon={Store} trend="Stable" up color="#0EA5E9" bg="#E6F6FD" delay={0.3} />
+          <StatCard title="Pending Orders" value={dynamicStats.pendingOrders} icon={Package} trend="Live" up={false} color="#EF4444" bg="#FFF0F0" delay={0.35} />
+        </div>
       </div>
 
       {/* ── Charts Row ── */}
@@ -596,18 +606,7 @@ export default function Dashboard() {
               ))}
             </div>
 
-            <div className="p-4 border-t border-[#F0F2F7]">
-              <Link to="/food">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  style={{ background: 'linear-gradient(135deg, #FF6B00, #FF9A4D)', boxShadow: '0 4px 16px rgba(255,107,0,0.25)' }}
-                  className="w-full py-2.5 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 hover:shadow-lg transition-shadow"
-                >
-                  View Full Menu <ChevronRight className="w-4 h-4" />
-                </motion.button>
-              </Link>
-            </div>
+
           </div>
         </motion.div>
 

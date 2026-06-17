@@ -21,6 +21,10 @@ export default function Login() {
       toast.error('Please enter email and password');
       return;
     }
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -84,9 +88,9 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
-      {/* Left side: Premium Login Form */}
-      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:flex-none lg:px-24 xl:px-32 relative z-10 bg-white shadow-[20px_0_40px_-10px_rgba(0,0,0,0.05)]">
+    <div className="min-h-screen flex lg:flex-row-reverse bg-background">
+      {/* Right side: Premium Login Form */}
+      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:flex-none lg:px-24 xl:px-32 relative z-10 bg-white shadow-[-20px_0_40px_-10px_rgba(0,0,0,0.05)]">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -174,7 +178,7 @@ export default function Login() {
         </motion.div>
       </div>
 
-      {/* Right side: Elegant Visual Section */}
+      {/* Left side: Elegant Visual Section */}
       <div className="hidden lg:block relative w-0 flex-1 bg-background overflow-hidden">
         <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-brand-orange-50 to-background flex flex-col items-center justify-center p-12">
           

@@ -12,9 +12,27 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading,  setLoading]  = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setEmailError('');
+    setPasswordError('');
+    setLocalError(null);
+
+    let valid = true;
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      setEmailError("Please enter a valid email address.");
+      valid = false;
+    }
+    if (password.length < 6) {
+      setPasswordError("Password must be at least 6 characters.");
+      valid = false;
+    }
+    if (!valid) return;
+
     setLoading(true);
     try {
       await login(email, password);
@@ -27,26 +45,28 @@ export default function Login() {
     }
   };
 
+  const displayError = localError || error;
+
   return (
-    <div className="min-h-screen flex bg-background">
-      {/* Left side: Premium Login Form */}
-      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:flex-none lg:px-24 xl:px-32 relative z-10 bg-white shadow-[20px_0_40px_-10px_rgba(0,0,0,0.05)]">
+    <div className="min-h-screen flex lg:flex-row-reverse bg-background">
+      {/* Right side: Premium Login Form */}
+      <div className="flex-1 flex flex-col justify-center py-6 px-4 sm:px-6 lg:flex-none lg:px-24 xl:px-32 relative z-10 bg-white shadow-[-20px_0_40px_-10px_rgba(0,0,0,0.05)]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="mx-auto w-full max-w-md"
         >
-          <div className="flex items-center gap-3 mb-12">
-            <img src="/logo.png" alt="DineOS Logo" className="h-10 object-contain" />
+          <div className="flex items-center mb-8">
+            <img src="/logo_horizontal.png" alt="DineOS Logo" className="h-16 sm:h-20 w-auto object-contain" />
           </div>
 
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-text-primary">Sign in to DineOS</h2>
-            <p className="mt-2 text-text-secondary">Welcome back. Enter your credentials to access the command center.</p>
+            <h2 className="text-2xl font-bold tracking-tight text-text-primary">Sign in to DineOS</h2>
+            <p className="mt-1 text-sm text-text-secondary">Welcome back. Enter your credentials to access the command center.</p>
           </div>
 
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-text-primary mb-1.5">
@@ -57,11 +77,12 @@ export default function Login() {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input-field"
+                  onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
+                  className={`input-field ${emailError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                   placeholder="admin@dineos.com"
                   disabled={loading}
                 />
+                {emailError && <p className="mt-1.5 text-sm text-red-600 font-medium">{emailError}</p>}
               </div>
 
               <div>
@@ -74,8 +95,8 @@ export default function Login() {
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="input-field pr-10"
+                    onChange={(e) => { setPassword(e.target.value); setPasswordError(''); }}
+                    className={`input-field pr-10 ${passwordError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                     placeholder="••••••••"
                     disabled={loading}
                   />
@@ -88,6 +109,7 @@ export default function Login() {
                     {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                   </button>
                 </div>
+                {passwordError && <p className="mt-1.5 text-sm text-red-600 font-medium">{passwordError}</p>}
                 <div className="flex justify-end mt-1.5">
                   <Link to="/forgot-password" className="text-sm font-medium text-brand-orange-600 hover:text-brand-orange-500 transition-colors">
                     Forgot password?
@@ -109,14 +131,14 @@ export default function Login() {
 
             <Button
               type="submit"
-              className="w-full text-base py-3.5 mt-2"
+              className="w-full text-base py-3 mt-4"
               disabled={loading}
             >
               {loading ? 'Signing in...' : 'Sign in to Dashboard'}
             </Button>
           </form>
 
-          <p className="mt-8 text-center text-sm text-text-secondary font-medium">
+          <p className="mt-6 text-center text-sm text-text-secondary font-medium">
             Don't have an account?{' '}
             <Link to="/signup" className="text-brand-orange-600 hover:text-brand-orange-500 transition-colors">
               Sign up
@@ -125,7 +147,7 @@ export default function Login() {
         </motion.div>
       </div>
 
-      {/* Right side: Elegant Visual Section */}
+      {/* Left side: Elegant Visual Section */}
       <div className="hidden lg:block relative w-0 flex-1 bg-background overflow-hidden">
         <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-brand-orange-50 to-background flex flex-col items-center justify-center p-12">
 
@@ -138,8 +160,8 @@ export default function Login() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative z-10 w-full max-w-2xl bg-white/50 backdrop-blur-xl border border-white/20 shadow-premium rounded-[2.5rem] p-12 text-center"
           >
-            <div className="w-20 h-20 mx-auto bg-white rounded-3xl shadow-soft flex items-center justify-center mb-8 border border-border">
-              <img src="/logo.png" alt="DineOS Logo" className="w-12 h-12 object-contain" />
+            <div className="w-28 h-28 mx-auto bg-white rounded-2xl shadow-soft flex items-center justify-center mb-6 border border-border p-3">
+              <img src="/logo_square.png" alt="DineOS Logo" className="w-full h-full object-contain" />
             </div>
             <h2 className="text-4xl font-extrabold text-brand-navy tracking-tight mb-6">
               The Enterprise Restaurant Operating System.

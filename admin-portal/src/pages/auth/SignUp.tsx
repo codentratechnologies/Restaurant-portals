@@ -16,15 +16,42 @@ export default function SignUp() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setNameError('');
+    setEmailError('');
+    setPasswordError('');
+    setConfirmPasswordError('');
     setLocalError(null);
 
-    if (password !== confirmPassword) {
-      setLocalError("Passwords do not match.");
-      return;
+    let valid = true;
+    if (!name || name.trim().length < 2) {
+      setNameError("Please enter a valid full name.");
+      valid = false;
     }
+
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      setEmailError("Please enter a valid email address.");
+      valid = false;
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setPasswordError("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.");
+      valid = false;
+    }
+
+    if (password !== confirmPassword) {
+      setConfirmPasswordError("Passwords do not match.");
+      valid = false;
+    }
+
+    if (!valid) return;
 
     setLoading(true);
     try {
@@ -41,26 +68,26 @@ export default function SignUp() {
   const displayError = localError || error;
 
   return (
-    <div className="min-h-screen flex bg-background">
-      {/* Left side: Premium SignUp Form */}
-      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:flex-none lg:px-24 xl:px-32 relative z-10 bg-white shadow-[20px_0_40px_-10px_rgba(0,0,0,0.05)] overflow-y-auto">
+    <div className="min-h-screen flex lg:flex-row-reverse bg-background">
+      {/* Right side: Premium SignUp Form */}
+      <div className="flex-1 flex flex-col justify-center py-6 px-4 sm:px-6 lg:flex-none lg:px-24 xl:px-32 relative z-10 bg-white shadow-[-20px_0_40px_-10px_rgba(0,0,0,0.05)] overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mx-auto w-full max-w-md my-auto py-8"
+          className="mx-auto w-full max-w-md my-auto py-4"
         >
-          <div className="flex items-center gap-3 mb-8">
-            <img src="/logo.png" alt="DineOS Logo" className="h-10 object-contain" />
+          <div className="flex items-center mb-8">
+            <img src="/logo_horizontal.png" alt="DineOS Logo" className="h-16 sm:h-20 w-auto object-contain" />
           </div>
 
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-text-primary">Create an account</h2>
-            <p className="mt-2 text-text-secondary">Start managing your restaurant empire today.</p>
+            <h2 className="text-2xl font-bold tracking-tight text-text-primary">Create an account</h2>
+            <p className="mt-1 text-sm text-text-secondary">Start managing your restaurant empire today.</p>
           </div>
 
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-4">
+          <form className="mt-6 space-y-3" onSubmit={handleSubmit}>
+            <div className="space-y-3">
               <div>
                 <label htmlFor="name" className="block text-sm font-semibold text-text-primary mb-1.5">
                   Full Name
@@ -70,11 +97,12 @@ export default function SignUp() {
                   type="text"
                   required
                   value={name}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="input-field"
+                  onChange={(e) => { setFullName(e.target.value); setNameError(''); }}
+                  className={`input-field ${nameError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                   placeholder="John Doe"
                   disabled={loading}
                 />
+                {nameError && <p className="mt-1.5 text-sm text-red-600 font-medium">{nameError}</p>}
               </div>
 
 
@@ -88,11 +116,12 @@ export default function SignUp() {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input-field"
+                  onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
+                  className={`input-field ${emailError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                   placeholder="admin@dineos.com"
                   disabled={loading}
                 />
+                {emailError && <p className="mt-1.5 text-sm text-red-600 font-medium">{emailError}</p>}
               </div>
 
               <div>
@@ -105,8 +134,8 @@ export default function SignUp() {
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="input-field pr-10"
+                    onChange={(e) => { setPassword(e.target.value); setPasswordError(''); }}
+                    className={`input-field pr-10 ${passwordError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                     placeholder="••••••••"
                     disabled={loading}
                     minLength={6}
@@ -120,6 +149,7 @@ export default function SignUp() {
                     {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                   </button>
                 </div>
+                {passwordError && <p className="mt-1.5 text-sm text-red-600 font-medium">{passwordError}</p>}
               </div>
 
               <div>
@@ -132,8 +162,8 @@ export default function SignUp() {
                     type={showConfirmPassword ? "text" : "password"}
                     required
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="input-field pr-10"
+                    onChange={(e) => { setConfirmPassword(e.target.value); setConfirmPasswordError(''); }}
+                    className={`input-field pr-10 ${confirmPasswordError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                     placeholder="••••••••"
                     disabled={loading}
                     minLength={6}
@@ -147,30 +177,31 @@ export default function SignUp() {
                     {showConfirmPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                   </button>
                 </div>
+                {confirmPasswordError && <p className="mt-1.5 text-sm text-red-600 font-medium">{confirmPasswordError}</p>}
               </div>
             </div>
 
             {/* Error message */}
-            {displayError && (
+            {error && (
               <motion.div
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 font-medium"
               >
-                {displayError}
+                {error}
               </motion.div>
             )}
 
             <Button
               type="submit"
-              className="w-full text-base py-3.5 mt-2"
+              className="w-full text-base py-3 mt-4"
               disabled={loading}
             >
               {loading ? 'Creating account...' : 'Create Account'}
             </Button>
           </form>
 
-          <p className="mt-8 text-center text-sm text-text-secondary font-medium">
+          <p className="mt-6 text-center text-sm text-text-secondary font-medium">
             Already have an account?{' '}
             <Link to="/login" className="text-brand-orange-600 hover:text-brand-orange-500 transition-colors">
               Log in
@@ -179,7 +210,7 @@ export default function SignUp() {
         </motion.div>
       </div>
 
-      {/* Right side: Elegant Visual Section */}
+      {/* Left side: Elegant Visual Section */}
       <div className="hidden lg:block relative w-0 flex-1 bg-background overflow-hidden">
         <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-brand-orange-50 to-background flex flex-col items-center justify-center p-12">
 
@@ -192,8 +223,8 @@ export default function SignUp() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative z-10 w-full max-w-2xl bg-white/50 backdrop-blur-xl border border-white/20 shadow-premium rounded-[2.5rem] p-12 text-center"
           >
-            <div className="w-20 h-20 mx-auto bg-white rounded-3xl shadow-soft flex items-center justify-center mb-8 border border-border">
-              <img src="/logo.png" alt="DineOS Logo" className="w-12 h-12 object-contain" />
+            <div className="w-28 h-28 mx-auto bg-white rounded-2xl shadow-soft flex items-center justify-center mb-6 border border-border p-3">
+              <img src="/logo_square.png" alt="DineOS Logo" className="w-full h-full object-contain" />
             </div>
             <h2 className="text-4xl font-extrabold text-brand-navy tracking-tight mb-6">
               The Enterprise Restaurant Operating System.

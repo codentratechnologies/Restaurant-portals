@@ -11,12 +11,21 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState('');
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setEmailError('');
+    setLocalError(null);
     setSuccess(false);
     
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      setEmailError("Please enter a valid email address.");
+      return;
+    }
+
+    setLoading(true);
     try {
       await resetPassword(email);
       setSuccess(true);
@@ -27,23 +36,25 @@ export default function ForgotPassword() {
     }
   };
 
+  const displayError = localError || error;
+
   return (
-    <div className="min-h-screen flex bg-background">
-      {/* Left side: Form */}
-      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:flex-none lg:px-24 xl:px-32 relative z-10 bg-white shadow-[20px_0_40px_-10px_rgba(0,0,0,0.05)]">
+    <div className="min-h-screen flex lg:flex-row-reverse bg-background">
+      {/* Right side: Form */}
+      <div className="flex-1 flex flex-col justify-center py-6 px-4 sm:px-6 lg:flex-none lg:px-24 xl:px-32 relative z-10 bg-white shadow-[-20px_0_40px_-10px_rgba(0,0,0,0.05)]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mx-auto w-full max-w-md space-y-8"
+          className="mx-auto w-full max-w-md space-y-6"
         >
-          <div className="flex items-center gap-2 mb-8">
-            <img src="/logo.png" alt="DineOS Logo" className="h-10 object-contain" />
+          <div className="flex items-center mb-8">
+            <img src="/logo_horizontal.png" alt="DineOS Logo" className="h-16 sm:h-20 w-auto object-contain" />
           </div>
 
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-text-primary">Reset password</h2>
-            <p className="mt-2 text-text-secondary">Enter your email and we'll send you a reset link.</p>
+            <h2 className="text-2xl font-bold tracking-tight text-text-primary">Reset password</h2>
+            <p className="mt-1 text-sm text-text-secondary">Enter your email and we'll send you a reset link.</p>
           </div>
 
           {success ? (
@@ -66,7 +77,7 @@ export default function ForgotPassword() {
               </div>
             </motion.div>
           ) : (
-            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-text-primary mb-1.5">
                   Email Address
@@ -76,27 +87,28 @@ export default function ForgotPassword() {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input-field"
+                  onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
+                  className={`input-field ${emailError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                   placeholder="admin@dineos.com"
                   disabled={loading}
                 />
+                {emailError && <p className="mt-1.5 text-sm text-red-600 font-medium">{emailError}</p>}
               </div>
 
               {/* Error message */}
-              {error && (
+              {displayError && (
                 <motion.div
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 font-medium"
                 >
-                  {error}
+                  {displayError}
                 </motion.div>
               )}
 
               <Button
                 type="submit"
-                className="w-full text-base py-3.5 mt-2"
+                className="w-full text-base py-3 mt-4"
                 disabled={loading}
               >
                 {loading ? 'Sending link...' : 'Send reset link'}
@@ -113,7 +125,7 @@ export default function ForgotPassword() {
         </motion.div>
       </div>
 
-      {/* Right side: Elegant Visual Section */}
+      {/* Left side: Elegant Visual Section */}
       <div className="hidden lg:block relative w-0 flex-1 bg-background overflow-hidden">
         <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-brand-orange-50 to-background flex flex-col items-center justify-center p-12">
 
@@ -126,8 +138,8 @@ export default function ForgotPassword() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative z-10 w-full max-w-2xl bg-white/50 backdrop-blur-xl border border-white/20 shadow-premium rounded-[2.5rem] p-12 text-center"
           >
-            <div className="w-20 h-20 mx-auto bg-white rounded-3xl shadow-soft flex items-center justify-center mb-8 border border-border">
-              <img src="/logo.png" alt="DineOS Logo" className="w-12 h-12 object-contain" />
+            <div className="w-28 h-28 mx-auto bg-white rounded-2xl shadow-soft flex items-center justify-center mb-6 border border-border p-3">
+              <img src="/logo_square.png" alt="DineOS Logo" className="w-full h-full object-contain" />
             </div>
             <h2 className="text-4xl font-extrabold text-brand-navy tracking-tight mb-6">
               The Enterprise Restaurant Operating System.
