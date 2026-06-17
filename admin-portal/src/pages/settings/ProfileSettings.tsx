@@ -3,7 +3,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { ref, get, update } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
 import toast from 'react-hot-toast';
-import { Edit2, X, LogOut } from 'lucide-react'; // importing icons for nice UI
+import { Edit2, X, LogOut, Check } from 'lucide-react';
+import Button from '../../components/common/Button';
 
 export default function ProfileSettings() {
   const { user, logout } = useAuth();
@@ -79,7 +80,7 @@ export default function ProfileSettings() {
     );
   }
 
-  const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || 'Admin')}&backgroundColor=f5f7fa`;
+  const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=Admin&backgroundColor=f5f7fa`;
 
   return (
     <div className="space-y-6 relative">
@@ -151,18 +152,24 @@ export default function ProfileSettings() {
 
         {isEditing && (
           <div className="pt-4 flex items-center gap-3">
-            <button type="submit" className="btn-primary" disabled={saving}>
-              {saving ? 'Saving...' : 'Save Changes'}
-            </button>
-            <button 
+            <Button type="submit" variant="primary" disabled={saving} className="flex items-center gap-2">
+              {saving ? 'Saving...' : (
+                <>
+                  <Check className="w-4 h-4" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+            <Button 
               type="button" 
+              variant="secondary"
               onClick={handleCancel}
               disabled={saving}
-              className="px-6 py-2.5 text-sm font-bold text-text-secondary bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors flex items-center gap-2"
+              className="flex items-center gap-2"
             >
               <X className="w-4 h-4" />
               Cancel
-            </button>
+            </Button>
           </div>
         )}
       </form>

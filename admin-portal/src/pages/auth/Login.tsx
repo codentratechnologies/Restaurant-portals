@@ -50,7 +50,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex lg:flex-row-reverse bg-background">
       {/* Right side: Premium Login Form */}
-      <div className="flex-1 flex flex-col justify-center py-6 px-4 sm:px-6 lg:flex-none lg:px-24 xl:px-32 relative z-10 bg-white shadow-[-20px_0_40px_-10px_rgba(0,0,0,0.05)]">
+      <div className="flex-1 flex flex-col justify-center py-6 px-4 sm:px-6 lg:w-1/2 lg:flex-none lg:px-24 xl:px-32 relative z-10 bg-white shadow-[-20px_0_40px_-10px_rgba(0,0,0,0.05)]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -66,7 +66,7 @@ export default function Login() {
             <p className="mt-1 text-sm text-text-secondary">Welcome back. Enter your credentials to access the command center.</p>
           </div>
 
-          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+          <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-text-primary mb-1.5">
@@ -148,29 +148,33 @@ export default function Login() {
       </div>
 
       {/* Left side: Elegant Visual Section */}
-      <div className="hidden lg:block relative w-0 flex-1 bg-background overflow-hidden">
-        <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-brand-orange-50 to-background flex flex-col items-center justify-center p-12">
+      <div className="hidden lg:block relative lg:w-1/2 overflow-hidden bg-brand-navy">
+        <div className="absolute inset-0">
+          <img 
+            src="/restaurant_auth_bg_light.png" 
+            alt="Restaurant Atmosphere" 
+            className="h-full w-full object-cover opacity-90"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-black/40 to-brand-navy/95"></div>
+        </div>
 
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-brand-orange-500/5 rounded-full blur-3xl mix-blend-multiply"></div>
-          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-[400px] h-[400px] bg-brand-green/5 rounded-full blur-3xl mix-blend-multiply"></div>
-
+        <div className="absolute inset-0 h-full w-full flex flex-col items-center justify-center p-12">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative z-10 w-full max-w-2xl bg-white/50 backdrop-blur-xl border border-white/20 shadow-premium rounded-[2.5rem] p-12 text-center"
+            className="relative z-10 w-full max-w-2xl p-12 text-center"
           >
-            <div className="w-28 h-28 mx-auto bg-white rounded-2xl shadow-soft flex items-center justify-center mb-6 border border-border p-3">
-              <img src="/logo_square.png" alt="DineOS Logo" className="w-full h-full object-contain" />
+            <div className="w-80 mx-auto -mb-10 relative z-20 transition-transform hover:scale-105 duration-300">
+              <img src="/logo_horizontal_transparent.png" alt="DineOS Logo" className="w-full h-auto object-contain" />
             </div>
-            <h2 className="text-4xl font-extrabold text-brand-navy tracking-tight mb-6">
+            <h2 className="text-4xl font-extrabold text-white tracking-tight mb-6 drop-shadow-lg relative z-30">
               The Enterprise Restaurant Operating System.
             </h2>
-            <p className="text-xl text-text-secondary leading-relaxed max-w-lg mx-auto">
+            <p className="text-xl text-white/90 leading-relaxed max-w-lg mx-auto drop-shadow-md font-medium">
               Unify your branches, staff, menus, and analytics into one seamless command center designed for modern dining businesses.
             </p>
           </motion.div>
-
         </div>
       </div>
     </div>

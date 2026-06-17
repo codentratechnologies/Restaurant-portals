@@ -249,98 +249,85 @@ export default function CouponsDashboard() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paginatedData.map((coupon, i) => (
-                  <motion.div
-                    key={coupon.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: i * 0.05 }}
-                    onClick={() => handleRowClick(coupon)}
-                    className="group relative bg-white border border-border hover:border-brand-orange-500/30 rounded-2xl p-0 shadow-sm hover:shadow-premium transition-all cursor-pointer overflow-hidden flex flex-col"
-                  >
-                    {/* Ticket Dash Border Effect (Left edge) */}
-                    <div className="absolute left-0 top-0 bottom-0 w-3 border-r-2 border-dashed border-border/50 bg-gray-50"></div>
-                    
-                    <div className="p-6 pl-8 relative flex-1 flex flex-col">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex flex-col">
+              <div className="overflow-x-auto bg-white rounded-2xl border border-border/50 shadow-sm">
+                <table className="w-full text-left border-collapse min-w-[800px]">
+                  <thead>
+                    <tr className="bg-gray-50/50 border-b border-border/50">
+                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[25%]">Coupon Code</th>
+                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Type</th>
+                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Discount</th>
+                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[20%]">Valid Until</th>
+                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Status</th>
+                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[10%]">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {paginatedData.map((coupon, i) => (
+                      <motion.tr
+                        key={coupon.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2, delay: i * 0.05 }}
+                        className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
+                        onClick={() => handleRowClick(coupon)}
+                      >
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-brand-orange-50 text-brand-orange-500 flex items-center justify-center shrink-0 border border-brand-orange-100/50">
+                              <Tag className="w-6 h-6" />
+                            </div>
+                            <span className="font-bold text-brand-navy text-lg">{coupon.code}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5">
+                          <span className="text-sm font-semibold text-text-secondary flex items-center gap-1.5">
+                            <Scissors className="w-4 h-4" />
+                            {coupon.discountType}
+                          </span>
+                        </td>
+                        <td className="px-6 py-5">
+                          <span className="text-base font-black text-brand-navy">
+                            {coupon.discountType === 'Percentage' ? `${coupon.discountPercentage}%` : `₹${coupon.maxDiscountAmount}`}
+                          </span>
+                          <span className="text-xs font-bold text-text-secondary ml-1 uppercase tracking-wider">OFF</span>
+                        </td>
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-2 text-sm font-medium text-brand-navy">
+                            <Calendar className="w-4 h-4 text-text-secondary" />
+                            {new Date(coupon.validUntil).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </div>
+                        </td>
+                        <td className="px-6 py-5">
                           <Badge 
                             variant={
                               coupon.status === 'Active' ? 'success' : 
                               coupon.status === 'Terminated' ? 'error' : 
                               'warning'
                             } 
-                            className="font-bold shadow-sm self-start mb-2 uppercase tracking-widest text-[10px]"
+                            className="font-bold uppercase text-[11px] tracking-widest shadow-sm px-3 py-1"
                           >
                             {coupon.status}
                           </Badge>
-                          <h3 className="text-2xl font-black text-brand-navy tracking-tight truncate max-w-[150px]">{coupon.code}</h3>
-                        </div>
-                        <div className="w-12 h-12 rounded-2xl bg-brand-orange-50 text-brand-orange-500 flex items-center justify-center shrink-0 border border-brand-orange-100/50 shadow-inner group-hover:scale-105 transition-transform">
-                          <Tag className="w-6 h-6" />
-                        </div>
-                      </div>
-
-                      <div className="flex items-end gap-2 mb-4">
-                        <span className="text-4xl font-black text-brand-orange-600 leading-none">
-                          {coupon.discountType === 'Percentage' ? `${coupon.discountPercentage}%` : `₹${coupon.maxDiscountAmount}`}
-                        </span>
-                        <span className="text-sm font-bold text-text-secondary pb-1 uppercase tracking-wider">OFF</span>
-                      </div>
-
-                      <div className="mt-auto pt-4 border-t border-border/50 grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wider mb-1">Valid Until</p>
-                          <div className="flex items-center gap-1.5 text-sm font-bold text-brand-navy">
-                            <Calendar className="w-4 h-4 text-text-secondary" />
-                            {new Date(coupon.validUntil).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
+                        </td>
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                            <Link to={`/coupons/${coupon.id}`} className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-colors" title="View Details">
+                              <Eye className="w-4 h-4" />
+                            </Link>
+                            <Link to={`/coupons/${coupon.id}/edit`} className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-colors" title="Edit Coupon">
+                              <Edit2 className="w-4 h-4" />
+                            </Link>
+                            {canDeleteCoupon && (
+                              <button onClick={() => handleDeleteClick(coupon)} className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Coupon">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
                           </div>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wider mb-1">Discount Type</p>
-                          <div className="flex items-center gap-1.5 text-sm font-bold text-brand-navy">
-                            <Scissors className="w-4 h-4 text-text-secondary" />
-                            {coupon.discountType}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Actions Overlay (Full Card Blur) */}
-                    <div className="absolute inset-0 bg-white/40 backdrop-blur-[3px] opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 flex items-center justify-center">
-                      <div className="flex gap-2 bg-white shadow-premium p-1.5 rounded-xl border border-border/50 transform scale-95 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300 delay-75" onClick={(e) => e.stopPropagation()}>
-                        <Link 
-                          to={`/coupons/${coupon.id}`} 
-                          className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-colors"
-                          title="View Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                        <Link 
-                          to={`/coupons/${coupon.id}/edit`} 
-                          className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                          title="Edit Coupon"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Link>
-                        {canDeleteCoupon && (
-                          <button
-                            onClick={() => handleDeleteClick(coupon)}
-                            className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete Coupon"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

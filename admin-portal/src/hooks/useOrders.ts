@@ -58,8 +58,13 @@ export function useOrders() {
     const branchesRef = ref(rtdb, `branch/${user.uid}`);
     const customersRef = ref(rtdb, `user_customer/${user.uid}`);
 
+    const deliveriesRef = ref(rtdb, `delivery/${user.uid}`);
+    const employeesRef = ref(rtdb, `employee/${user.uid}`);
+
     let currentBranches: Record<string, any> = {};
     let currentCustomers: Record<string, any> = {};
+    let currentDeliveries: Record<string, any> = {};
+    let currentEmployees: Record<string, any> = {};
     let currentRawOrders: any = null;
 
     const processOrders = () => {
@@ -101,6 +106,46 @@ export function useOrders() {
               type: rawOrder.type || rawOrder.orderType || 'Delivery',
               created_at: rawOrder.orderDate || rawOrder.created_at || rawOrder.timestamp || new Date().toISOString(),
               updated_at: rawOrder.updated_at || rawOrder.orderDate || new Date().toISOString(),
+              agent: (() => {
+                let deliveryAgentObj: any = undefined;
+                let foundBoyId: string | null = null;
+                const orderKey = rawOrder.id || rawOrder.orderId || orderId;
+
+                // 1. Search in currentDeliveries[branchId] for the boy holding this order
+                if (currentDeliveries[branchId]) {
+                  for (const boyId of Object.keys(currentDeliveries[branchId])) {
+                    if (currentDeliveries[branchId][boyId] && currentDeliveries[branchId][boyId][orderKey]) {
+                      foundBoyId = boyId;
+                      break;
+                    }
+                  }
+                }
+
+                // 2. Fetch boy details from currentEmployees[branchId]
+                if (foundBoyId && currentEmployees[branchId] && currentEmployees[branchId][foundBoyId]) {
+                  const emp = currentEmployees[branchId][foundBoyId];
+                  deliveryAgentObj = {
+                    name: `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Unknown',
+                    phone: emp.phone || emp.mobileNumber || 'N/A'
+                  };
+                }
+
+                // 3. Fallback
+                if (!deliveryAgentObj) {
+                  deliveryAgentObj = rawOrder.deliveryAgent ? {
+                    name: rawOrder.deliveryAgent.name || rawOrder.deliveryAgent.fullName || 'Unknown',
+                    phone: rawOrder.deliveryAgent.phone || rawOrder.deliveryAgent.contact || 'N/A'
+                  } : (rawOrder.deliveryPartner ? {
+                    name: rawOrder.deliveryPartner.name || rawOrder.deliveryPartner.fullName || 'Unknown',
+                    phone: rawOrder.deliveryPartner.phone || rawOrder.deliveryPartner.contact || 'N/A'
+                  } : (rawOrder.agent ? {
+                    name: rawOrder.agent.name || rawOrder.agent.fullName || 'Unknown',
+                    phone: rawOrder.agent.phone || rawOrder.agent.contact || 'N/A'
+                  } : undefined));
+                }
+
+                return deliveryAgentObj;
+              })(),
               items: (rawOrder.items || rawOrder.cartItems || []).map((i: any, index: number) => ({
                 id: i.id || index,
                 name: i.name || i.itemName || 'Item',
@@ -132,6 +177,16 @@ export function useOrders() {
       if (currentRawOrders !== null) processOrders();
     });
 
+    const unsubDeliveries = onValue(deliveriesRef, (snap) => {
+      currentDeliveries = snap.exists() ? snap.val() : {};
+      if (currentRawOrders !== null) processOrders();
+    });
+
+    const unsubEmployees = onValue(employeesRef, (snap) => {
+      currentEmployees = snap.exists() ? snap.val() : {};
+      if (currentRawOrders !== null) processOrders();
+    });
+
     const unsubOrders = onValue(
       ordersRef,
       (snapshot) => {
@@ -154,6 +209,8 @@ export function useOrders() {
     return () => {
       unsubBranches();
       unsubCustomers();
+      unsubDeliveries();
+      unsubEmployees();
       unsubOrders();
     };
   }, [user]);

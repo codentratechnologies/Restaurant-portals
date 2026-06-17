@@ -9,6 +9,8 @@ export function useRestaurantOrders() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [rawOrders, setRawOrders] = useState<any[]>([]);
   const [customersData, setCustomersData] = useState<any>({});
+  const [deliveriesData, setDeliveriesData] = useState<any>({});
+  const [employeesData, setEmployeesData] = useState<any>({});
   const [branchPushId, setBranchPushId] = useState<string>('');
   const [masterMenu, setMasterMenu] = useState<any[]>([]);
 
@@ -74,8 +76,29 @@ export function useRestaurantOrders() {
       }
       setLoading(false);
     });
+    });
     return () => unsub();
   }, [currentUser, branchPushId]);
+
+  // 3a. Listen to deliveries for this branch
+  useEffect(() => {
+    if (!currentUser || !branchPushId) return;
+    const unsub = onValue(ref(rtdb, `delivery/${currentUser.adminId}/${branchPushId}`), snap => {
+      if (snap.exists()) setDeliveriesData(snap.val());
+      else setDeliveriesData({});
+    });
+    return () => unsub();
+  }, [currentUser, branchPushId]);
+
+  // 3b. Listen to employees for this admin
+  useEffect(() => {
+    if (!currentUser) return;
+    const unsub = onValue(ref(rtdb, `employee/${currentUser.adminId}`), snap => {
+      if (snap.exists()) setEmployeesData(snap.val());
+      else setEmployeesData({});
+    });
+    return () => unsub();
+  }, [currentUser]);
 
   // 4. Merge data
   useEffect(() => {
@@ -116,11 +139,57 @@ export function useRestaurantOrders() {
         acceptedAt: rawOrder.acceptedAt || null,
         rejectionReason: rawOrder.rejectionReason,
         rejectionNotes: rawOrder.rejectionNotes,
-        cancellationReason: rawOrder.cancellationReason
+        cancellationReason: rawOrder.cancellationReason,
+        deliveryAgent: (() => {
+          let deliveryAgentObj: any = undefined;
+          let foundBoyId: string | null = null;
+          const orderKey = rawOrder.id || rawOrder._key;
+
+          // 1. Search in deliveriesData for the boy holding this order
+          if (deliveriesData) {
+            for (const boyId of Object.keys(deliveriesData)) {
+              if (deliveriesData[boyId] && deliveriesData[boyId][orderKey]) {
+                foundBoyId = boyId;
+                break;
+              }
+            }
+          }
+
+          // 2. Fetch boy details from employeesData
+          if (foundBoyId && employeesData) {
+            // Find employee in any branch (since deliveriesData is branch-specific but employeesData might be grouped by branch code)
+            for (const branchCode of Object.keys(employeesData)) {
+              if (employeesData[branchCode] && employeesData[branchCode][foundBoyId]) {
+                const emp = employeesData[branchCode][foundBoyId];
+                deliveryAgentObj = {
+                  name: `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Unknown',
+                  contact: emp.phone || emp.mobileNumber || 'N/A'
+                };
+                break;
+              }
+            }
+          }
+
+          // 3. Fallback
+          if (!deliveryAgentObj) {
+            deliveryAgentObj = rawOrder.deliveryAgent ? {
+              name: rawOrder.deliveryAgent.name || rawOrder.deliveryAgent.fullName || 'Unknown',
+              contact: rawOrder.deliveryAgent.contact || rawOrder.deliveryAgent.phone || 'N/A'
+            } : (rawOrder.deliveryPartner ? {
+              name: rawOrder.deliveryPartner.name || rawOrder.deliveryPartner.fullName || 'Unknown',
+              contact: rawOrder.deliveryPartner.contact || rawOrder.deliveryPartner.phone || 'N/A'
+            } : (rawOrder.agent ? {
+              name: rawOrder.agent.name || rawOrder.agent.fullName || 'Unknown',
+              contact: rawOrder.agent.contact || rawOrder.agent.phone || 'N/A'
+            } : undefined));
+          }
+
+          return deliveryAgentObj;
+        })()
       };
     });
     setOrders(mergedOrders);
-  }, [rawOrders, customersData, branchPushId]);
+  }, [rawOrders, customersData, deliveriesData, employeesData, branchPushId]);
 
   // 5. Listen to master menu
   useEffect(() => {

@@ -71,7 +71,7 @@ export default function TopNav() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-border shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-white border-b border-border shadow-sm">
       <div className="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between">
 
         {/* LEFT: Logo */}
