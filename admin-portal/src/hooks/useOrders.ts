@@ -121,29 +121,36 @@ export function useOrders() {
                   }
                 }
 
-                // 2. Fetch boy details from currentEmployees[branchId]
-                if (foundBoyId && currentEmployees[branchId] && currentEmployees[branchId][foundBoyId]) {
-                  const emp = currentEmployees[branchId][foundBoyId];
-                  deliveryAgentObj = {
-                    name: `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Unknown',
-                    phone: emp.phone || emp.mobileNumber || 'N/A'
-                  };
+                // 2. Fetch boy details from currentEmployees
+                if (foundBoyId) {
+                  let emp = null;
+                  for (const bCode of Object.keys(currentEmployees)) {
+                    if (currentEmployees[bCode] && currentEmployees[bCode][foundBoyId]) {
+                      emp = currentEmployees[bCode][foundBoyId];
+                      break;
+                    }
+                  }
+                  if (emp) {
+                    deliveryAgentObj = {
+                      name: `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Unknown',
+                      phone: emp.phone || emp.mobileNumber || 'N/A'
+                    };
+                  }
                 }
 
                 // 3. Fallback
                 if (!deliveryAgentObj) {
-                  deliveryAgentObj = rawOrder.deliveryAgent ? {
-                    name: rawOrder.deliveryAgent.name || rawOrder.deliveryAgent.fullName || 'Unknown',
-                    phone: rawOrder.deliveryAgent.phone || rawOrder.deliveryAgent.contact || 'N/A'
-                  } : (rawOrder.deliveryPartner ? {
-                    name: rawOrder.deliveryPartner.name || rawOrder.deliveryPartner.fullName || 'Unknown',
-                    phone: rawOrder.deliveryPartner.phone || rawOrder.deliveryPartner.contact || 'N/A'
-                  } : (rawOrder.agent ? {
-                    name: rawOrder.agent.name || rawOrder.agent.fullName || 'Unknown',
-                    phone: rawOrder.agent.phone || rawOrder.agent.contact || 'N/A'
-                  } : undefined));
+                  const agentData = rawOrder.deliveryAgent || rawOrder.deliveryPartner || rawOrder.agent || rawOrder.deliveryBoy || rawOrder.assignedTo;
+                  if (agentData) {
+                    deliveryAgentObj = {
+                      name: agentData.name || agentData.fullName || agentData.firstName || 'Unknown',
+                      phone: agentData.phone || agentData.contact || agentData.mobileNumber || 'N/A'
+                    };
+                  }
                 }
 
+                // Ensure we return an object instead of undefined, so OrderDetail can pick it up
+                // BUT only if we actually found something, otherwise let it be undefined so it falls back properly.
                 return deliveryAgentObj;
               })(),
               items: (rawOrder.items || rawOrder.cartItems || []).map((i: any, index: number) => ({
