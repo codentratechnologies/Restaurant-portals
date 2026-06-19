@@ -27,6 +27,7 @@ import UpdateEmployee from './pages/employees/UpdateEmployee';
 import FoodCatalog from './pages/food/FoodCatalog';
 import CreateFoodItem from './pages/food/CreateFoodItem';
 import UpdateFoodItem from './pages/food/UpdateFoodItem';
+import FoodDetails from './pages/food/FoodDetails';
 
 // Order Pages
 import OrderTable from './pages/orders/OrderTable';
@@ -112,6 +113,7 @@ function AppRoutes() {
 
           <Route path="/food" element={<FoodCatalog />} />
           <Route path="/food/new" element={<CreateFoodItem />} />
+          <Route path="/food/:id" element={<FoodDetails />} />
           <Route path="/food/:id/edit" element={<UpdateFoodItem />} />
 
           <Route path="/orders" element={<OrderCalendar />} />

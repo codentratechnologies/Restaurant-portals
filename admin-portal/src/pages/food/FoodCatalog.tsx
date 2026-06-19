@@ -1,16 +1,14 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, UtensilsCrossed, AlertCircle, CheckCircle2, Box, LayoutGrid, List as ListIcon, Edit2, Eye, Leaf, EggFried, Drumstick, Plus, RefreshCw, Pizza } from 'lucide-react';
+import { Search, UtensilsCrossed, Edit2, Eye, Leaf, EggFried, Drumstick, Plus, Pizza, ChevronLeft, ChevronRight, FileX } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Select from '../../components/common/Select';
-import Table, { Column } from '../../components/common/Table';
 import AvailabilityToggle from './components/AvailabilityToggle';
 import DisableConfirmationModal from './components/DisableConfirmationModal';
-import ViewFoodDrawer from './components/ViewFoodDrawer';
 import { useMenuItems, MenuItem } from '../../hooks/useMenuItems';
 import { ref, update } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
@@ -28,22 +26,20 @@ const dietaryTypes = ['All', 'Veg', 'Non-Veg', 'Egg'];
 export default function FoodCatalog() {
  const { user } = useAuth();
  const { menuItems, loading: isLoading } = useMenuItems();
+ const navigate = useNavigate();
 
  // Filters & Views
  const [searchInput, setSearchInput] = useState('');
  const [debouncedSearch, setDebouncedSearch] = useState('');
  const [categoryFilter, setCategoryFilter] = useState('All');
  const [dietaryFilter, setDietaryFilter] = useState('All');
- const [statusFilter, setStatusFilter] = useState('All'); // 'All' | 'Available' | 'Unavailable'
+ const [statusFilter, setStatusFilter] = useState('All');
  const [currentPage, setCurrentPage] = useState(1);
- const itemsPerPage = 12;
+ const itemsPerPage = 8;
 
- // Modals / Drawers
+ // Modals
  const [modalOpen, setModalOpen] = useState(false);
  const [itemToDisable, setItemToDisable] = useState<MenuItem | null>(null);
-
- const [drawerOpen, setDrawerOpen] = useState(false);
- const [itemToView, setItemToView] = useState<MenuItem | null>(null);
 
  // Debounce search input
  useEffect(() => {
@@ -58,40 +54,29 @@ export default function FoodCatalog() {
  setCurrentPage(1);
  }, [debouncedSearch, categoryFilter, dietaryFilter, statusFilter]);
 
- const getDietaryString = (item: MenuItem) => {
- if (item.tags?.includes('Egg')) return 'Egg';
- if (item.is_vegetarian) return 'Veg';
- return 'Non-Veg';
- };
-
  // Derived filtered items
  const filteredItems = useMemo(() => {
  return menuItems.filter(item => {
  const q = debouncedSearch.toLowerCase();
  const matchesSearch = item.name.toLowerCase().includes(q) || (item.foodId?.toLowerCase() || '').includes(q);
-
  const itemCategories = item.categories || [];
  const matchesCategory = categoryFilter === 'All' || itemCategories.includes(categoryFilter);
-
  const itemDietary = item.dietary_types || [];
  const matchesDietary = dietaryFilter === 'All' || itemDietary.includes(dietaryFilter);
-
  const matchesStatus = statusFilter === 'All'
  ? true
  : statusFilter === 'Available' ? item.is_available : !item.is_available;
-
  return matchesSearch && matchesCategory && matchesDietary && matchesStatus;
  });
  }, [menuItems, debouncedSearch, categoryFilter, dietaryFilter, statusFilter]);
 
- // Pagination slice
+ // Pagination
  const paginatedItems = useMemo(() => {
  const start = (currentPage - 1) * itemsPerPage;
  return filteredItems.slice(start, start + itemsPerPage);
  }, [filteredItems, currentPage]);
 
- const totalItems = menuItems.length;
- const availableCount = menuItems.filter(i => i.is_available).length;
+ const totalPages = Math.max(1, Math.ceil(filteredItems.length / itemsPerPage));
 
  // Toggle Availability in Firebase across all categories
  const handleToggleStatus = async (item: MenuItem, newStatus: boolean) => {
@@ -128,148 +113,41 @@ export default function FoodCatalog() {
  };
 
  const getDietaryBadge = (type: string, key?: string) => {
- const baseClass ="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border backdrop-blur-md shadow-sm";
+ const baseClass ="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border";
  switch (type) {
- case 'Veg': return <div key={key} className={`${baseClass} bg-green-50/90 text-green-700 border-green-200`}><Leaf className="w-3 h-3" /> Veg</div>;
- case 'Non-Veg': return <div key={key} className={`${baseClass} bg-red-50/90 text-red-700 border-red-200`}><Drumstick className="w-3 h-3" /> Non-Veg</div>;
- case 'Egg': return <div key={key} className={`${baseClass} bg-amber-50/90 text-amber-700 border-amber-200`}><EggFried className="w-3 h-3" /> Egg</div>;
+ case 'Veg': return <div key={key} className={`${baseClass} bg-green-50 text-green-700 border-green-200`}><Leaf className="w-3 h-3" /> Veg</div>;
+ case 'Non-Veg': return <div key={key} className={`${baseClass} bg-red-50 text-red-700 border-red-200`}><Drumstick className="w-3 h-3" /> Non-Veg</div>;
+ case 'Egg': return <div key={key} className={`${baseClass} bg-amber-50 text-amber-700 border-amber-200`}><EggFried className="w-3 h-3" /> Egg</div>;
  default: return null;
  }
  };
 
- const renderSkeletons = () => (
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
- {Array.from({ length: 8 }).map((_, idx) => (
- <div key={idx} className="bg-white border border-border rounded-2xl overflow-hidden shadow-sm h-[340px] flex flex-col animate-pulse">
- <div className="h-44 bg-gray-200"></div>
- <div className="p-4 flex flex-col flex-grow">
- <div className="h-5 bg-gray-200 rounded-md w-3/4 mb-3"></div>
- <div className="h-5 bg-gray-200 rounded-md w-1/4 mb-4"></div>
- <div className="h-6 bg-gray-200 rounded-md w-1/3 mb-auto"></div>
- <div className="mt-4 pt-4 border-t border-border flex justify-between">
- <div className="h-8 bg-gray-200 rounded-md w-20"></div>
- <div className="h-8 bg-gray-200 rounded-md w-20"></div>
- </div>
- </div>
- </div>
- ))}
- </div>
- );
-
- const renderListSkeletons = () => (
- <div className="bg-white border border-border rounded-xl overflow-hidden shadow-sm">
- <div className="divide-y divide-border">
- {Array.from({ length: 5 }).map((_, idx) => (
- <div key={idx} className="p-4 flex items-center gap-4 animate-pulse">
- <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
- <div className="flex-1 space-y-2">
- <div className="h-4 bg-gray-200 rounded w-1/4"></div>
- <div className="h-3 bg-gray-200 rounded w-1/6"></div>
- </div>
- <div className="w-24 h-6 bg-gray-200 rounded"></div>
- <div className="w-20 h-6 bg-gray-200 rounded"></div>
- <div className="w-16 h-8 bg-gray-200 rounded"></div>
- </div>
- ))}
- </div>
- </div>
- );
-
- // List View Columns
- const columns: Column<MenuItem>[] = [
- {
- header: 'Image',
- cell: (item) => (
- <img
- src={item.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400'}
- alt={item.name}
- onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400' }}
- className={`w-12 h-12 rounded-lg object-cover border border-border shadow-sm ${!item.is_available && 'opacity-50 grayscale'}`}
- />
- )
- },
- {
- header: 'Food ID',
- cell: (item) => (
- <span className={`font-mono text-xs font-bold px-2 py-1 rounded bg-gray-50 border border-border ${!item.is_available && 'opacity-60'}`}>
- {item.foodId || '-'}
- </span>
- )
- },
- {
- header: 'Food Name',
- cell: (item) => (
- <span className={`font-bold tracking-tight ${item.is_available ? 'text-brand-navy' : 'text-text-secondary opacity-60'}`}>
- {item.name}
- </span>
- )
- },
- {
- header: 'Category',
- cell: (item) => (
- <div className={`flex flex-wrap gap-1 ${!item.is_available && 'opacity-60'}`}>
- {(item.categories || []).slice(0, 2).map((cat, idx) => (
- <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-text-secondary text-[10px] font-semibold">
- {cat}
- </span>
- ))}
- {(item.categories || []).length > 2 && (
- <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-gray-100 text-text-secondary text-[10px] font-semibold">
- +{(item.categories || []).length - 2}
- </span>
- )}
- </div>
- )
- },
- {
- header: 'Dietary Type',
- cell: (item) => (
- <div className={`flex flex-wrap gap-1 ${!item.is_available && 'opacity-60'}`}>
- {(item.dietary_types || []).map((type, idx) => getDietaryBadge(type, String(idx)))}
- </div>
- )
- },
- {
- header: 'Price',
- cell: (item) => (
- <span className={`font-bold ${item.is_available ? 'text-brand-orange-600' : 'text-text-secondary opacity-60'}`}>
- ₹{item.price}
- </span>
- )
- },
- {
- header: 'Status',
- cell: (item) => (
- <div className="flex items-center gap-3 justify-start">
- <span className={`text-[11px] font-bold uppercase tracking-wider ${item.is_available ? 'text-green-600' : 'text-text-secondary'}`}>
- {item.is_available ? 'Available' : 'Unavailable'}
- </span>
- <AvailabilityToggle isAvailable={item.is_available} onToggle={() => handleToggleClick(item)} />
- </div>
- )
- },
- {
- header: 'Actions',
- cell: (item) => (
- <div className="flex items-center gap-2">
- <button onClick={() => { setItemToView(item); setDrawerOpen(true); }} className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-colors">
- <Eye className="w-4 h-4" />
- </button>
- <Link to={`/food/${item.id}/edit`} className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-brand-orange-50 rounded-lg transition-colors">
- <Edit2 className="w-4 h-4" />
- </Link>
- </div>
- )
+ const getPageNumbers = () => {
+ if (!totalPages || !currentPage) return [];
+ const pages: (number | string)[] = [];
+ if (totalPages <= 7) {
+ for (let i = 1; i <= totalPages; i++) {
+ pages.push(i);
  }
- ];
+ } else {
+ if (currentPage <= 4) {
+ pages.push(1, 2, 3, 4, 5, '...', totalPages);
+ } else if (currentPage >= totalPages - 3) {
+ pages.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+ } else {
+ pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+ }
+ }
+ return pages;
+ };
 
  // ── Empty State Handling ─────────────────────────────────────────
  if (!isLoading && menuItems.length === 0) {
  return (
- <div className="space-y-6 h-[calc(100vh-100px)] flex flex-col max-w-[1400px] mx-auto">
+ <div className="space-y-6 h-[calc(100vh-100px)] flex flex-col">
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
- <h1 className="text-3xl font-black text-brand-navy tracking-tight">Food Catalog</h1>
+ <h1 className="text-3xl font-black text-brand-navy tracking-tight">Menu</h1>
  <p className="text-text-secondary mt-1 text-sm font-medium">Manage your central menu items and availability.</p>
  </motion.div>
  </div>
@@ -301,8 +179,9 @@ export default function FoodCatalog() {
  );
  }
 
+ // ── Normal List View ─────────────────────────────────────────────
  return (
- <div className="max-w-[1400px] mx-auto">
+ <div className="space-y-6">
 
  <DisableConfirmationModal
  isOpen={modalOpen}
@@ -311,76 +190,56 @@ export default function FoodCatalog() {
  itemName={itemToDisable?.name || ''}
  />
 
- {itemToView && (
- <ViewFoodDrawer
- isOpen={drawerOpen}
- onClose={() => setDrawerOpen(false)}
- foodItem={itemToView as any} // Using any to avoid type mismatch with old mock component type
- />
- )}
+ {/* Top Section */}
+ <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+ <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+ <h1 className="text-3xl font-black text-brand-navy tracking-tight">Menu</h1>
+ <p className="text-text-secondary mt-1 text-sm font-medium">Manage your central menu items and availability.</p>
+ </motion.div>
 
- <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-md pb-4 pt-6 -mt-6 mb-2">
- {/* Header section with stats */}
- <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
- <div>
- <h1 className="text-2xl font-bold text-brand-navy tracking-tight">Food Catalog</h1>
- <p className="text-text-secondary mt-1 text-sm">Manage your central menu items and availability.</p>
- </div>
-
- <div className="flex items-center gap-3">
- <div className="flex bg-white rounded-lg p-1.5 border border-border shadow-sm">
- <div className="px-3 py-1 flex flex-col items-center justify-center border-r border-border min-w-[80px]">
- <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider mb-0.5">Total Items</span>
- <span className="text-lg font-black text-brand-navy leading-none">{totalItems}</span>
- </div>
- <div className="px-3 py-1 flex flex-col items-center justify-center min-w-[80px]">
- <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider mb-0.5">Available</span>
- <span className="text-lg font-black text-green-600 leading-none">{availableCount}</span>
- </div>
- </div>
+ <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
  <Link to="/food/new">
- <button className="h-[52px] px-5 bg-brand-navy hover:bg-brand-navy/90 text-white text-sm font-semibold rounded-lg shadow-sm transition-all flex items-center justify-center gap-2">
- <Plus className="w-4 h-4" /> Add Item
- </button>
+ <Button className="gap-2 shadow-sm font-bold">
+ <Plus className="w-5 h-5" />
+ Add Item
+ </Button>
  </Link>
- </div>
+ </motion.div>
  </div>
 
- {/* Filter Toolbar */}
- <div className="bg-white border border-border rounded-xl p-2 shadow-sm flex flex-col md:flex-row items-center gap-2">
- <div className="relative w-full md:w-80 flex-shrink-0">
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+ {/* Main Content Area */}
+ <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
+ <Card className="p-0 overflow-hidden border border-border/50 shadow-soft bg-white flex flex-col min-h-[600px]">
+
+ {/* Filter Bar */}
+ <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-border p-4 flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
+ <div className="relative w-full md:w-80 group">
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
  <input
  type="text"
- placeholder="Search food item..."
+ placeholder="Search by name or ID..."
  value={searchInput}
  onChange={(e) => setSearchInput(e.target.value)}
- className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-border/50 rounded-lg text-sm focus:bg-white focus:border-brand-orange-500 focus:ring-2 focus:ring-brand-orange-500/20 transition-all outline-none"
+ className="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 transition-all shadow-sm hover:bg-white focus:bg-white placeholder:text-text-secondary/60"
  />
  </div>
 
- <div className="w-px h-6 bg-border hidden md:block mx-1"></div>
-
- <div className="flex flex-1 w-full md:w-auto items-center gap-2 flex-wrap">
- <div className="min-w-[150px]">
+ <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+ <div className="w-full md:w-[160px]">
  <Select
  value={categoryFilter}
  onChange={(e) => setCategoryFilter(e.target.value)}
  options={categories.map(cat => ({ value: cat, label: cat === 'All' ? 'All Categories' : cat }))}
- className="bg-gray-50"
  />
  </div>
-
- <div className="min-w-[140px]">
+ <div className="w-full md:w-[150px]">
  <Select
  value={dietaryFilter}
  onChange={(e) => setDietaryFilter(e.target.value)}
  options={dietaryTypes.map(type => ({ value: type, label: type === 'All' ? 'All Dietary' : type }))}
- className="bg-gray-50"
  />
  </div>
-
- <div className="min-w-[140px]">
+ <div className="w-full md:w-[150px]">
  <Select
  value={statusFilter}
  onChange={(e) => setStatusFilter(e.target.value)}
@@ -389,54 +248,185 @@ export default function FoodCatalog() {
  { value: 'Available', label: 'Available' },
  { value: 'Unavailable', label: 'Unavailable' }
  ]}
- className="bg-gray-50"
  />
  </div>
  </div>
  </div>
- </div>
 
-
- {/* Main Content Area */}
- <div className="min-h-[500px]">
+ {/* Menu Item Records */}
+ <div className="flex-1 overflow-x-auto relative bg-white">
  {isLoading ? (
- renderListSkeletons()
- ) : filteredItems.length === 0 ? (
- <motion.div
- initial={{ opacity: 0, y: 10 }}
- animate={{ opacity: 1, y: 0 }}
- className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white border border-border border-dashed rounded-2xl"
- >
- <div className="w-16 h-16 bg-brand-orange-50 rounded-full flex items-center justify-center mb-4">
- <UtensilsCrossed className="w-8 h-8 text-brand-orange-500" />
+ <div className="p-6 space-y-4">
+ {Array.from({ length: 5 }).map((_, i) => (
+ <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse"></div>
+ ))}
  </div>
- <h3 className="text-lg font-bold text-brand-navy mb-1">No items found</h3>
- <p className="text-sm text-text-secondary mb-6 max-w-sm">
- We couldn't find any menu items matching your criteria. Try adjusting your filters or search term.
+ ) : paginatedItems.length === 0 ? (
+ <div className="flex-1 flex flex-col items-center justify-center text-text-secondary py-16">
+ <FileX className="w-12 h-12 mb-4 opacity-50" />
+ <p className="font-medium text-lg">
+ {debouncedSearch.length > 0 ? `No items found matching "${debouncedSearch}"` : 'No menu items found.'}
  </p>
- <button
- onClick={() => { setSearchInput(''); setCategoryFilter('All'); setDietaryFilter('All'); setStatusFilter('All'); }}
- className="px-4 py-2 bg-white border border-border hover:bg-gray-50 text-brand-navy font-semibold rounded-lg transition-colors text-sm shadow-sm flex items-center gap-2"
- >
- <RefreshCw className="w-4 h-4" /> Clear Filters
- </button>
- </motion.div>
+ </div>
  ) : (
- <motion.div
- initial={{ opacity: 0 }}
- animate={{ opacity: 1 }}
+ <table className="w-full text-left border-collapse">
+ <thead>
+ <tr className="border-y border-border bg-gray-50/50">
+ <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest whitespace-nowrap">Item Details</th>
+ <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest whitespace-nowrap">Category</th>
+ <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest whitespace-nowrap">Dietary</th>
+ <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest whitespace-nowrap">Price</th>
+ <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest whitespace-nowrap">Availability</th>
+ <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest text-right whitespace-nowrap">Actions</th>
+ </tr>
+ </thead>
+ <tbody className="divide-y divide-border/50">
+ {paginatedItems.map((item, i) => (
+ <motion.tr
+ key={item.id}
+ initial={{ opacity: 0, y: 5 }}
+ animate={{ opacity: 1, y: 0 }}
+ transition={{ duration: 0.2, delay: i * 0.03 }}
+ className={`hover:bg-orange-50/30 transition-colors group cursor-pointer ${!item.is_available && 'opacity-70'}`}
+ onClick={() => navigate(`/food/${item.id}`)}
  >
- <Table
- columns={columns}
- data={paginatedItems}
- currentPage={currentPage}
- totalPages={Math.max(1, Math.ceil(filteredItems.length / itemsPerPage))}
- onPageChange={setCurrentPage}
+ {/* Item Details */}
+ <td className="py-4 px-6 relative">
+ {/* Hover Decoration */}
+ <div className="absolute inset-y-0 left-0 w-1 bg-brand-orange-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-r"></div>
+ <div className="flex items-center gap-4">
+ <img
+ src={item.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400'}
+ alt={item.name}
+ onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400' }}
+ className={`w-12 h-12 rounded-xl object-cover border border-border shadow-sm shrink-0 group-hover:scale-105 transition-transform ${!item.is_available && 'grayscale'}`}
  />
- </motion.div>
+ <div>
+ <div className="flex items-center gap-2 mb-0.5">
+ <h3 className="text-sm font-black text-brand-navy truncate max-w-[200px] group-hover:text-brand-orange-600 transition-colors">{item.name}</h3>
+ </div>
+ {item.foodId && (
+ <span className="font-mono text-[10px] font-bold text-text-secondary bg-gray-100 px-1.5 py-0.5 rounded tracking-widest">
+ {item.foodId}
+ </span>
  )}
  </div>
  </div>
+ </td>
+
+ {/* Category */}
+ <td className="py-4 px-6">
+ <div className="flex flex-wrap gap-1">
+ {(item.categories || []).slice(0, 2).map((cat, idx) => (
+ <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 border border-border/50 text-text-secondary text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+ {cat}
+ </span>
+ ))}
+ {(item.categories || []).length > 2 && (
+ <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-gray-100 border border-border/50 text-text-secondary text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+ +{(item.categories || []).length - 2}
+ </span>
+ )}
+ </div>
+ </td>
+
+ {/* Dietary */}
+ <td className="py-4 px-6">
+ <div className="flex flex-wrap gap-1">
+ {(item.dietary_types || []).map((type, idx) => getDietaryBadge(type, String(idx)))}
+ </div>
+ </td>
+
+ {/* Price */}
+ <td className="py-4 px-6 whitespace-nowrap">
+ <span className="font-black text-brand-navy">₹{item.price}</span>
+ </td>
+
+ {/* Availability */}
+ <td className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
+ <div className="flex items-center gap-3">
+ <Badge variant={item.is_available ? 'success' : 'error'} className="font-black px-2.5 py-1 shadow-sm uppercase tracking-widest text-[10px]">
+ {item.is_available ? 'Available' : 'Unavailable'}
+ </Badge>
+ <AvailabilityToggle isAvailable={item.is_available} onToggle={() => handleToggleClick(item)} />
+ </div>
+ </td>
+
+ {/* Actions */}
+ <td className="py-4 px-6 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+ <div className="flex items-center justify-end gap-2">
+ <Link
+ to={`/food/${item.id}`}
+ className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-all"
+ title="View Details"
+ >
+ <Eye className="w-4 h-4" />
+ </Link>
+ <Link
+ to={`/food/${item.id}/edit`}
+ className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-all"
+ title="Edit Item"
+ >
+ <Edit2 className="w-4 h-4" />
+ </Link>
+ </div>
+ </td>
+ </motion.tr>
+ ))}
+ </tbody>
+ </table>
+ )}
+ </div>
+
+ {/* Pagination Footer */}
+ {!isLoading && totalPages > 0 && (
+ <div className="mt-auto px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50 rounded-b-xl">
+ <p className="text-sm text-text-secondary font-medium">
+ Showing page <span className="font-bold text-brand-navy">{currentPage}</span> of <span className="font-bold text-brand-navy">{totalPages}</span>
+ </p>
+
+ <div className="flex items-center gap-2">
+ <button
+ onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+ disabled={currentPage === 1}
+ className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+ >
+ <ChevronLeft className="w-4 h-4" />
+ <span>Prev</span>
+ </button>
+
+ <div className="hidden sm:flex items-center gap-1 px-2">
+ {getPageNumbers().map((page, idx) => (
+ <button
+ key={idx}
+ onClick={() => typeof page === 'number' ? setCurrentPage(page) : undefined}
+ disabled={page === '...'}
+ className={`min-w-[32px] h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${
+ page === currentPage
+ ? 'bg-brand-navy text-white shadow-sm'
+ : page === '...'
+ ? 'text-text-secondary cursor-default'
+ : 'text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm'
+ }`}
+ >
+ {page}
+ </button>
+ ))}
+ </div>
+
+ <button
+ onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+ disabled={currentPage === totalPages}
+ className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+ >
+ <span>Next</span>
+ <ChevronRight className="w-4 h-4" />
+ </button>
+ </div>
+ </div>
+ )}
+ </Card>
+ </motion.div>
+ </div>
  );
 }
-

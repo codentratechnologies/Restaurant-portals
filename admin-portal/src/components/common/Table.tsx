@@ -128,7 +128,7 @@ export default function Table<T extends { id: string | number }>({
           <p className="text-sm text-text-secondary font-medium">
             Showing page <span className="font-bold text-brand-navy">{currentPage}</span> of <span className="font-bold text-brand-navy">{totalPages}</span>
           </p>
-          
+
           <div className="flex items-center gap-2">
             <button
               onClick={() => onPageChange(currentPage - 1)}
@@ -138,26 +138,25 @@ export default function Table<T extends { id: string | number }>({
               <ChevronLeft className="w-4 h-4" />
               <span>Previous</span>
             </button>
-            
+
             <div className="hidden sm:flex items-center gap-1 px-2">
               {getPageNumbers().map((page, idx) => (
                 <button
                   key={idx}
                   onClick={() => typeof page === 'number' ? onPageChange(page) : undefined}
                   disabled={page === '...'}
-                  className={`min-w-[32px] h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${
-                    page === currentPage
+                  className={`min-w-[32px] h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${page === currentPage
                       ? 'bg-brand-navy text-white shadow-sm'
                       : page === '...'
-                      ? 'text-text-secondary cursor-default'
-                      : 'text-text-secondary hover:bg-gray-50 hover:text-brand-navy'
-                  }`}
+                        ? 'text-text-secondary cursor-default'
+                        : 'text-text-secondary hover:bg-gray-50 hover:text-brand-navy'
+                    }`}
                 >
                   {page}
                 </button>
               ))}
             </div>
-            
+
             <button
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}

@@ -14,6 +14,7 @@ export interface MenuItem {
   is_available: boolean;
   image_url?: string;
   tags?: string[];
+  customizations?: any[];
   created_at: string;
   updated_at: string;
 }

@@ -24,6 +24,7 @@ import UpdateEmployee from './pages/employees/UpdateEmployee';
 
 // Food Pages
 import FoodCatalog from './pages/food/FoodCatalog';
+import FoodDetails from './pages/food/FoodDetails';
 import CreateFoodItem from './pages/food/CreateFoodItem';
 import UpdateFoodItem from './pages/food/UpdateFoodItem';
 
@@ -78,6 +79,7 @@ function App() {
           <Route path="/employees/:id/edit" element={<UpdateEmployee />} />
           
           <Route path="/food" element={<FoodCatalog />} />
+          <Route path="/food/:id" element={<FoodDetails />} />
           <Route path="/food/new" element={<CreateFoodItem />} />
           <Route path="/food/:id/edit" element={<UpdateFoodItem />} />
           
