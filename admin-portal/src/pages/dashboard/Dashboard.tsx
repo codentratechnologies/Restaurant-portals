@@ -1,8 +1,12 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import ChartCard from './components/ChartCard';
+import MetricCard from './components/MetricCard';
+import Tooltip from '../../components/common/Tooltip';
 import { useOrders } from '../../hooks/useOrders';
 import { useBranches } from '../../hooks/useBranches';
+import { useBranchStats, BranchStat } from '../../hooks/useBranchStats';
 import { useMenuItems } from '../../hooks/useMenuItems';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -166,21 +170,24 @@ function StatCard({ title, value, icon: Icon, trend, up, color, bg, delay }: any
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay }}
-      whileHover={{ y: -3, boxShadow: '0 16px 40px rgba(0,0,0,0.1)' }}
-      className="bg-white rounded-2xl border border-[#E8ECF4] p-5 flex flex-col gap-4 cursor-default transition-shadow"
+      whileHover={{ y: -4, scale: 1.01 }}
+      className="relative bg-white rounded-2xl border border-border/60 p-6 flex flex-col gap-4 cursor-default overflow-hidden group shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] transition-all duration-300"
     >
-      <div className="flex items-center justify-between">
-        <div style={{ background: bg }} className="w-11 h-11 rounded-xl flex items-center justify-center">
-          <Icon style={{ color }} className="w-5 h-5" />
+      {/* Subtle glow background on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-gray-50/80 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
+      <div className="relative z-10 flex items-center justify-between">
+        <div style={{ background: bg }} className="w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-[inset_0_1px_2px_rgba(255,255,255,0.5)]">
+          <Icon style={{ color }} className="w-6 h-6 drop-shadow-sm" />
         </div>
-        <div className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${up ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
-          {up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+        <div className={`flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-full shadow-[inset_0_1px_2px_rgba(255,255,255,0.8)] ${up ? 'bg-emerald-50 text-emerald-600 border border-emerald-100/50' : 'bg-red-50 text-red-500 border border-red-100/50'}`}>
+          {up ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
           {trend}
         </div>
       </div>
-      <div>
-        <p className="text-[13px] font-semibold text-[#8896AB] mb-1">{title}</p>
-        <h3 className="text-2xl font-black text-[#1a1f36]">{value}</h3>
+      <div className="relative z-10 mt-1">
+        <p className="text-[12px] font-bold text-text-secondary mb-1.5 uppercase tracking-widest">{title}</p>
+        <h3 className="text-3xl font-black text-brand-navy tracking-tight">{value}</h3>
       </div>
     </motion.div>
   );
@@ -550,17 +557,18 @@ export default function Dashboard() {
                 View All <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <div className="overflow-x-auto bg-white border-t border-border/50">
+              <table className="w-full text-left border-collapse min-w-[800px]">
                 <thead>
-                  <tr className="border-b border-[#F0F2F7] bg-[#FAFBFD]">
-                    <th className="py-3 px-6 text-xs font-black text-[#8896AB] uppercase tracking-widest">Customer</th>
-                    <th className="py-3 px-6 text-xs font-black text-[#8896AB] uppercase tracking-widest">Location & Time</th>
-                    <th className="py-3 px-6 text-xs font-black text-[#8896AB] uppercase tracking-widest text-right">Amount</th>
-                    <th className="py-3 px-6 text-xs font-black text-[#8896AB] uppercase tracking-widest text-center">Status</th>
+                  <tr className="bg-gray-50/50 border-b border-border/50">
+                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[25%]">Order Details</th>
+                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[20%]">Customer</th>
+                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[25%]">Location & Time</th>
+                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%] text-right">Amount</th>
+                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%] text-center">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F4F6FA]">
+                <tbody className="divide-y divide-border/50">
                   {dynamicStats.recentOrders.length === 0 ? (
                     <tr>
                       <td colSpan={4} className="p-6 text-center text-sm text-[#8896AB]">No recent orders</td>
@@ -570,40 +578,51 @@ export default function Dashboard() {
                     return (
                       <motion.tr
                         key={i}
-                        initial={{ opacity: 0, x: -12 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.56 + i * 0.06 }}
-                        className="hover:bg-[#FAFBFD] transition-colors group cursor-pointer"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2, delay: i * 0.05 }}
+                        className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
                       >
-                        <td className="py-4 px-6 whitespace-nowrap">
+                        <td className="px-6 py-5 whitespace-nowrap">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-brand-orange-50 text-brand-orange-500 flex items-center justify-center shrink-0 border border-brand-orange-100/50">
+                              <span className="font-black text-sm">#{order.id.replace('ORD-', '')}</span>
+                            </div>
+                            <span className="font-bold text-brand-navy text-base hover:text-brand-orange-600 transition-colors">
+                              {order.id}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div
                               style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] + '20', color: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
-                              className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-black shrink-0 ring-2 ring-white shadow-sm"
+                              className="w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ring-1 ring-border/50 shadow-sm"
                             >
                               {order.avatar}
                             </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-[#1a1f36] text-sm group-hover:text-[#FF6B00] transition-colors">{order.customer}</span>
-                                <span className="text-xs font-mono font-bold text-[#C8D0DC] bg-[#F4F6FA] px-1.5 py-0.5 rounded">{order.id}</span>
-                              </div>
-                            </div>
+                            <Tooltip content={order.customer} position="top">
+                              <span 
+                                className="font-bold text-brand-navy text-sm group-hover:text-brand-orange-600 transition-colors truncate max-w-[150px]"
+                              >
+                                {order.customer}
+                              </span>
+                            </Tooltip>
                           </div>
                         </td>
-                        <td className="py-4 px-6 whitespace-nowrap">
-                          <div className="flex items-center gap-1.5 text-[12px] text-[#8896AB] font-medium">
-                            <MapPin className="w-3 h-3" />{order.branch}
+                        <td className="px-6 py-5 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5 text-[12px] text-text-secondary font-medium">
+                            <MapPin className="w-4 h-4" />{order.branch}
                           </div>
-                          <div className="text-[11px] font-bold text-[#8896AB] mt-0.5">{order.time}</div>
+                          <div className="text-[11px] font-bold text-text-secondary mt-0.5 ml-5.5">{order.time}</div>
                         </td>
-                        <td className="py-4 px-6 whitespace-nowrap text-right">
-                          <span className="text-base font-black text-[#1a1f36]">{order.amount}</span>
+                        <td className="px-6 py-5 whitespace-nowrap text-right">
+                          <span className="text-base font-black text-brand-navy">{order.amount}</span>
                         </td>
-                        <td className="py-4 px-6 whitespace-nowrap text-center">
+                        <td className="px-6 py-5 whitespace-nowrap text-center">
                           <div
                             style={{ background: s.bg, color: s.color }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 shadow-sm"
                           >
                             <CircleDot className="w-2.5 h-2.5" />{order.status}
                           </div>

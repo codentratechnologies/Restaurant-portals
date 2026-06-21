@@ -63,8 +63,8 @@ export default function Table<T extends { id: string | number }>({
     return Array.from({ length: 5 }).map((_, i) => (
       <tr key={`skeleton-${i}`} className="border-b border-border/50">
         {columns.map((_, colIndex) => (
-          <td key={`skeleton-col-${colIndex}`} className="py-4 px-6">
-            <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+          <td key={`skeleton-col-${colIndex}`} className="py-5 px-6">
+            <div className="h-5 bg-gradient-to-r from-gray-100 via-gray-200/50 to-gray-100 bg-[length:200%_100%] animate-pulse rounded-lg w-3/4 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]"></div>
           </td>
         ))}
       </tr>
@@ -73,23 +73,32 @@ export default function Table<T extends { id: string | number }>({
 
   const renderEmptyState = () => (
     <tr>
-      <td colSpan={columns.length} className="py-12 px-6 text-center">
-        <div className="flex flex-col items-center justify-center text-text-secondary">
-          <FileX className="w-12 h-12 mb-4 opacity-50" />
-          <p className="font-medium">{emptyStateMessage}</p>
-        </div>
+      <td colSpan={columns.length} className="py-24 px-6">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col items-center justify-center text-text-secondary"
+        >
+          <div className="relative w-24 h-24 mb-6 rounded-[2rem] bg-gray-50/80 flex items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] border border-border/50 rotate-3 group-hover:rotate-0 transition-transform">
+            <div className="absolute inset-0 rounded-[2rem] bg-brand-orange-500/5 animate-pulse" />
+            <FileX className="w-10 h-10 text-brand-orange-400 drop-shadow-sm -rotate-3" />
+          </div>
+          <h3 className="text-xl font-black text-brand-navy mb-2 tracking-tight">No Records Found</h3>
+          <p className="font-bold text-sm max-w-[280px] text-center leading-relaxed opacity-80">{emptyStateMessage}</p>
+        </motion.div>
       </td>
     </tr>
   );
 
   return (
     <div className="w-full flex flex-col h-full flex-1">
-      <div className="overflow-x-auto flex-1">
-        <table className="w-full text-left border-collapse">
+      <div className="overflow-x-auto bg-white rounded-2xl border border-border/50 shadow-sm">
+        <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
-            <tr className="border-b border-border bg-gray-50/50">
+            <tr className="bg-gray-50/50 border-b border-border/50">
               {columns.map((col, i) => (
-                <th key={i} className={`py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest ${col.className || ''}`}>
+                <th key={i} className={`px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider ${col.className || ''}`}>
                   {col.header}
                 </th>
               ))}
@@ -106,12 +115,12 @@ export default function Table<T extends { id: string | number }>({
                   key={item.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: i * 0.05 }}
+                  transition={{ duration: 0.2, delay: i * 0.05 }}
                   onClick={() => onRowClick?.(item)}
-                  className={`group transition-colors ${onRowClick ? 'cursor-pointer hover:bg-gray-50/80' : 'hover:bg-gray-50/50'}`}
+                  className={`hover:bg-gray-50/50 transition-colors group ${onRowClick ? 'cursor-pointer' : ''}`}
                 >
                   {columns.map((col, colIndex) => (
-                    <td key={colIndex} className={`py-4 px-6 whitespace-nowrap text-sm ${col.className || ''}`}>
+                    <td key={colIndex} className={`px-6 py-5 whitespace-nowrap text-sm ${col.className || ''}`}>
                       {col.cell ? col.cell(item) : col.accessor ? String(item[col.accessor]) : null}
                     </td>
                   ))}
@@ -124,7 +133,7 @@ export default function Table<T extends { id: string | number }>({
 
       {/* Pagination Footer */}
       {!isLoading && totalPages !== undefined && currentPage !== undefined && onPageChange && (
-        <div className="mt-auto px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-b-xl">
+        <div className="mt-auto px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50 rounded-b-xl">
           <p className="text-sm text-text-secondary font-medium">
             Showing page <span className="font-bold text-brand-navy">{currentPage}</span> of <span className="font-bold text-brand-navy">{totalPages}</span>
           </p>
@@ -133,10 +142,10 @@ export default function Table<T extends { id: string | number }>({
             <button
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-text-secondary hover:bg-gray-50 hover:text-brand-navy disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white shadow-sm"
+              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               <ChevronLeft className="w-4 h-4" />
-              <span>Previous</span>
+              <span>Prev</span>
             </button>
 
             <div className="hidden sm:flex items-center gap-1 px-2">
@@ -145,11 +154,11 @@ export default function Table<T extends { id: string | number }>({
                   key={idx}
                   onClick={() => typeof page === 'number' ? onPageChange(page) : undefined}
                   disabled={page === '...'}
-                  className={`min-w-[32px] h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${page === currentPage
+                  className={`min-w-[32px] h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${page === currentPage
                       ? 'bg-brand-navy text-white shadow-sm'
                       : page === '...'
                         ? 'text-text-secondary cursor-default'
-                        : 'text-text-secondary hover:bg-gray-50 hover:text-brand-navy'
+                        : 'text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm'
                     }`}
                 >
                   {page}
@@ -160,7 +169,7 @@ export default function Table<T extends { id: string | number }>({
             <button
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-text-secondary hover:bg-gray-50 hover:text-brand-navy disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white shadow-sm"
+              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               <span>Next</span>
               <ChevronRight className="w-4 h-4" />

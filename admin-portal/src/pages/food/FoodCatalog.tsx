@@ -7,6 +7,7 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Select from '../../components/common/Select';
+import Tooltip from '../../components/common/Tooltip';
 import AvailabilityToggle from './components/AvailabilityToggle';
 import DisableConfirmationModal from './components/DisableConfirmationModal';
 import { useMenuItems, MenuItem } from '../../hooks/useMenuItems';
@@ -254,7 +255,7 @@ export default function FoodCatalog() {
  </div>
 
  {/* Menu Item Records */}
- <div className="flex-1 overflow-x-auto relative bg-white">
+ <div className="flex-1 flex flex-col relative bg-gray-50/30 p-4 sm:p-6 space-y-4">
  {isLoading ? (
  <div className="p-6 space-y-4">
  {Array.from({ length: 5 }).map((_, i) => (
@@ -269,81 +270,76 @@ export default function FoodCatalog() {
  </p>
  </div>
  ) : (
- <table className="w-full text-left border-collapse">
+ <div className="overflow-x-auto bg-white rounded-2xl border border-border/50 shadow-sm">
+ <table className="w-full text-left border-collapse min-w-[800px]">
  <thead>
- <tr className="border-y border-border bg-gray-50/50">
- <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest whitespace-nowrap">Item Details</th>
- <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest whitespace-nowrap">Category</th>
- <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest whitespace-nowrap">Dietary</th>
- <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest whitespace-nowrap">Price</th>
- <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest whitespace-nowrap">Availability</th>
- <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest text-right whitespace-nowrap">Actions</th>
+ <tr className="bg-gray-50/50 border-b border-border/50">
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[25%]">Item Details</th>
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Category</th>
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Dietary</th>
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Price</th>
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Availability</th>
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%] text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-border/50">
  {paginatedItems.map((item, i) => (
  <motion.tr
  key={item.id}
- initial={{ opacity: 0, y: 5 }}
+ initial={{ opacity: 0, y: 10 }}
  animate={{ opacity: 1, y: 0 }}
- transition={{ duration: 0.2, delay: i * 0.03 }}
- className={`hover:bg-orange-50/30 transition-colors group cursor-pointer ${!item.is_available && 'opacity-70'}`}
+ transition={{ duration: 0.2, delay: i * 0.05 }}
+ className={`hover:bg-gray-50/50 transition-colors group cursor-pointer ${!item.is_available && 'opacity-70'}`}
  onClick={() => navigate(`/food/${item.id}`)}
  >
  {/* Item Details */}
- <td className="py-4 px-6 relative">
- {/* Hover Decoration */}
- <div className="absolute inset-y-0 left-0 w-1 bg-brand-orange-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-r"></div>
+ <td className="px-6 py-5 relative">
  <div className="flex items-center gap-4">
  <img
  src={item.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400'}
  alt={item.name}
  onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400' }}
- className={`w-12 h-12 rounded-xl object-cover border border-border shadow-sm shrink-0 group-hover:scale-105 transition-transform ${!item.is_available && 'grayscale'}`}
+ className={`w-12 h-12 rounded-xl object-cover border border-border shadow-sm shrink-0 ${!item.is_available && 'grayscale'}`}
  />
- <div>
- <div className="flex items-center gap-2 mb-0.5">
- <h3 className="text-sm font-black text-brand-navy truncate max-w-[200px] group-hover:text-brand-orange-600 transition-colors">{item.name}</h3>
- </div>
- {item.foodId && (
- <span className="font-mono text-[10px] font-bold text-text-secondary bg-gray-100 px-1.5 py-0.5 rounded tracking-widest">
- {item.foodId}
- </span>
- )}
- </div>
+  <Tooltip content={item.name} position="top">
+    <span 
+      className="font-bold text-brand-navy text-lg truncate max-w-[200px]"
+    >
+    {item.name}
+    </span>
+  </Tooltip>
  </div>
  </td>
 
  {/* Category */}
- <td className="py-4 px-6">
+ <td className="px-6 py-5">
  <div className="flex flex-wrap gap-1">
- {(item.categories || []).slice(0, 2).map((cat, idx) => (
- <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 border border-border/50 text-text-secondary text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+ {(item.categories || []).slice(0, 1).map((cat, idx) => (
+ <span key={`cat-${idx}`} className="text-sm font-semibold text-text-secondary">
  {cat}
  </span>
  ))}
- {(item.categories || []).length > 2 && (
- <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-gray-100 border border-border/50 text-text-secondary text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
- +{(item.categories || []).length - 2}
- </span>
- )}
  </div>
  </td>
 
  {/* Dietary */}
- <td className="py-4 px-6">
+ <td className="px-6 py-5">
  <div className="flex flex-wrap gap-1">
- {(item.dietary_types || []).map((type, idx) => getDietaryBadge(type, String(idx)))}
+ {(item.dietary_types || []).slice(0, 1).map((type, idx) => (
+ <span key={`diet-${idx}`} className="text-sm font-semibold text-text-secondary">
+ {type}
+ </span>
+ ))}
  </div>
  </td>
 
  {/* Price */}
- <td className="py-4 px-6 whitespace-nowrap">
+ <td className="px-6 py-5 whitespace-nowrap">
  <span className="font-black text-brand-navy">₹{item.price}</span>
  </td>
 
  {/* Availability */}
- <td className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
+ <td className="px-6 py-5" onClick={(e) => e.stopPropagation()}>
  <div className="flex items-center gap-3">
  <Badge variant={item.is_available ? 'success' : 'error'} className="font-black px-2.5 py-1 shadow-sm uppercase tracking-widest text-[10px]">
  {item.is_available ? 'Available' : 'Unavailable'}
@@ -353,7 +349,7 @@ export default function FoodCatalog() {
  </td>
 
  {/* Actions */}
- <td className="py-4 px-6 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+ <td className="px-6 py-5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
  <div className="flex items-center justify-end gap-2">
  <Link
  to={`/food/${item.id}`}
@@ -375,6 +371,7 @@ export default function FoodCatalog() {
  ))}
  </tbody>
  </table>
+ </div>
  )}
  </div>
 

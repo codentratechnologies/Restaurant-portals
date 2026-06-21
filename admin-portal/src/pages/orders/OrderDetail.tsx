@@ -244,20 +244,20 @@ export default function OrderDetail() {
               <h2 className="text-lg font-black text-brand-navy tracking-tight">Order Summary</h2>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <div className="overflow-x-auto bg-white border-t border-border/50">
+              <table className="w-full text-left border-collapse min-w-[800px]">
                 <thead>
-                  <tr className="border-b border-border/50 bg-white">
-                    <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest">Item</th>
-                    <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest text-left">Price</th>
-                    <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest text-center">Qty</th>
-                    <th className="py-4 px-6 text-xs font-black text-brand-navy uppercase tracking-widest text-left bg-gray-50/30">Total</th>
+                  <tr className="bg-gray-50/50 border-b border-border/50">
+                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Item</th>
+                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider text-left">Price</th>
+                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider text-center">Qty</th>
+                    <th className="px-6 py-5 text-xs font-bold text-brand-navy uppercase tracking-wider text-left">Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 bg-white">
+                <tbody className="divide-y divide-border/50">
                   {orderDetail.items.map((item) => (
-                    <tr key={item.id} className="hover:bg-brand-orange-50/30 transition-colors group">
-                      <td className="py-4 px-6">
+                    <tr key={item.id} className="hover:bg-gray-50/50 transition-colors group cursor-pointer">
+                      <td className="px-6 py-5">
                         <p className="font-bold text-brand-navy group-hover:text-brand-orange-600 transition-colors">{item.name}</p>
                         <p className="text-xs font-semibold text-text-secondary mt-0.5">{item.category}</p>
                         {item.customizations && item.customizations.length > 0 && (
@@ -270,9 +270,9 @@ export default function OrderDetail() {
                           </div>
                         )}
                       </td>
-                      <td className="py-4 px-6 font-bold text-text-secondary text-left">₹{item.price.toLocaleString()}</td>
-                      <td className="py-4 px-6 font-black text-brand-navy text-center">x{item.qty}</td>
-                      <td className="py-4 px-6 font-black text-brand-navy text-left bg-gray-50/30">₹{item.subtotal.toLocaleString()}</td>
+                      <td className="px-6 py-5 font-bold text-text-secondary text-left">₹{item.price.toLocaleString()}</td>
+                      <td className="px-6 py-5 font-black text-brand-navy text-center">x{item.qty}</td>
+                      <td className="px-6 py-5 font-black text-brand-navy text-left bg-gray-50/30">₹{item.subtotal.toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>

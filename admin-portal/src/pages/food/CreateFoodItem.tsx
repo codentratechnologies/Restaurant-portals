@@ -309,7 +309,7 @@ export default function CreateFoodItem() {
  <span>2. Item Image <span className="text-red-500 text-sm">*</span></span>
  <span className="text-xs text-text-secondary font-medium font-normal">Max 2MB. JPG or PNG only.</span>
  </h2>
- <div ref={el => errorRefs.current['image'] = el} className="max-w-sm">
+ <div ref={el => { errorRefs.current[''] = el; }} className="max-w-sm">
  <ImageUploadZone
  currentImage={image}
  onUploadSuccess={(url) => { setImage(url); setErrors(prev => ({ ...prev, image: '' })); }}
@@ -320,7 +320,7 @@ export default function CreateFoodItem() {
  </div>
 
  {/* SECTION 3: Customizations */}
- <div className="p-8 border-t border-border" ref={el => errorRefs.current['customizations'] = el}>
+ <div className="p-8 border-t border-border" ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
  <h2 className="text-lg font-black text-brand-navy">3. Customizations (Optional)</h2>
  <Button type="button" variant="outline" onClick={handleAddCustomization} className="gap-2 bg-white font-bold py-1.5 px-3 text-sm">

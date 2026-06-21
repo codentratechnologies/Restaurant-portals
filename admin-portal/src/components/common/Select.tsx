@@ -54,10 +54,10 @@ export default function Select({
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 border rounded-xl text-sm font-medium transition-all
-          ${disabled ? 'opacity-70 cursor-not-allowed border-border' : 'hover:border-brand-orange-300 focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:bg-white'}
-          ${error ? 'border-red-500' : 'border-border'}
-          ${isOpen && !disabled ? 'border-brand-orange-500 ring-2 ring-brand-orange-500/20 bg-white' : ''}
+        className={`w-full flex items-center justify-between px-4 py-3 bg-gray-50/80 border rounded-xl text-sm font-bold transition-all shadow-sm
+          ${disabled ? 'opacity-70 cursor-not-allowed border-border' : 'hover:border-brand-orange-300 focus:outline-none focus:ring-4 focus:ring-brand-orange-500/20 focus:bg-white'}
+          ${error ? 'border-red-500' : 'border-border/60'}
+          ${isOpen && !disabled ? 'border-brand-orange-500 ring-4 ring-brand-orange-500/20 bg-white' : ''}
         `}
       >
         <span className={selectedOption ? 'text-text-primary' : 'text-text-secondary'}>
@@ -75,7 +75,7 @@ export default function Select({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 w-full mt-2 bg-white border border-border rounded-xl shadow-premium overflow-hidden"
+            className="absolute z-50 w-full mt-2 bg-white/95 backdrop-blur-xl border border-border/60 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.12)] overflow-hidden"
           >
             <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
               {options.length === 0 ? (
@@ -88,10 +88,10 @@ export default function Select({
                     key={option.value}
                     type="button"
                     onClick={() => handleSelect(option.value)}
-                    className={`w-full text-left px-4 py-2.5 text-sm font-medium rounded-lg transition-colors
+                    className={`w-full text-left px-4 py-3 text-sm font-bold rounded-lg transition-colors
                       ${value === option.value 
-                        ? 'bg-brand-orange-50 text-brand-orange-600' 
-                        : 'text-text-primary hover:bg-gray-50 hover:text-brand-navy'}
+                        ? 'bg-brand-orange-50/80 text-brand-orange-600' 
+                        : 'text-text-primary hover:bg-gray-50/80 hover:text-brand-navy'}
                     `}
                   >
                     {option.label}

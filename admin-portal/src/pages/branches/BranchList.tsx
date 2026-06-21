@@ -1,11 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Search, MapPin, Store, Eye, Edit2, AlertOctagon, CheckCircle2, Rocket, ChevronLeft, ChevronRight, FileX, Phone } from 'lucide-react';
+import { Plus, Search, MapPin, Store, Eye, Edit2, AlertOctagon, CheckCircle2, Rocket, ChevronLeft, ChevronRight, FileX, Phone, User as UserIcon } from 'lucide-react';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import Select from '../../components/common/Select';
+import Tooltip from '../../components/common/Tooltip';
 import DeactivateBranchModal from './components/DeactivateBranchModal';
 import { useBranches, Branch } from '../../hooks/useBranches';
 import { ref, update } from 'firebase/database';
@@ -236,110 +237,104 @@ export default function BranchList() {
  </p>
  </div>
  ) : (
- <div className="grid grid-cols-1 gap-4">
+ <div className="overflow-x-auto bg-white rounded-2xl border border-border/50 shadow-sm">
+ <table className="w-full text-left border-collapse min-w-[800px]">
+ <thead>
+ <tr className="bg-gray-50/50 border-b border-border/50">
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[30%]">Branch Details</th>
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[20%]">Location</th>
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[20%]">Manager</th>
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Status</th>
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%] text-right">Actions</th>
+ </tr>
+ </thead>
+ <tbody className="divide-y divide-border/50">
  {paginatedData.map((branch, i) => (
- <motion.div
+ <motion.tr
  key={branch.id}
  initial={{ opacity: 0, y: 10 }}
  animate={{ opacity: 1, y: 0 }}
- transition={{ duration: 0.3, delay: i * 0.05 }}
+ transition={{ duration: 0.2, delay: i * 0.05 }}
  onClick={() => handleRowClick(branch)}
- className="group relative bg-white border border-border/60 hover:border-brand-orange-500/30 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-premium transition-all cursor-pointer overflow-hidden flex flex-col lg:flex-row lg:items-center gap-6"
+ className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
  >
- {/* Hover Decoration */}
- <div className="absolute inset-y-0 left-0 w-1 bg-brand-orange-500 transform -translate-x-full group-hover:translate-x-0 transition-transform"></div>
- 
- {/* Identity Section */}
- <div className="flex items-center gap-4 lg:w-1/3">
- <div className="w-14 h-14 rounded-2xl bg-brand-orange-50 border border-brand-orange-100 flex items-center justify-center shadow-inner shrink-0 group-hover:scale-105 transition-transform">
- <Store className="w-7 h-7 text-brand-orange-500" />
+ <td className="px-6 py-5">
+ <div className="flex items-center gap-4">
+ <div className="w-12 h-12 rounded-xl bg-brand-orange-50 text-brand-orange-500 flex items-center justify-center shrink-0 border border-brand-orange-100/50">
+ <Store className="w-6 h-6" />
  </div>
- <div className="min-w-0">
- <div className="flex items-center gap-2 mb-1">
- <h3 className="text-lg font-black text-brand-navy truncate">{branch.name}</h3>
- {branch.code && (
- <span className="px-2 py-0.5 rounded bg-gray-100 border border-border text-[10px] font-bold text-text-secondary tracking-widest uppercase shrink-0">
- {branch.code}
+ <Tooltip content={branch.name} position="top">
+ <span 
+  className="font-bold text-brand-navy text-lg truncate max-w-[200px]"
+ >
+ {branch.name}
  </span>
- )}
+ </Tooltip>
  </div>
- <div className="flex items-center gap-1.5 text-sm text-text-secondary">
- <MapPin className="w-3.5 h-3.5 shrink-0" />
- <span className="truncate">{branch.city}</span>
- </div>
- </div>
- </div>
+ </td>
 
- {/* Divider for mobile */}
- <div className="h-px w-full bg-border/50 lg:hidden"></div>
+ <td className="px-6 py-5">
+ <span className="text-sm font-semibold text-text-secondary flex items-center gap-1.5">
+ <MapPin className="w-4 h-4" />
+ {branch.city}
+ </span>
+ </td>
 
- {/* Contact & Location Section */}
- <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
- <div className="flex flex-col justify-center">
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Address</p>
- <p className="text-sm font-medium text-brand-navy line-clamp-2">{branch.address}</p>
- </div>
- <div className="flex flex-col justify-center">
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Manager</p>
- <div className="flex items-center gap-2">
- <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0">
- {(branch.owner_name?.[0] || 'M').toUpperCase()}
- </div>
- <div className="min-w-0">
- <p className="text-sm font-bold text-brand-navy truncate">{branch.owner_name || 'Manager'}</p>
- <p className="text-xs text-text-secondary flex items-center gap-1 truncate">
- <Phone className="w-3 h-3" /> {branch.phone}
- </p>
- </div>
- </div>
- </div>
- </div>
+ <td className="px-6 py-5">
+ <span className="text-sm font-semibold text-text-secondary flex items-center gap-1.5">
+ <UserIcon className="w-4 h-4" />
+ {branch.owner_name || 'Manager'}
+ </span>
+ </td>
 
- {/* Status & Actions Section */}
- <div className="flex items-center justify-between lg:justify-end gap-6 lg:w-1/4 shrink-0">
- <Badge variant={branch.is_active ? 'success' : 'error'} className="font-black px-3 py-1 shadow-sm uppercase tracking-widest text-[11px]">
+ <td className="px-6 py-5">
+ <Badge variant={branch.is_active ? 'success' : 'error'} className="font-black px-2.5 py-1 shadow-sm uppercase tracking-widest text-[10px]">
  {branch.is_active ? 'Active' : 'Inactive'}
  </Badge>
+ </td>
 
- <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
- <Link 
- to={`/branches/${branch.id}`} 
- className="p-2.5 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-xl transition-all shadow-sm border border-transparent hover:border-border"
+ <td className="px-6 py-5">
+ <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+ <Link
+ to={`/branches/${branch.id}`}
+ className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-all"
  title="View Details"
  >
  <Eye className="w-4 h-4" />
  </Link>
- <Link 
- to={`/branches/${branch.id}/edit`} 
- className="p-2.5 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-xl transition-all shadow-sm border border-transparent hover:border-brand-orange-200"
+ <Link
+ to={`/branches/${branch.id}/edit`}
+ className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-all"
  title="Edit Branch"
  >
  <Edit2 className="w-4 h-4" />
  </Link>
  {branch.is_active ? (
- <button 
+ <button
  onClick={() => handleDeactivateClick(branch)}
- className="p-2.5 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-xl transition-all shadow-sm border border-transparent hover:border-red-200"
+ className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
  title="Deactivate Branch"
  >
  <AlertOctagon className="w-4 h-4" />
  </button>
  ) : (
- <button 
+ <button
  onClick={() => handleToggleStatus(branch.id, true)}
- className="p-2.5 text-text-secondary hover:text-green-600 hover:bg-green-50 rounded-xl transition-all shadow-sm border border-transparent hover:border-green-200"
+ className="p-2 text-text-secondary hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
  title="Activate Branch"
  >
  <CheckCircle2 className="w-4 h-4" />
  </button>
  )}
- </div>
- </div>
- </motion.div>
- ))}
- </div>
- )}
- </div>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          </div>
 
  {/* Pagination Footer */}
  {!isLoading && totalPages > 0 && (

@@ -233,7 +233,7 @@ export default function CreateEmployee() {
  <div className="p-8">
  <h2 className="text-lg font-black text-brand-navy mb-6 pb-4 border-b border-border">1. Personal Details</h2>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div ref={el => errorRefs.current['firstName'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy">First Name <span className="text-brand-orange-500">*</span></label>
  <input
@@ -249,7 +249,7 @@ export default function CreateEmployee() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current['lastName'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy">Last Name <span className="text-brand-orange-500">*</span></label>
  <input
@@ -265,7 +265,7 @@ export default function CreateEmployee() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current['email'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy">Email Address <span className="text-brand-orange-500">*</span></label>
  <input
@@ -282,7 +282,7 @@ export default function CreateEmployee() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current['phone'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <PhoneInput
  name="phone"
  value={formData.phone}
@@ -300,7 +300,7 @@ export default function CreateEmployee() {
  <h2 className="text-lg font-black text-brand-navy mb-6 pb-4 border-b border-border">2. Employment Details</h2>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  
- <div ref={el => errorRefs.current['role'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy">Role <span className="text-brand-orange-500">*</span></label>
  <Select
@@ -318,7 +318,7 @@ export default function CreateEmployee() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current['branch'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy flex items-center gap-2">
  Assign Branch <span className="text-brand-orange-500">*</span>
@@ -336,7 +336,7 @@ export default function CreateEmployee() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current['doj'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy">Date of Joining <span className="text-brand-orange-500">*</span></label>
  <input
@@ -361,7 +361,7 @@ export default function CreateEmployee() {
  <h2 className="text-lg font-black text-brand-navy mb-6 pb-4 border-b border-border">3. Authentication</h2>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  
- <div ref={el => errorRefs.current['password'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy">Password <span className="text-brand-orange-500">*</span></label>
  <div className="relative">
@@ -386,7 +386,7 @@ export default function CreateEmployee() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current['confirmPassword'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy">Confirm Password <span className="text-brand-orange-500">*</span></label>
  <div className="relative">

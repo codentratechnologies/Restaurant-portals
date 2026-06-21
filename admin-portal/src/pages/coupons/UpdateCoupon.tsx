@@ -304,7 +304,7 @@ export default function UpdateCoupon() {
  <div className="p-8">
  <h2 className="text-lg font-black text-brand-navy mb-6 pb-4 border-b border-border">1. Basic Details</h2>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div ref={el => errorRefs.current['code'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy flex items-center gap-2">Coupon Code</label>
  <input
@@ -318,7 +318,7 @@ export default function UpdateCoupon() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current['discountType'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy">Discount Type <span className="text-brand-orange-500">*</span></label>
  <Select
@@ -334,7 +334,7 @@ export default function UpdateCoupon() {
  </div>
 
  {formData.discountType === 'Percentage' ? (
- <div ref={el => errorRefs.current['discountPercentage'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy flex items-center gap-2">Discount Percentage <span className="text-brand-orange-500">*</span></label>
  <div className="relative">
@@ -354,7 +354,7 @@ export default function UpdateCoupon() {
  </div>
  </div>
  ) : (
- <div ref={el => errorRefs.current['maxDiscountAmount'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy flex items-center gap-2">Discount Amount <span className="text-brand-orange-500">*</span></label>
  <div className="relative">
@@ -382,7 +382,7 @@ export default function UpdateCoupon() {
  <h2 className="text-lg font-black text-brand-navy mb-6 pb-4 border-b border-border">2. Conditions & Targeting</h2>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  
- <div ref={el => errorRefs.current['minOrderValue'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy flex items-center gap-2">Minimum Order Value <span className="text-brand-orange-500">*</span></label>
  <div className="relative">
@@ -402,7 +402,7 @@ export default function UpdateCoupon() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current['validFrom'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy flex items-center gap-2">Valid From <span className="text-brand-orange-500">*</span></label>
  <input
@@ -419,7 +419,7 @@ export default function UpdateCoupon() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current['validUntil'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy flex items-center gap-2">Valid Until <span className="text-brand-orange-500">*</span></label>
  <input
@@ -436,7 +436,7 @@ export default function UpdateCoupon() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current['targetAudience'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy flex items-center gap-2">Target Audience <span className="text-brand-orange-500">*</span></label>
  <Select
@@ -451,7 +451,7 @@ export default function UpdateCoupon() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current['applicableBranches'] = el}>
+ <div ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex flex-col gap-1.5 relative" ref={dropdownRef}>
  <label className="text-sm font-bold text-brand-navy flex items-center gap-2">Applicable Branches <span className="text-brand-orange-500">*</span></label>
  <button

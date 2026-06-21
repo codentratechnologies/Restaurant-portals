@@ -71,7 +71,7 @@ export default function TopNav() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-border shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-2xl border-b border-border/50 shadow-[0_4px_30px_rgba(0,0,0,0.03)]">
       <div className="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between">
 
         {/* LEFT: Logo */}
@@ -88,20 +88,20 @@ export default function TopNav() {
                 to={item.path}
                 className={({ isActive }) =>
                   cn(
-                    "relative px-4 py-2 text-sm font-medium transition-colors",
-                    isActive ? "text-brand-orange-600" : "text-text-secondary hover:text-text-primary"
+                    "relative px-4 py-2 text-sm font-bold transition-colors z-10",
+                    isActive ? "text-brand-orange-700" : "text-text-secondary hover:text-brand-navy"
                   )
                 }
               >
                 {({ isActive }) => (
                   <>
-                    {item.name}
+                    <span className="relative z-10">{item.name}</span>
                     {isActive && (
                       <motion.div
-                        layoutId="active-nav-underline"
-                        className="absolute bottom-[-16px] left-0 right-0 h-[2px] bg-brand-orange-600"
+                        layoutId="active-nav-pill"
+                        className="absolute inset-0 bg-brand-orange-50 rounded-xl border border-brand-orange-100/50 shadow-sm"
                         initial={false}
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />
                     )}
                   </>
@@ -125,10 +125,10 @@ export default function TopNav() {
                 setIsDropdownOpen(true);
               }}
               onFocus={() => setIsDropdownOpen(true)}
-              className="pl-9 pr-4 py-2 w-64 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 focus:bg-white transition-all placeholder:text-text-secondary/60"
+              className="pl-10 pr-4 py-2.5 w-72 bg-gray-50/50 border border-border/60 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 focus:bg-white transition-all shadow-sm placeholder:text-text-secondary/60 placeholder:font-medium"
             />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 pointer-events-none">
-              <kbd className="hidden sm:inline-flex items-center gap-1 rounded border border-border bg-white px-1.5 font-mono text-[10px] font-medium text-text-secondary opacity-100">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1 pointer-events-none">
+              <kbd className="hidden sm:inline-flex items-center gap-1 rounded-md border border-border/60 bg-white/50 px-1.5 font-mono text-[10px] font-bold text-text-secondary shadow-sm">
                 <span className="text-xs">⌘</span>K
               </kbd>
             </div>
@@ -137,11 +137,11 @@ export default function TopNav() {
             <AnimatePresence>
               {isDropdownOpen && searchQuery.length > 0 && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-border overflow-hidden z-50 max-h-96 overflow-y-auto"
+                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="absolute top-[calc(100%+8px)] left-0 right-0 bg-white/95 backdrop-blur-xl rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.12)] border border-border/60 overflow-hidden z-50 max-h-96 overflow-y-auto"
                 >
                   {filteredResults.length > 0 ? (
                     <div className="py-2">

@@ -42,7 +42,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 'md
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-brand-navy/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-brand-navy/20 backdrop-blur-md"
             onClick={onClose}
           />
           
@@ -54,8 +54,8 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 'md
             className={`relative w-full ${maxWidthClass} bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]`}
           >
             {title && (
-              <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-                <h2 className="text-lg font-bold text-brand-navy">{title}</h2>
+              <div className="flex items-center justify-between px-6 py-5 bg-gray-50/50 border-b border-border/50 backdrop-blur-sm">
+                <h2 className="text-xl font-black text-brand-navy tracking-tight">{title}</h2>
                 <button
                   onClick={onClose}
                   className="p-2 text-text-secondary hover:bg-gray-100 hover:text-brand-navy rounded-full transition-colors outline-none"

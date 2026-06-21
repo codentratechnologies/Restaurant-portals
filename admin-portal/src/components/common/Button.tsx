@@ -11,10 +11,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', children, ...props }, ref) => {
     
     const variants = {
-      primary: "bg-gradient-to-r from-brand-orange-600 to-brand-orange-500 text-white shadow-soft hover:shadow-premium hover:from-brand-orange-500 hover:to-brand-orange-400 border border-transparent",
-      secondary: "bg-white text-text-primary border border-border hover:bg-gray-50 hover:border-gray-300 shadow-sm",
-      outline: "bg-transparent text-brand-orange-600 border border-brand-orange-500 hover:bg-brand-orange-50",
-      ghost: "bg-transparent text-text-secondary hover:text-text-primary hover:bg-gray-100",
+      primary: "bg-gradient-to-b from-brand-orange-500 to-brand-orange-600 text-white shadow-[0_2px_8px_rgba(255,107,0,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_6px_20px_rgba(255,107,0,0.4),inset_0_1px_0_rgba(255,255,255,0.4)] hover:from-brand-orange-400 hover:to-brand-orange-500 border border-brand-orange-600/80 font-bold",
+      secondary: "bg-white text-text-primary border border-border shadow-[0_2px_8px_rgba(0,0,0,0.04),inset_0_-2px_0_rgba(0,0,0,0.01)] hover:bg-gray-50/80 hover:border-gray-300 font-bold",
+      outline: "bg-transparent text-brand-orange-600 border border-brand-orange-500 hover:bg-brand-orange-50 font-bold",
+      ghost: "bg-transparent text-text-secondary hover:text-text-primary hover:bg-gray-100 font-bold",
     };
 
     const sizes = {
@@ -26,7 +26,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <motion.button
         ref={ref}
-        whileTap={{ scale: 0.98 }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.95 }}
         className={cn(
           "inline-flex items-center justify-center transition-all duration-200 outline-none focus:ring-2 focus:ring-brand-orange-500/50",
           variants[variant],

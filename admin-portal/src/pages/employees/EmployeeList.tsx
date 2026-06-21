@@ -6,6 +6,7 @@ import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import Select from '../../components/common/Select';
+import Tooltip from '../../components/common/Tooltip';
 import DeactivateEmployeeModal from './components/DeactivateEmployeeModal';
 
 import { useEmployees, Employee } from '../../hooks/useEmployees';
@@ -268,130 +269,119 @@ export default function EmployeeList() {
  </p>
  </div>
  ) : (
- <div className="grid grid-cols-1 gap-4">
- {paginatedData.map((employee, i) => {
- const branchName = branches.find(b => b.code === employee.branch)?.name || employee.branch;
- return (
- <motion.div
- key={employee.id}
- initial={{ opacity: 0, y: 10 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ duration: 0.3, delay: i * 0.05 }}
- onClick={() => handleRowClick(employee)}
- className="group relative bg-white border border-border/60 hover:border-brand-orange-500/30 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-premium transition-all cursor-pointer overflow-hidden flex flex-col lg:flex-row lg:items-center gap-6"
- >
- {/* Hover Decoration */}
- <div className="absolute inset-y-0 left-0 w-1 bg-brand-orange-500 transform -translate-x-full group-hover:translate-x-0 transition-transform"></div>
- 
- {/* Identity Section */}
- <div className="flex items-center gap-4 lg:w-1/3">
- <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-orange-50 to-orange-100 border border-brand-orange-200 flex items-center justify-center shadow-inner shrink-0 group-hover:scale-105 transition-transform overflow-hidden relative">
- <span className="font-black text-brand-orange-700 text-2xl relative z-10">
- {employee.firstName.charAt(0).toUpperCase()}
- </span>
- </div>
- <div className="min-w-0">
- <div className="flex items-center gap-2 mb-1">
- <h3 className="text-lg font-black text-brand-navy truncate">{employee.firstName} {employee.lastName}</h3>
- <span className="px-2 py-0.5 rounded bg-gray-100 border border-border text-[10px] font-bold text-text-secondary tracking-widest uppercase shrink-0">
- {employee.empId || employee.id.substring(0, 8).toUpperCase()}
- </span>
- </div>
- <div className="flex items-center gap-1.5 text-sm text-text-secondary">
- <Mail className="w-3.5 h-3.5 shrink-0" />
- <span className="truncate">{employee.email}</span>
- </div>
- </div>
- </div>
+            <div className="overflow-x-auto bg-white rounded-2xl border border-border/50 shadow-sm">
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <thead>
+                  <tr className="bg-gray-50/50 border-b border-border/50">
+                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[30%]">Employee</th>
+                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[20%]">Role</th>
+                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[20%]">Branch</th>
+                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Status</th>
+                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%] text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {paginatedData.map((employee, i) => {
+                    const branchName = branches.find(b => b.code === employee.branch)?.name || employee.branch;
+                    return (
+                      <motion.tr
+                        key={employee.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2, delay: i * 0.05 }}
+                        onClick={() => handleRowClick(employee)}
+                        className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
+                      >
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-brand-orange-50 text-brand-orange-500 flex items-center justify-center shrink-0 border border-brand-orange-100/50">
+                              <UserIcon className="w-6 h-6" />
+                            </div>
+                            <Tooltip content={`${employee.firstName} ${employee.lastName}`} position="top">
+                              <span 
+                                className="font-bold text-brand-navy text-lg truncate max-w-[200px]"
+                              >
+                                {employee.firstName} {employee.lastName}
+                              </span>
+                            </Tooltip>
+                          </div>
+                        </td>
 
- {/* Divider for mobile */}
- <div className="h-px w-full bg-border/50 lg:hidden"></div>
+                        <td className="px-6 py-5">
+                          <span className="text-sm font-semibold text-text-secondary flex items-center gap-1.5">
+                            <UsersRound className="w-4 h-4" />
+                            {employee.role}
+                          </span>
+                        </td>
 
- {/* Role & Branch Section */}
- <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
- <div className="flex flex-col justify-center">
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Assigned Role</p>
- <div>
- <span className={`inline-flex px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider shadow-sm ${
- employee.role === 'Branch Manager' ? 'bg-purple-50 text-purple-700 border border-purple-200/50' :
- employee.role === 'Delivery Partner' ? 'bg-blue-50 text-blue-700 border border-blue-200/50' :
- 'bg-gray-100 text-text-secondary border border-border/50'
- }`}>
- {employee.role}
- </span>
- </div>
- </div>
- <div className="flex flex-col justify-center">
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Assigned Branch</p>
- <div className="flex items-center gap-2">
- <div className="w-6 h-6 rounded-full bg-orange-50 text-brand-orange-500 flex items-center justify-center shrink-0">
- <Store className="w-3.5 h-3.5" />
- </div>
- <div className="min-w-0">
- <p className="text-sm font-bold text-brand-navy truncate">{branchName}</p>
- </div>
- </div>
- </div>
- </div>
+                        <td className="px-6 py-5">
+                          <span className="text-sm font-semibold text-text-secondary flex items-center gap-1.5">
+                            <Store className="w-4 h-4" />
+                            {branchName}
+                          </span>
+                        </td>
 
- {/* Status & Actions Section */}
- <div className="flex items-center justify-between lg:justify-end gap-6 lg:w-1/4 shrink-0">
- <Badge variant={employee.status === 'Active' ? 'success' : 'error'} className="font-black px-3 py-1 shadow-sm uppercase tracking-widest text-[11px]">
- {employee.status}
- </Badge>
+                        <td className="px-6 py-5">
+                          <Badge variant={employee.status === 'Active' ? 'success' : 'error'} className="font-black px-2.5 py-1 shadow-sm uppercase tracking-widest text-[10px]">
+                            {employee.status}
+                          </Badge>
+                        </td>
 
- <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
- {employee.status !== 'Inactive' ? (
- <>
- <Link 
- to={`/employees/${employee.id}`} 
- className="p-2.5 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-xl transition-all shadow-sm border border-transparent hover:border-border"
- title="View Employee"
- >
- <Eye className="w-4 h-4" />
- </Link>
- <Link 
- to={`/employees/${employee.id}/edit`} 
- className="p-2.5 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-xl transition-all shadow-sm border border-transparent hover:border-brand-orange-200"
- title="Edit Employee"
- >
- <Edit2 className="w-4 h-4" />
- </Link>
- </>
- ) : (
- <>
- <span className="p-2.5 text-gray-300 cursor-not-allowed rounded-xl" title="View Blocked (Inactive)">
- <Eye className="w-4 h-4" />
- </span>
- <span className="p-2.5 text-gray-300 cursor-not-allowed rounded-xl" title="Edit Blocked (Inactive)">
- <Edit2 className="w-4 h-4" />
- </span>
- </>
- )}
- 
- {employee.status === 'Active' ? (
- <button 
- onClick={() => handleDeactivateClick(employee)}
- className="p-2.5 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-xl transition-all shadow-sm border border-transparent hover:border-red-200"
- title="Deactivate Employee"
- >
- <AlertOctagon className="w-4 h-4" />
- </button>
- ) : (
- <button 
- onClick={() => handleActivate(employee)}
- className="p-2.5 text-text-secondary hover:text-green-600 hover:bg-green-50 rounded-xl transition-all shadow-sm border border-transparent hover:border-green-200"
- title="Activate Employee"
- >
- <CheckCircle className="w-4 h-4" />
- </button>
- )}
- </div>
- </div>
- </motion.div>
- );
- })}
- </div>
+                        <td className="px-6 py-5">
+                          <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                            {employee.status !== 'Inactive' ? (
+                              <>
+                                <Link
+                                  to={`/employees/${employee.id}`}
+                                  className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-all"
+                                  title="View Employee"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </Link>
+                                <Link
+                                  to={`/employees/${employee.id}/edit`}
+                                  className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-all"
+                                  title="Edit Employee"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </Link>
+                              </>
+                            ) : (
+                              <>
+                                <span className="p-2 text-gray-300 cursor-not-allowed rounded-lg" title="View Blocked (Inactive)">
+                                  <Eye className="w-4 h-4" />
+                                </span>
+                                <span className="p-2 text-gray-300 cursor-not-allowed rounded-lg" title="Edit Blocked (Inactive)">
+                                  <Edit2 className="w-4 h-4" />
+                                </span>
+                              </>
+                            )}
+
+                            {employee.status === 'Active' ? (
+                              <button
+                                onClick={() => handleDeactivateClick(employee)}
+                                className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                title="Deactivate Employee"
+                              >
+                                <AlertOctagon className="w-4 h-4" />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleActivate(employee)}
+                                className="p-2 text-text-secondary hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                                title="Activate Employee"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
  )}
  </div>
 
