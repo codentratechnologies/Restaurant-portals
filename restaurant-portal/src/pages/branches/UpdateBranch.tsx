@@ -288,7 +288,6 @@ export default function UpdateBranch() {
  <InputField label="Closing Time" name="closeTime" type="time" />
  </div>
  </div>
- </div>
  </motion.div>
  )}
 
@@ -314,7 +313,6 @@ export default function UpdateBranch() {
  selectedIds={selectedMenuIds} 
  onChange={setSelectedMenuIds} 
  />
- </div>
  </motion.div>
  )}
  </AnimatePresence>

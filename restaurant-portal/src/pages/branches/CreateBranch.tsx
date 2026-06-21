@@ -235,7 +235,6 @@ export default function CreateBranch() {
  </div>
  </div>
 
- </div>
  </motion.div>
  )}
 
@@ -261,8 +260,6 @@ export default function CreateBranch() {
  selectedIds={selectedMenuIds}
  onChange={setSelectedMenuIds}
  />
-
- </div>
  </motion.div>
  )}
  </AnimatePresence>

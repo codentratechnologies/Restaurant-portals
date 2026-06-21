@@ -76,7 +76,6 @@ export function useRestaurantOrders() {
       }
       setLoading(false);
     });
-    });
     return () => unsub();
   }, [currentUser, branchPushId]);
 
