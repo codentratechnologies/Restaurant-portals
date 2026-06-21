@@ -53,14 +53,6 @@ export function useEmployees() {
                 if (role === 'Delivery Executive') role = 'Delivery Partner';
                 
                 let status = emp.status;
-                if (emp.doj) {
-                  const dojDate = new Date(emp.doj);
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  if (dojDate > today) {
-                    status = 'Inactive';
-                  }
-                }
                 
                 employeeList.push({
                   id: empId,

@@ -25,105 +25,73 @@ import {
 
 const quickActions = [
   {
-    name: 'Add Food Item',
-    sub: 'Expand your menu',
+    name: 'Menu Catalog',
+    sub: 'Explore now',
     icon: Utensils,
     path: '/food/new',
-    from: '#FF6B00',
-    mid: '#FF8C38',
-    to: '#FF9A4D',
-    shadow: 'rgba(255,107,0,0.4)',
+    image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=600&auto=format&fit=crop',
   },
   {
-    name: 'New Branch',
-    sub: 'Open a location',
+    name: 'Manage Branches',
+    sub: 'Explore now',
     icon: Store,
     path: '/branches/new',
-    from: '#6D28D9',
-    mid: '#7C3AED',
-    to: '#A78BFA',
-    shadow: 'rgba(109,40,217,0.4)',
+    image: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=600&auto=format&fit=crop',
   },
   {
-    name: 'Add Employee',
-    sub: 'Grow your team',
+    name: 'Restaurant Staff',
+    sub: 'Explore now',
     icon: Users,
     path: '/employees/new',
-    from: '#0284C7',
-    mid: '#0EA5E9',
-    to: '#38BDF8',
-    shadow: 'rgba(2,132,199,0.4)',
+    image: 'https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?q=80&w=600&auto=format&fit=crop',
   },
   {
-    name: 'View Orders',
-    sub: 'Track live orders',
+    name: 'Live Orders',
+    sub: 'Explore now',
     icon: ShoppingBag,
     path: '/orders',
-    from: '#047857',
-    mid: '#059669',
-    to: '#34D399',
-    shadow: 'rgba(4,120,87,0.4)',
+    image: 'https://images.unsplash.com/photo-1615719417327-1e5b38d35f83?q=80&w=600&auto=format&fit=crop',
   },
 ];
 
 function ActionCard({ action }: { action: typeof quickActions[0] }) {
-  const [angle, setAngle] = useState(45); // default arrow direction (deg)
   const [isHovered, setIsHovered] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const rect = cardRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = e.clientX - cx;
-    const dy = e.clientY - cy;
-    const deg = Math.atan2(dy, dx) * (180 / Math.PI);
-    setAngle(deg);
-  }, []);
 
   return (
     <Link to={action.path}>
       <motion.div
-        ref={cardRef}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        whileHover={{ y: -4, scale: 1.02 }}
-        whileTap={{ scale: 0.97 }}
+        whileHover={{ y: -4 }}
+        whileTap={{ scale: 0.98 }}
         onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => { setIsHovered(false); setAngle(45); }}
-        onMouseMove={handleMouseMove}
-        className="relative overflow-hidden rounded-2xl p-5 flex flex-col gap-3 cursor-pointer"
-        style={{
-          background: `linear-gradient(135deg, ${action.from} 0%, ${action.mid} 50%, ${action.to} 100%)`,
-          boxShadow: isHovered
-            ? `0 16px 36px ${action.shadow}`
-            : `0 6px 20px ${action.shadow}`,
-          transition: 'box-shadow 0.3s ease',
-        }}
+        onHoverEnd={() => setIsHovered(false)}
+        className="relative overflow-hidden rounded-[1.5rem] h-48 cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-300"
       >
-        {/* Subtle inner glow orb */}
-        <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-white opacity-[0.12] blur-xl pointer-events-none" />
+        {/* Background Image */}
+        <img
+          src={action.image}
+          alt={action.name}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+        />
 
-        {/* Icon */}
-        <div className="relative z-10 w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center ring-1 ring-white/30">
-          <action.icon className="w-5 h-5 text-white" />
+        {/* Bottom Dark Gradient for Text Legibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+        {/* Content */}
+        <div className="absolute bottom-0 left-0 w-full p-5 flex items-end justify-between">
+          <div>
+            <h3 className="text-xl font-black text-white tracking-tight leading-tight group-hover:-translate-y-1 transition-transform duration-300">
+              {action.name}
+            </h3>
+            <p className="text-sm text-white/80 font-bold mt-1 group-hover:-translate-y-1 transition-transform duration-300 delay-75">
+              {action.sub}
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:-translate-y-1 transition-all duration-300">
+            <ArrowUpRight className="w-5 h-5 text-white" />
+          </div>
         </div>
-
-        {/* Text */}
-        <div className="relative z-10">
-          <h3 className="text-base font-black text-white leading-tight">{action.name}</h3>
-          <p className="text-xs text-white/70 font-medium mt-0.5">{action.sub}</p>
-        </div>
-
-        {/* Arrow that rotates to follow cursor */}
-        <motion.div
-          animate={{ rotate: angle }}
-          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-          className="absolute bottom-4 right-4 z-10 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center ring-1 ring-white/30"
-        >
-          <ArrowUpRight className="w-4 h-4 text-white" />
-        </motion.div>
       </motion.div>
     </Link>
   );
@@ -163,7 +131,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-// ── Stat Card ─────────────────────────────────────────────────────────────────
 function StatCard({ title, value, icon: Icon, trend, up, color, bg, delay }: any) {
   return (
     <motion.div
@@ -171,23 +138,34 @@ function StatCard({ title, value, icon: Icon, trend, up, color, bg, delay }: any
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay }}
       whileHover={{ y: -4, scale: 1.01 }}
-      className="relative bg-white rounded-2xl border border-border/60 p-6 flex flex-col gap-4 cursor-default overflow-hidden group shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] transition-all duration-300"
+      className="relative bg-white rounded-3xl border border-gray-100 p-6 flex flex-col gap-6 cursor-default overflow-hidden group shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] transition-all duration-300"
     >
-      {/* Subtle glow background on hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-gray-50/80 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      
-      <div className="relative z-10 flex items-center justify-between">
-        <div style={{ background: bg }} className="w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-[inset_0_1px_2px_rgba(255,255,255,0.5)]">
-          <Icon style={{ color }} className="w-6 h-6 drop-shadow-sm" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-brand-orange-50/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+      {/* Top section: Icon and Trend Ribbon */}
+      <div className="relative z-10 flex items-start justify-between">
+        <div style={{ background: bg }} className="w-14 h-14 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-[inset_0_2px_4px_rgba(255,255,255,0.5)] border border-white">
+          <Icon style={{ color }} className="w-7 h-7 drop-shadow-sm" />
         </div>
-        <div className={`flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-full shadow-[inset_0_1px_2px_rgba(255,255,255,0.8)] ${up ? 'bg-emerald-50 text-emerald-600 border border-emerald-100/50' : 'bg-red-50 text-red-500 border border-red-100/50'}`}>
-          {up ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+
+        {/* Reelty Style Ribbon Badge */}
+        <div className={`flex items-center gap-1 text-[10px] font-black px-3 py-1.5 rounded-l-full rounded-r-md uppercase tracking-wider text-white shadow-md -mr-6 mt-1 ${up ? 'bg-brand-orange-500' : 'bg-red-500'}`}>
+          {up ? '★ TRENDING ' : 'ACTION REQ '}
           {trend}
         </div>
       </div>
-      <div className="relative z-10 mt-1">
-        <p className="text-[12px] font-bold text-text-secondary mb-1.5 uppercase tracking-widest">{title}</p>
-        <h3 className="text-3xl font-black text-brand-navy tracking-tight">{value}</h3>
+
+      {/* Bottom section: Value Box (Reelty Price Box style) */}
+      <div className="relative z-10">
+        <div className="border border-brand-orange-100 bg-brand-orange-50/40 rounded-2xl p-4 w-full relative overflow-hidden group-hover:bg-brand-orange-50/80 transition-colors">
+          <p className="text-[10px] font-black text-brand-orange-600 mb-0.5 uppercase tracking-[0.15em]">{title}</p>
+          <h3 className="text-[28px] font-black text-brand-navy tracking-tight">{value}</h3>
+
+          {/* Circular action button at the bottom right */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white border border-brand-orange-200 flex items-center justify-center shadow-sm text-brand-orange-500 group-hover:scale-110 transition-transform">
+            <Icon className="w-4 h-4" />
+          </div>
+        </div>
       </div>
     </motion.div>
   );
@@ -367,7 +345,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div ref={dashboardRef} className="-mt-8 space-y-6 relative" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div ref={dashboardRef} className="-mt-8 space-y-12 relative" style={{ fontFamily: "'Inter', sans-serif" }}>
 
       {/* ── Decorative background blobs ── */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
@@ -376,72 +354,73 @@ export default function Dashboard() {
         <div style={{ background: 'radial-gradient(circle at 50% 50%, rgba(14,165,233,0.04) 0%, transparent 50%)' }} className="absolute inset-0" />
       </div>
 
-      {/* ── Header ── */}
-      <motion.div
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-      >
-        <div>
-          <div className="flex items-center gap-2.5 mb-1">
-            <motion.span
-              animate={{ rotate: [0, 15, -10, 15, 0] }}
-              transition={{ duration: 1.2, delay: 0.5 }}
-              className="text-3xl"
-            >
-              👋
-            </motion.span>
-            <h1 className="text-2xl font-black text-[#1a1f36] tracking-tight">{greeting}, Admin</h1>
-            <motion.div
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.6, type: 'spring' }}
-            >
-              <Sparkles className="w-5 h-5 text-[#FF6B00]" />
+      {/* ── Hero Banner & Floating Command Bar ── */}
+      <div className="relative w-full mb-16 pt-2">
+        {/* Banner Image & Gradient */}
+        <div className="relative w-full h-[280px] rounded-[2rem] overflow-hidden shadow-xl">
+          <img
+            src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2000&auto=format&fit=crop"
+            alt="Restaurant Dashboard"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1a1f36]/95 via-[#1a1f36]/50 to-transparent" />
+
+          <div className="absolute bottom-16 left-8 sm:left-12">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+              <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow-md mb-3">
+                {greeting}, Admin
+              </h1>
+              <p className="text-white/90 font-medium text-lg flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-brand-orange-400" />
+                Here's your live restaurant overview for {today}
+              </p>
             </motion.div>
           </div>
-          <p className="text-sm font-medium text-[#8896AB]">{today} — Here's what's happening at your restaurants.</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center bg-[#F4F6FA] rounded-xl p-1 gap-1">
-            {['Today', 'This Week', 'This Month'].map(r => (
+        {/* Floating Command Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="absolute -bottom-8 left-8 right-8 sm:left-12 sm:right-12 z-20"
+        >
+          <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.12)] border border-white/50 p-3 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Range Selectors */}
+            <div className="flex items-center bg-gray-100/80 p-1.5 rounded-[1.25rem] w-full sm:w-auto">
+              {['Today', 'This Week', 'This Month'].map(r => (
+                <button
+                  key={r}
+                  onClick={() => setActiveRange(r)}
+                  className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-black transition-all duration-300 ${activeRange === r ? 'bg-white text-brand-navy shadow-sm' : 'text-text-secondary hover:text-brand-navy hover:bg-white/50'}`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
               <button
-                key={r}
-                onClick={() => setActiveRange(r)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${activeRange === r ? 'bg-white text-[#1a1f36] shadow-sm' : 'text-[#8896AB] hover:text-[#1a1f36]'}`}
+                onClick={handleRefresh}
+                className="p-3 bg-gray-50 border border-border rounded-xl text-text-secondary hover:text-brand-navy hover:bg-white transition-all shadow-sm"
               >
-                {r}
+                <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
               </button>
-            ))}
+              <button
+                onClick={handleExportReport}
+                disabled={isExporting}
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-orange-500 text-white text-sm font-black rounded-xl hover:bg-brand-orange-600 transition-all shadow-lg hover:shadow-brand-orange-500/30 disabled:opacity-70 w-full sm:w-auto"
+              >
+                {isExporting ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                {isExporting ? 'Exporting...' : 'Export Report'}
+              </button>
+            </div>
           </div>
-          <button
-            onClick={handleRefresh}
-            className="p-2.5 bg-white border border-[#E8ECF4] rounded-xl text-[#8896AB] hover:text-[#1a1f36] hover:border-[#C8D0DC] transition-all shadow-sm"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </button>
-          <button
-            onClick={handleExportReport}
-            disabled={isExporting}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#1a1f36] text-white text-sm font-bold rounded-xl hover:bg-[#2d3550] transition-all shadow-sm hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            {isExporting ? 'Exporting...' : 'Export Report'}
-          </button>
-        </div>
-      </motion.div>
-
-      {/* ── Quick Actions ── */}
-      <div>
-        <h3 className="text-lg font-bold text-[#1a1f36] mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {quickActions.map((a, i) => (
-            <ActionCard key={i} action={a} />
-          ))}
-        </div>
+        </motion.div>
       </div>
+
+
 
       {/* ── KPIs ── */}
       <div>
@@ -557,81 +536,85 @@ export default function Dashboard() {
                 View All <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="overflow-x-auto bg-white border-t border-border/50">
-              <table className="w-full text-left border-collapse min-w-[800px]">
-                <thead>
-                  <tr className="bg-gray-50/50 border-b border-border/50">
-                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[25%]">Order Details</th>
-                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[20%]">Customer</th>
-                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[25%]">Location & Time</th>
-                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%] text-right">Amount</th>
-                    <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%] text-center">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/50">
-                  {dynamicStats.recentOrders.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="p-6 text-center text-sm text-[#8896AB]">No recent orders</td>
-                    </tr>
-                  ) : dynamicStats.recentOrders.map((order, i) => {
+            <div className="p-6 bg-gray-50/30 border-t border-border/50">
+              {dynamicStats.recentOrders.length === 0 ? (
+                <div className="text-center text-sm text-[#8896AB] py-10">No recent orders</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {dynamicStats.recentOrders.map((order, i) => {
                     const s = STATUS_MAP[order.status] || STATUS_MAP['Pending'];
+                    const isLive = order.status === 'Preparing' || order.status === 'Pending';
+
                     return (
-                      <motion.tr
+                      <motion.div
                         key={i}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.2, delay: i * 0.05 }}
-                        className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
+                        className="bg-white border border-border/60 rounded-[1.5rem] p-5 shadow-sm hover:shadow-lg transition-all cursor-pointer group flex flex-col gap-4 relative overflow-hidden"
                       >
-                        <td className="px-6 py-5 whitespace-nowrap">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-brand-orange-50 text-brand-orange-500 flex items-center justify-center shrink-0 border border-brand-orange-100/50">
-                              <span className="font-black text-sm">#{order.id.replace('ORD-', '')}</span>
-                            </div>
-                            <span className="font-bold text-brand-navy text-base hover:text-brand-orange-600 transition-colors">
-                              {order.id}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            <div
-                              style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] + '20', color: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
-                              className="w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ring-1 ring-border/50 shadow-sm"
-                            >
-                              {order.avatar}
-                            </div>
-                            <Tooltip content={order.customer} position="top">
-                              <span 
-                                className="font-bold text-brand-navy text-sm group-hover:text-brand-orange-600 transition-colors truncate max-w-[150px]"
-                              >
-                                {order.customer}
-                              </span>
-                            </Tooltip>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5 whitespace-nowrap">
-                          <div className="flex items-center gap-1.5 text-[12px] text-text-secondary font-medium">
-                            <MapPin className="w-4 h-4" />{order.branch}
-                          </div>
-                          <div className="text-[11px] font-bold text-text-secondary mt-0.5 ml-5.5">{order.time}</div>
-                        </td>
-                        <td className="px-6 py-5 whitespace-nowrap text-right">
-                          <span className="text-base font-black text-brand-navy">{order.amount}</span>
-                        </td>
-                        <td className="px-6 py-5 whitespace-nowrap text-center">
+                        {/* Status Ribbon (Top Right) */}
+                        <div className="absolute top-4 right-4 flex items-center gap-2">
                           <div
-                            style={{ background: s.bg, color: s.color }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 shadow-sm"
+                            style={{ background: s.bg, color: s.color, borderColor: `${s.color}30` }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] uppercase tracking-wider font-black shadow-sm border"
                           >
-                            <CircleDot className="w-2.5 h-2.5" />{order.status}
+                            {isLive && (
+                              <span className="relative flex h-2 w-2">
+                                <span style={{ backgroundColor: s.color }} className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
+                                <span style={{ backgroundColor: s.color }} className="relative inline-flex rounded-full h-2 w-2"></span>
+                              </span>
+                            )}
+                            {!isLive && <CircleDot className="w-2.5 h-2.5" />}
+                            {order.status}
                           </div>
-                        </td>
-                      </motion.tr>
+                        </div>
+
+                        {/* Top: Customer & Avatar */}
+                        <div className="flex items-center gap-3 pr-24">
+                          <div
+                            style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] + '20', color: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
+                            className="w-12 h-12 rounded-[1rem] flex items-center justify-center text-sm font-black shrink-0 ring-1 ring-border/50 shadow-[inset_0_2px_4px_rgba(255,255,255,0.5)]"
+                          >
+                            {order.avatar}
+                          </div>
+                          <div>
+                            <h4 className="font-black text-brand-navy text-base truncate max-w-[150px]">{order.customer}</h4>
+                            <div className="flex items-center gap-1.5 text-xs text-text-secondary font-medium mt-0.5">
+                              <MapPin className="w-3.5 h-3.5" />{order.branch}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Middle: Order Details */}
+                        <div className="flex flex-wrap items-center justify-between border-t border-border/40 pt-4 mt-2 gap-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-gray-50 border border-border flex items-center justify-center shrink-0">
+                              <Package className="w-4 h-4 text-text-secondary" />
+                            </div>
+                            <div>
+                              <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Order ID</div>
+                              <div className="text-sm font-black text-brand-navy">#{order.id.replace('ORD-', '')}</div>
+                            </div>
+                          </div>
+
+                          {/* Bottom: Price Range Style Box */}
+                          <div className="border border-brand-orange-100 bg-brand-orange-50/40 rounded-xl px-4 py-2 flex items-center gap-3 group-hover:bg-brand-orange-50/80 transition-colors">
+                            <div>
+                              <div className="text-[9px] font-black text-brand-orange-600 uppercase tracking-widest mb-0.5">Amount</div>
+                              <div className="text-lg font-black text-brand-navy leading-none">{order.amount}</div>
+                            </div>
+                            <div className="w-8 h-8 rounded-full bg-white border border-brand-orange-200 flex items-center justify-center shadow-sm text-brand-orange-500 group-hover:scale-110 transition-transform">
+                              <ChevronRight className="w-4 h-4" />
+                            </div>
+                          </div>
+                        </div>
+
+                      </motion.div>
                     );
                   })}
-                </tbody>
-              </table>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>

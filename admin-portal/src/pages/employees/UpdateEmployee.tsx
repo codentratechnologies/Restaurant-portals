@@ -232,7 +232,7 @@ export default function UpdateEmployee() {
  role: formData.role,
  branch: formData.branch,
  doj: formData.doj,
- status: isFutureDoj ? 'Inactive' : formData.status,
+ status: formData.status,
  updated_at: new Date().toISOString()
  };
  
@@ -253,7 +253,7 @@ export default function UpdateEmployee() {
  role: formData.role,
  branch: formData.branch,
  doj: formData.doj,
- status: isFutureDoj ? 'Inactive' : formData.status,
+ status: formData.status,
  oldBranchCode: newBranchCode,
  empId: formData.empId,
  });

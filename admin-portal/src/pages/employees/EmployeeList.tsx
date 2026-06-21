@@ -106,15 +106,7 @@ export default function EmployeeList() {
  const handleActivate = async (employee: Employee) => {
  if (user) {
  try {
- if (employee.doj) {
- const dojDate = new Date(employee.doj);
- const today = new Date();
- today.setHours(0, 0, 0, 0);
- if (dojDate > today) {
- toast.error('Cannot activate an employee before their Date of Joining.');
- return;
- }
- }
+
 
  const employeeRef = ref(rtdb, `employee/${user.uid}/${employee.branchCode}/${employee.id}`);
  await update(employeeRef, {
