@@ -1,5 +1,5 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { Search, LogOut, ChevronDown, ChefHat } from 'lucide-react';
+import { Search, LogOut, ChevronDown, ChefHat, Bell, Activity } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
@@ -76,8 +76,8 @@ export default function TopNav() {
 
         {/* LEFT: Logo */}
         <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/DineOS.png" alt="DineOS Logo" className="h-14 w-auto object-contain mix-blend-multiply ml-3" />
+          <Link to="/" className="flex items-center">
+            <img src="/logo.png" alt="DineOS Logo" className="h-16 w-auto object-contain scale-125 origin-left ml-4" />
           </Link>
 
           {/* CENTER: Navigation Tabs */}
@@ -174,13 +174,25 @@ export default function TopNav() {
 
           <div className="h-8 w-px bg-border"></div>
 
+          {/* Activity Log */}
+          <Link to="/activity" className="p-2.5 text-text-secondary hover:text-brand-navy hover:bg-gray-50 rounded-xl transition-all relative group" title="Activity Log">
+            <Activity className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          </Link>
+
+          {/* Notifications */}
+          <button className="p-2.5 text-text-secondary hover:text-brand-navy hover:bg-gray-50 rounded-xl transition-all relative group" title="Notifications">
+            <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-brand-orange-500 rounded-full border-2 border-white animate-pulse" />
+          </button>
+
           {/* Profile Link */}
-          <Link to="/profile" className="flex items-center hover:bg-gray-50 p-1 rounded-full transition-colors border border-transparent hover:border-border">
+          <Link to="/settings/profile" className="flex items-center gap-2 hover:bg-gray-50 p-1.5 pr-3 rounded-full transition-colors border border-transparent hover:border-border group">
             <img
               src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin&backgroundColor=f5f7fa"
               alt="Profile"
-              className="w-8 h-8 rounded-full border border-border bg-background object-cover"
+              className="w-8 h-8 rounded-full border border-border bg-background object-cover group-hover:border-brand-orange-300 transition-colors"
             />
+            <span className="hidden xl:block text-sm font-bold text-text-secondary group-hover:text-brand-navy transition-colors">Admin</span>
           </Link>
         </div>
       </div>

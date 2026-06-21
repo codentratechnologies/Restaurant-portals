@@ -5,7 +5,13 @@ import { Toaster } from 'react-hot-toast';
 
 export default function AppLayout() {
   return (
-    <div className="min-h-screen bg-background font-sans text-text-primary">
+    <div className="min-h-screen bg-background font-sans text-text-primary relative">
+      {/* Decorative ambient background */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
+        <div style={{ background: 'radial-gradient(circle at 10% 20%, rgba(255,107,0,0.04) 0%, transparent 60%)' }} className="absolute inset-0" />
+        <div style={{ background: 'radial-gradient(circle at 90% 80%, rgba(124,58,237,0.03) 0%, transparent 55%)' }} className="absolute inset-0" />
+        <div style={{ background: 'radial-gradient(circle at 50% 50%, rgba(14,165,233,0.02) 0%, transparent 50%)' }} className="absolute inset-0" />
+      </div>
       <Toaster 
         position="bottom-right"
         toastOptions={{
@@ -26,7 +32,7 @@ export default function AppLayout() {
         }}
       />
       <TopNav />
-      <main className="max-w-[1600px] mx-auto px-6 py-8">
+      <main className="max-w-[1600px] mx-auto px-6 py-8 relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             initial={{ opacity: 0, y: 10 }}

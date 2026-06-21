@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import ChartCard from './components/ChartCard';
 import MetricCard from './components/MetricCard';
 import Tooltip from '../../components/common/Tooltip';
@@ -28,29 +28,29 @@ const quickActions = [
     name: 'Menu Catalog',
     sub: 'Explore now',
     icon: Utensils,
-    path: '/food/new',
+    path: '/food',
     image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=600&auto=format&fit=crop',
   },
   {
     name: 'Manage Branches',
     sub: 'Explore now',
     icon: Store,
-    path: '/branches/new',
+    path: '/branches',
     image: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=600&auto=format&fit=crop',
   },
   {
-    name: 'Restaurant Staff',
+    name: 'Manage Employee',
     sub: 'Explore now',
     icon: Users,
-    path: '/employees/new',
+    path: '/employees',
     image: 'https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?q=80&w=600&auto=format&fit=crop',
   },
   {
-    name: 'Live Orders',
+    name: 'Order List',
     sub: 'Explore now',
     icon: ShoppingBag,
     path: '/orders',
-    image: 'https://images.unsplash.com/photo-1615719417327-1e5b38d35f83?q=80&w=600&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=600&auto=format&fit=crop',
   },
 ];
 
@@ -174,6 +174,8 @@ function StatCard({ title, value, icon: Icon, trend, up, color, bg, delay }: any
 // ── Main Dashboard ─────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [activeRange, setActiveRange] = useState('This Week');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
@@ -219,6 +221,7 @@ export default function Dashboard() {
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     let startDate = new Date(0);
+    let endDate = now;
     let chartData: any[] = [];
 
     if (activeRange === 'Today') {
@@ -253,9 +256,29 @@ export default function Dashboard() {
           match: (date: Date) => date.getDate() === d.getDate() && date.getMonth() === d.getMonth() && date.getFullYear() === d.getFullYear()
         };
       });
+    } else if (activeRange === 'Custom') {
+      if (customStartDate) startDate = new Date(customStartDate);
+      if (customEndDate) {
+        endDate = new Date(customEndDate);
+        endDate.setHours(23, 59, 59, 999);
+      }
+      const diffDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+      chartData = Array.from({ length: Math.min(diffDays + 1, 60) }, (_, i) => {
+        const d = new Date(startDate);
+        d.setDate(d.getDate() + i);
+        return {
+          name: `${d.getDate()}/${d.getMonth() + 1}`,
+          revenue: 0,
+          count: 0,
+          match: (date: Date) => date.getDate() === d.getDate() && date.getMonth() === d.getMonth() && date.getFullYear() === d.getFullYear()
+        };
+      });
     }
 
-    const filteredOrders = orders.filter(o => new Date(o.created_at) >= startDate);
+    const filteredOrders = orders.filter(o => {
+      const d = new Date(o.created_at);
+      return d >= startDate && d <= endDate;
+    });
 
     filteredOrders.forEach(order => {
       const isRejectedOrCancelled = order.status === 'Rejected' || order.status === 'Cancelled';
@@ -302,7 +325,7 @@ export default function Dashboard() {
         image: item.image
       }));
 
-    const recentOrdersData = filteredOrders.slice(0, 5).map(order => {
+    const recentOrdersData = filteredOrders.slice(0, 4).map(order => {
       const custName = order.customer?.name || 'Unknown';
       const initials = custName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
       const timeDiff = Math.floor((new Date().getTime() - new Date(order.created_at).getTime()) / 60000);
@@ -331,15 +354,45 @@ export default function Dashboard() {
       revenueData: chartData.map(d => ({ name: d.name, revenue: d.revenue, prev: 0 })),
       ordersBar: chartData.map(d => ({ name: d.name, count: d.count }))
     };
-  }, [orders, branches, menuItems, activeRange]);
+  }, [orders, branches, menuItems, activeRange, customStartDate, customEndDate]);
 
   const greeting = getGreeting();
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   if (ordersLoading || branchesLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <RefreshCw className="w-8 h-8 text-[#FF6B00] animate-spin" />
+      <div className="-mt-8 space-y-12 animate-pulse" style={{ fontFamily: "'Inter', sans-serif" }}>
+        {/* Skeleton Hero Banner */}
+        <div className="relative rounded-[2rem] overflow-hidden bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 h-56" />
+        
+        {/* Skeleton Quick Actions */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="rounded-[1.5rem] bg-gray-100 h-48" />
+          ))}
+        </div>
+
+        {/* Skeleton Stat Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="rounded-2xl bg-white border border-border/50 h-32 p-6">
+              <div className="h-3 bg-gray-100 rounded-full w-24 mb-4" />
+              <div className="h-8 bg-gray-100 rounded-full w-32" />
+            </div>
+          ))}
+        </div>
+
+        {/* Skeleton Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="rounded-2xl bg-white border border-border/50 h-80 p-6">
+            <div className="h-4 bg-gray-100 rounded-full w-40 mb-8" />
+            <div className="h-48 bg-gray-50 rounded-xl" />
+          </div>
+          <div className="rounded-2xl bg-white border border-border/50 h-80 p-6">
+            <div className="h-4 bg-gray-100 rounded-full w-40 mb-8" />
+            <div className="h-48 bg-gray-50 rounded-xl" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -387,30 +440,57 @@ export default function Dashboard() {
         >
           <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.12)] border border-white/50 p-3 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             {/* Range Selectors */}
-            <div className="flex items-center bg-gray-100/80 p-1.5 rounded-[1.25rem] w-full sm:w-auto">
-              {['Today', 'This Week', 'This Month'].map(r => (
-                <button
-                  key={r}
-                  onClick={() => setActiveRange(r)}
-                  className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-black transition-all duration-300 ${activeRange === r ? 'bg-white text-brand-navy shadow-sm' : 'text-text-secondary hover:text-brand-navy hover:bg-white/50'}`}
-                >
-                  {r}
-                </button>
-              ))}
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              <div className="flex items-center bg-gray-100/80 p-1.5 rounded-[1.25rem] w-full sm:w-auto">
+                {['Today', 'This Week', 'This Month', 'Custom'].map(r => (
+                  <button
+                    key={r}
+                    onClick={() => setActiveRange(r)}
+                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-black transition-all duration-300 ${activeRange === r ? 'bg-white text-brand-navy shadow-sm' : 'text-text-secondary hover:text-brand-navy hover:bg-white hover:shadow-md hover:-translate-y-0.5'}`}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+
+              <AnimatePresence>
+                {activeRange === 'Custom' && (
+                  <motion.div 
+                    initial={{ opacity: 0, width: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, width: 'auto', scale: 1 }}
+                    exit={{ opacity: 0, width: 0, scale: 0.9 }}
+                    className="flex items-center gap-2 overflow-hidden"
+                  >
+                    <input 
+                      type="date" 
+                      value={customStartDate} 
+                      onChange={e => setCustomStartDate(e.target.value)}
+                      className="px-4 py-2 bg-gray-50 border border-border/60 rounded-xl text-sm font-bold text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 shadow-sm"
+                    />
+                    <span className="text-text-secondary font-bold text-sm">to</span>
+                    <input 
+                      type="date" 
+                      value={customEndDate} 
+                      onChange={e => setCustomEndDate(e.target.value)}
+                      className="px-4 py-2 bg-gray-50 border border-border/60 rounded-xl text-sm font-bold text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 shadow-sm"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Actions */}
             <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
               <button
                 onClick={handleRefresh}
-                className="p-3 bg-gray-50 border border-border rounded-xl text-text-secondary hover:text-brand-navy hover:bg-white transition-all shadow-sm"
+                className="p-3 bg-gray-50 border border-border rounded-xl text-text-secondary hover:text-brand-navy hover:bg-white hover:shadow-md hover:-translate-y-0.5 hover:scale-105 transition-all duration-300"
               >
                 <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
               </button>
               <button
                 onClick={handleExportReport}
                 disabled={isExporting}
-                className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-orange-500 text-white text-sm font-black rounded-xl hover:bg-brand-orange-600 transition-all shadow-lg hover:shadow-brand-orange-500/30 disabled:opacity-70 w-full sm:w-auto"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-orange-500 text-white text-sm font-black rounded-xl hover:bg-brand-orange-600 hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 shadow-lg hover:shadow-brand-orange-500/40 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:translate-y-0 w-full sm:w-auto"
               >
                 {isExporting ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
                 {isExporting ? 'Exporting...' : 'Export Report'}
@@ -422,7 +502,15 @@ export default function Dashboard() {
 
 
 
-      {/* ── KPIs ── */}
+      {/* ── Quick Actions ── */}
+      <div>
+        <h3 className="text-lg font-bold text-[#1a1f36] mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {quickActions.map((a, i) => (
+            <ActionCard key={i} action={a} />
+          ))}
+        </div>
+      </div>
       <div>
         <h3 className="text-lg font-bold text-[#1a1f36] mb-4">KPIs</h3>
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
@@ -532,7 +620,7 @@ export default function Dashboard() {
                 <h3 className="text-base font-black text-[#1a1f36]">Recent Orders</h3>
                 <p className="text-sm text-[#8896AB] font-medium mt-0.5">Latest transactions across all branches</p>
               </div>
-              <Link to="/orders" className="flex items-center gap-1 text-sm font-bold text-[#FF6B00] hover:text-[#e05e00] transition-colors bg-[#FFF3E8] px-3 py-1.5 rounded-xl">
+              <Link to="/orders" className="flex items-center gap-1 text-sm font-bold text-[#FF6B00] hover:text-white transition-all duration-300 bg-[#FFF3E8] hover:bg-[#FF6B00] hover:-translate-y-0.5 hover:shadow-md px-4 py-2 rounded-xl">
                 View All <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
@@ -551,7 +639,7 @@ export default function Dashboard() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.2, delay: i * 0.05 }}
-                        className="bg-white border border-border/60 rounded-[1.5rem] p-5 shadow-sm hover:shadow-lg transition-all cursor-pointer group flex flex-col gap-4 relative overflow-hidden"
+                        className="bg-white border border-border/60 rounded-[1.5rem] p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-brand-orange-200 transition-all duration-300 cursor-pointer group flex flex-col gap-4 relative overflow-hidden"
                       >
                         {/* Status Ribbon (Top Right) */}
                         <div className="absolute top-4 right-4 flex items-center gap-2">
@@ -599,13 +687,10 @@ export default function Dashboard() {
                           </div>
 
                           {/* Bottom: Price Range Style Box */}
-                          <div className="border border-brand-orange-100 bg-brand-orange-50/40 rounded-xl px-4 py-2 flex items-center gap-3 group-hover:bg-brand-orange-50/80 transition-colors">
+                          <div className="border border-brand-orange-100 bg-brand-orange-50/40 rounded-xl px-5 py-2 flex items-center group-hover:bg-brand-orange-50/80 transition-colors">
                             <div>
                               <div className="text-[9px] font-black text-brand-orange-600 uppercase tracking-widest mb-0.5">Amount</div>
                               <div className="text-lg font-black text-brand-navy leading-none">{order.amount}</div>
-                            </div>
-                            <div className="w-8 h-8 rounded-full bg-white border border-brand-orange-200 flex items-center justify-center shadow-sm text-brand-orange-500 group-hover:scale-110 transition-transform">
-                              <ChevronRight className="w-4 h-4" />
                             </div>
                           </div>
                         </div>
@@ -649,7 +734,7 @@ export default function Dashboard() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.62 + i * 0.07 }}
                   whileHover={{ x: 3 }}
-                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#FAFBFD] transition-all group cursor-pointer"
+                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer border border-transparent hover:border-gray-100"
                 >
                   <div className="relative shrink-0">
                     <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover ring-1 ring-[#E8ECF4] group-hover:ring-2 group-hover:ring-[#FF6B00]/30 transition-all" />

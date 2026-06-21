@@ -249,83 +249,82 @@ export default function CouponsDashboard() {
                                 </p>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto bg-white rounded-2xl border border-border/50 shadow-sm">
-                                <table className="w-full text-left border-collapse min-w-[800px]">
+                            <div className="overflow-x-auto pb-4">
+                                <table className="w-full text-left border-separate border-spacing-y-3 min-w-[800px]">
                                     <thead>
-                                        <tr className="bg-gray-50/50 border-b border-border/50">
-                                            <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[25%]">Coupon Code</th>
-                                            <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Type</th>
-                                            <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Discount</th>
-                                            <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[20%]">Valid Until</th>
-                                            <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Status</th>
-                                            <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[10%]">Actions</th>
+                                        <tr>
+                                            <th className="px-6 py-3 text-xs font-bold text-text-secondary uppercase tracking-wider w-[25%]">Coupon Code</th>
+                                            <th className="px-6 py-3 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Type</th>
+                                            <th className="px-6 py-3 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Discount</th>
+                                            <th className="px-6 py-3 text-xs font-bold text-text-secondary uppercase tracking-wider w-[20%]">Valid Until</th>
+                                            <th className="px-6 py-3 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Status</th>
+                                            <th className="px-6 py-3 text-xs font-bold text-text-secondary uppercase tracking-wider w-[10%] text-right">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-border/50">
-                                        {paginatedData.map((coupon, i) => (
+                                    <tbody>
+                                        {paginatedData.map((coupon, i) => {
+                                            const isActive = coupon.status === 'Active';
+                                            const isTerminated = coupon.status === 'Terminated';
+                                            return (
                                             <motion.tr
                                                 key={coupon.id}
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ duration: 0.2, delay: i * 0.05 }}
-                                                className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
+                                                className="group cursor-pointer bg-white hover:shadow-md transition-all duration-300"
+                                                style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}
                                                 onClick={() => handleRowClick(coupon)}
                                             >
-                                                <td className="px-6 py-5">
+                                                <td className={`px-6 py-4 rounded-l-2xl border-l-[4px] ${isActive ? 'border-l-emerald-500' : isTerminated ? 'border-l-red-500' : 'border-l-amber-500'}`}>
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-xl bg-brand-orange-50 text-brand-orange-500 flex items-center justify-center shrink-0 border border-brand-orange-100/50">
-                                                            <Tag className="w-6 h-6" />
+                                                        <div className="w-12 h-12 rounded-xl bg-gray-50 text-brand-navy flex items-center justify-center shrink-0 border border-border group-hover:bg-brand-orange-50 group-hover:text-brand-orange-500 group-hover:border-brand-orange-100 transition-colors">
+                                                            <Tag className="w-5 h-5" />
                                                         </div>
-                                                        <span className="font-bold text-brand-navy text-lg">{coupon.code}</span>
+                                                        <span className="font-black text-brand-navy text-lg group-hover:text-brand-orange-600 transition-colors">{coupon.code}</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-5">
-                                                    <span className="text-sm font-semibold text-text-secondary flex items-center gap-1.5">
+                                                <td className="px-6 py-4">
+                                                    <span className="text-sm font-bold text-text-secondary flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg w-fit group-hover:bg-brand-navy group-hover:text-white transition-colors">
                                                         <Scissors className="w-4 h-4" />
                                                         {coupon.discountType}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-5">
-                                                    <span className="text-base font-black text-brand-navy">
+                                                <td className="px-6 py-4">
+                                                    <span className="font-black text-brand-navy bg-gray-50 px-3 py-1.5 rounded-lg group-hover:bg-brand-orange-50 group-hover:text-brand-orange-600 transition-colors">
                                                         {coupon.discountType === 'Percentage' ? `${coupon.discountPercentage}%` : `₹${coupon.maxDiscountAmount}`}
+                                                        <span className="text-xs font-bold text-text-secondary ml-1 uppercase tracking-wider group-hover:text-brand-orange-400">OFF</span>
                                                     </span>
-                                                    <span className="text-xs font-bold text-text-secondary ml-1 uppercase tracking-wider">OFF</span>
                                                 </td>
-                                                <td className="px-6 py-5">
-                                                    <div className="flex items-center gap-2 text-sm font-medium text-brand-navy">
-                                                        <Calendar className="w-4 h-4 text-text-secondary" />
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-2 text-sm font-bold text-text-secondary px-3 py-1.5 bg-gray-50 rounded-lg w-fit group-hover:bg-brand-navy group-hover:text-white transition-colors">
+                                                        <Calendar className="w-4 h-4" />
                                                         {new Date(coupon.validUntil).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-5">
-                                                    <Badge
-                                                        variant={
-                                                            coupon.status === 'Active' ? 'success' :
-                                                                coupon.status === 'Terminated' ? 'error' :
-                                                                    'warning'
-                                                        }
-                                                        className="font-bold uppercase text-[11px] tracking-widest shadow-sm px-3 py-1"
-                                                    >
+                                                <td className="px-6 py-4">
+                                                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ${isActive ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/50' : isTerminated ? 'bg-red-50 text-red-600 border border-red-200/50' : 'bg-amber-50 text-amber-600 border border-amber-200/50'}`}>
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500 animate-pulse' : isTerminated ? 'bg-red-500' : 'bg-amber-500'}`} />
                                                         {coupon.status}
-                                                    </Badge>
+                                                    </div>
                                                 </td>
-                                                <td className="px-6 py-5">
-                                                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                                                        <Link to={`/coupons/${coupon.id}`} className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-colors" title="View Details">
+                                                <td className="px-6 py-4 rounded-r-2xl">
+                                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300" onClick={(e) => e.stopPropagation()}>
+                                                        <Link to={`/coupons/${coupon.id}`} className="p-2.5 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-xl transition-all shadow-sm bg-white border border-border" title="View Details">
                                                             <Eye className="w-4 h-4" />
                                                         </Link>
-                                                        <Link to={`/coupons/${coupon.id}/edit`} className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-colors" title="Edit Coupon">
+                                                        <Link to={`/coupons/${coupon.id}/edit`} className="p-2.5 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-xl transition-all shadow-sm bg-white border border-border" title="Edit Coupon">
                                                             <Edit2 className="w-4 h-4" />
                                                         </Link>
                                                         {canDeleteCoupon && (
-                                                            <button onClick={() => handleDeleteClick(coupon)} className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Coupon">
+                                                            <button onClick={() => handleDeleteClick(coupon)} className="p-2.5 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-xl transition-all shadow-sm bg-white border border-border" title="Delete Coupon">
                                                                 <Trash2 className="w-4 h-4" />
                                                             </button>
                                                         )}
                                                     </div>
                                                 </td>
                                             </motion.tr>
-                                        ))}
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>

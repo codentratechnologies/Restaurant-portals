@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import AppLayout from './components/layout/AppLayout';
 import AuthLayout from './components/layout/AuthLayout';
@@ -143,10 +144,22 @@ function AppRoutes() {
   );
 }
 
+// ── Scroll To Top ──────────────────────────────────────────────────
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 // ── Root App ───────────────────────────────────────────────────────
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>

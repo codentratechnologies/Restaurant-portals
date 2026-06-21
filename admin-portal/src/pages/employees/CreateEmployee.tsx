@@ -181,7 +181,7 @@ export default function CreateEmployee() {
  branch: branchCode, // Map directly to branch code
  doj: formData.doj,
  password: hashedPassword,
- status: formData.status,
+ status: isFutureDoj ? 'Inactive' : 'Active',
  created_at: new Date().toISOString(),
  updated_at: new Date().toISOString(),
  };
