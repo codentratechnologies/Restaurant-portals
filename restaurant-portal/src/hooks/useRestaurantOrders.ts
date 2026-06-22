@@ -1,7 +1,51 @@
 import { useState, useEffect } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { rtdb } from '../lib/firebase';
-import { OrderData } from '../pages/orders/components/OrderDrawer';
+export interface OrderData {
+ id: string;
+ status: string;
+ type: 'Delivery' | 'Takeaway' | 'Dine-In';
+ customer: {
+ name: string;
+ phone: string;
+ address?: string;
+ };
+ items: {
+ name: string;
+ price: number;
+ qty: number;
+ subtotal: number;
+ customizations?: any[];
+ }[];
+ billing: {
+ subtotal: number;
+ tax: number;
+ total: number;
+ deliveryFee?: number;
+ discount?: number;
+ };
+ payment: {
+ method: 'Online' | 'COD';
+ status: 'Paid' | 'Pending' | 'Refunded' | 'Failed';
+ };
+ deliveryAgent?: {
+ name: string;
+ contact: string;
+ };
+ agent?: {
+ name: string;
+ phone: string;
+ };
+ timeline?: any[];
+ rejectionReason?: string;
+ rejectionNotes?: string;
+ cancellationReason?: string;
+ created_at?: number;
+ acceptedAt?: number;
+ _key?: string;
+ _customerId?: string;
+ _branchId?: string;
+}
 
 export function useRestaurantOrders() {
   const [orders, setOrders] = useState<OrderData[]>([]);

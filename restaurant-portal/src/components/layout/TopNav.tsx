@@ -26,7 +26,7 @@ export default function TopNav() {
         {/* LEFT: Logo */}
         <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/DineOS.png" alt="DineOS Logo" className="h-14 w-auto object-contain mix-blend-multiply ml-3" />
+            <img src="/logo.png" alt="DineOS Logo" className="h-16 w-auto object-contain scale-125 origin-left ml-4" />
           </Link>
 
           {/* CENTER: Navigation Tabs */}

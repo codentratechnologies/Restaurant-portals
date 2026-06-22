@@ -6,13 +6,15 @@ import Button from '../../components/common/Button';
 import RejectionModal from './components/RejectionModal';
 import { ref, onValue, set, push } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
-import { OrderData } from './components/OrderDrawer';
+import { OrderData } from '../../hooks/useRestaurantOrders';
 import { get, query, orderByChild, equalTo } from 'firebase/database';
 
 export default function OrderCalendar() {
  const [orders, setOrders] = useState<OrderData[]>([]);
  const [isOnline, setIsOnline] = useState(true);
- const [soundEnabled, setSoundEnabled] = useState(false);
+ const [soundEnabled, setSoundEnabled] = useState(() => {
+ return localStorage.getItem('order_sound_enabled') === 'true';
+ });
  const audioCtxRef = useRef<AudioContext | null>(null);
 
  const [currentUser, setCurrentUser] = useState<any>(null);
@@ -53,6 +55,7 @@ export default function OrderCalendar() {
 
  const enableSound = () => {
  setSoundEnabled(true);
+ localStorage.setItem('order_sound_enabled', 'true');
  // Initialize audio context on user interaction
  if (!audioCtxRef.current) {
  audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -66,6 +69,23 @@ export default function OrderCalendar() {
  if (userStr) {
  setCurrentUser(JSON.parse(userStr));
  }
+
+ const unlockAudio = () => {
+ if (localStorage.getItem('order_sound_enabled') === 'true') {
+ if (!audioCtxRef.current) {
+ audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+ }
+ if (audioCtxRef.current.state === 'suspended') {
+ audioCtxRef.current.resume();
+ }
+ }
+ document.removeEventListener('click', unlockAudio);
+ };
+ document.addEventListener('click', unlockAudio);
+ 
+ return () => {
+ document.removeEventListener('click', unlockAudio);
+ };
  }, []);
 
  const [rawOrders, setRawOrders] = useState<any[]>([]);

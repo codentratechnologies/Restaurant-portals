@@ -219,10 +219,7 @@ export default function UpdateEmployee() {
  const snapshot = await get(oldRef);
  const oldData = snapshot.exists() ? snapshot.val() : {};
 
- const dojDate = new Date(formData.doj);
- const today = new Date();
- today.setHours(0, 0, 0, 0);
- const isFutureDoj = dojDate > today;
+ 
 
  const payload: any = {
  ...oldData,
@@ -295,7 +292,7 @@ export default function UpdateEmployee() {
  </div>
 
  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
- <Card className="p-0 border border-border/50 shadow-soft bg-white overflow-hidden">
+ <Card className="p-0 border border-border/50 shadow-soft bg-white overflow-visible">
  <form id="update-employee-form" onSubmit={handleSubmit} className="flex flex-col">
  
  {/* SECTION 1: Personal & Employment Details */}

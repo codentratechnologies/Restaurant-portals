@@ -289,8 +289,7 @@ export default function FoodCatalog() {
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ duration: 0.2, delay: i * 0.05 }}
-                                                className={`hover:bg-gray-50/50 transition-colors group cursor-pointer ${!item.is_available && 'opacity-70'}`}
-                                                onClick={() => navigate(`/food/${item.id}`)}
+                                                className={`hover:bg-gray-50/50 transition-colors group ${!item.is_available && 'opacity-70'}`}
                                             >
                                                 {/* Item Details */}
                                                 <td className="px-6 py-5 relative">

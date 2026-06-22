@@ -117,9 +117,9 @@ export default function OrderTable() {
               <FileText className="w-6 h-6" />
             </div>
             <div>
-              <span className="font-bold text-brand-navy text-lg hover:text-brand-orange-600 transition-colors">
+              <Link to={`/orders/${item.id}`} className="font-bold text-brand-navy text-lg hover:text-brand-orange-600 transition-colors">
                 #{item.id}
-              </span>
+              </Link>
               <div className="text-xs font-medium text-text-secondary mt-0.5 flex items-center gap-1">
                 <Calendar className="w-3 h-3" /> {timeStr}
               </div>
@@ -260,7 +260,6 @@ export default function OrderTable() {
               currentPage={currentPage}
               totalPages={Math.max(1, Math.ceil(filteredOrders.length / 10))}
               onPageChange={setCurrentPage}
-              onRowClick={(item) => navigate(`/orders/${item.id}`)}
             />
           </div>
         </Card>

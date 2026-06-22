@@ -255,8 +255,7 @@ export default function BranchList() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.2, delay: i * 0.05 }}
-                        onClick={() => handleRowClick(branch)}
-                        className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
+                        className="hover:bg-gray-50/50 transition-colors group"
                       >
                         <td className="px-6 py-5">
                           <div className="flex items-center gap-4">

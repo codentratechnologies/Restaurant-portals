@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Download, FileX, CheckCircle2, PackageCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -7,11 +7,9 @@ import toast from 'react-hot-toast';
 import Table, { Column } from '../../components/common/Table';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
-import OrderDrawer, { OrderData } from './components/OrderDrawer';
-
 import { ref, set } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
-import { useRestaurantOrders } from '../../hooks/useRestaurantOrders';
+import { useRestaurantOrders, OrderData } from '../../hooks/useRestaurantOrders';
 
 const TABS = [
  { id: 'accept', label: 'Accepted Orders', statuses: ['Accepted', 'Preparing', 'Ready For Pickup', 'Out For Delivery', 'Arrived', 'Arrived Customer'] },
@@ -99,9 +97,7 @@ export default function OrderTable() {
  const [currentPage, setCurrentPage] = useState(1);
  const itemsPerPage = 8;
 
- // Drawer state
- const [drawerOpen, setDrawerOpen] = useState(false);
- const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
+
 
  // ─── Auto-transition: Accepted → Preparing after 1 minute ────────────────
  useEffect(() => {
@@ -172,7 +168,7 @@ export default function OrderTable() {
  const activeTabDef = TABS.find(t => t.id === currentTab) || TABS[0];
  return orders.filter(order => {
  const matchStatus = activeTabDef.statuses.includes(order.status);
- const matchSearch = order.id.toLowerCase().includes(debouncedSearch.toLowerCase());
+ const matchSearch = String(order.id || '').toLowerCase().includes(debouncedSearch.toLowerCase());
  const matchPayment = paymentFilter === 'All' || order.payment.method === paymentFilter;
  return matchStatus && matchSearch && matchPayment;
  });
@@ -187,10 +183,7 @@ export default function OrderTable() {
  toast.success('CSV Export initiated. It will download shortly.');
  };
 
- const openOrderDrawer = (order: OrderData) => {
- setSelectedOrder(order);
- setDrawerOpen(true);
- };
+
 
  // ─── Columns ──────────────────────────────────────────────────────────────
  const getColumns = (): Column<OrderData>[] => {
@@ -198,12 +191,12 @@ export default function OrderTable() {
  {
  header: 'Order ID',
  cell: (item) => (
- <span
- onClick={() => openOrderDrawer(item)}
+ <Link
+ to={`/orders/${item.id}`}
  className="font-mono text-sm font-black text-brand-orange-600 hover:text-brand-orange-700 cursor-pointer transition-colors"
  >
  {item.id}
- </span>
+ </Link>
  )
  },
  {
@@ -216,7 +209,7 @@ export default function OrderTable() {
  },
  {
  header: 'Total Value',
- cell: (item) => <span className="font-black text-brand-navy">₹{item.billing.total.toFixed(2)}</span>
+ cell: (item) => <span className="font-black text-brand-navy">₹{Number(item.billing.total || 0).toFixed(2)}</span>
  },
  {
  header: 'Status',
@@ -268,12 +261,12 @@ export default function OrderTable() {
  )}
 
  {/* View button — always visible */}
- <button
- onClick={() => openOrderDrawer(item)}
+ <Link
+ to={`/orders/${item.id}`}
  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-brand-navy bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
  >
  <CheckCircle2 className="w-3.5 h-3.5" /> View
- </button>
+ </Link>
  </div>
  ),
  });
@@ -284,11 +277,7 @@ export default function OrderTable() {
  return (
  <div className="space-y-6 max-w-[1400px] mx-auto">
 
- <OrderDrawer
- isOpen={drawerOpen}
- onClose={() => setDrawerOpen(false)}
- order={selectedOrder}
- />
+
 
  <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
  <div>

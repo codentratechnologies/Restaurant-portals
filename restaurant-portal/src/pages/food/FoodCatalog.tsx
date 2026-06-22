@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, UtensilsCrossed, AlertCircle, CheckCircle2, Leaf, Drumstick, EggFried, FileX, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, UtensilsCrossed, AlertCircle, CheckCircle2, Leaf, Drumstick, EggFried, FileX, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
@@ -9,7 +9,7 @@ import AvailabilityToggle from './components/AvailabilityToggle';
 import DisableConfirmationModal from './components/DisableConfirmationModal';
 import { ref, onValue, set, query, orderByChild, equalTo } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const categories = ['All', 'Starters', 'Main Course', 'Desserts', 'Beverages'];
 
@@ -311,14 +311,15 @@ export default function FoodCatalog() {
  )}
  </div>
  ) : (
- <table className="w-full text-left border-collapse">
+ <table className="w-full text-left border-collapse min-w-[800px]">
  <thead>
- <tr className="border-y border-border bg-gray-50/50">
- <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest whitespace-nowrap">Item Details</th>
- <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest whitespace-nowrap">Category</th>
- <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest whitespace-nowrap">Dietary</th>
- <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest whitespace-nowrap">Price</th>
- <th className="py-4 px-6 text-xs font-black text-text-secondary uppercase tracking-widest text-right whitespace-nowrap">Availability</th>
+ <tr className="bg-gray-50/50 border-b border-border/50">
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[35%]">Item Details</th>
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Category</th>
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[10%]">Dietary</th>
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[10%]">Price</th>
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[20%] text-left">Availability</th>
+ <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[10%] text-left">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-border/50">
@@ -328,10 +329,10 @@ export default function FoodCatalog() {
  initial={{ opacity: 0, y: 5 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.2, delay: i * 0.03 }}
- className={`hover:bg-orange-50/30 transition-colors group cursor-pointer ${!item.isAvailable && 'opacity-70'}`}
+ className={`hover:bg-orange-50/30 transition-colors group ${!item.isAvailable && 'opacity-70'}`}
  >
  {/* Item Details */}
- <td className="py-4 px-6 relative">
+ <td className="px-6 py-5 relative">
  {/* Hover Decoration */}
  <div className="absolute inset-y-0 left-0 w-1 bg-brand-orange-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-r"></div>
  <div className="flex items-center gap-4">
@@ -355,25 +356,27 @@ export default function FoodCatalog() {
  </td>
 
  {/* Category */}
- <td className="py-4 px-6">
- <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 border border-border/50 text-text-secondary text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+ <td className="px-6 py-5">
+ <span className="text-sm font-semibold text-text-secondary">
  {item.category}
  </span>
  </td>
 
  {/* Dietary */}
- <td className="py-4 px-6">
- {getDietaryBadge(getDietaryString(item))}
+ <td className="px-6 py-5">
+ <span className="text-sm font-semibold text-text-secondary">
+ {getDietaryString(item)}
+ </span>
  </td>
 
  {/* Price */}
- <td className="py-4 px-6 whitespace-nowrap">
+ <td className="px-6 py-5 whitespace-nowrap">
  <span className="font-black text-brand-navy">₹{item.price}</span>
  </td>
 
  {/* Availability */}
- <td className="py-4 px-6 text-right" onClick={(e) => e.stopPropagation()}>
- <div className="flex items-center justify-end gap-3">
+ <td className="px-6 py-5 text-left" onClick={(e) => e.stopPropagation()}>
+ <div className="flex items-center justify-start gap-3">
  <Badge variant={item.isAvailable ? 'success' : 'error'} className="font-black px-2.5 py-1 shadow-sm uppercase tracking-widest text-[10px]">
  {item.isAvailable ? 'Available' : 'Unavailable'}
  </Badge>
@@ -381,6 +384,19 @@ export default function FoodCatalog() {
  isAvailable={item.isAvailable} 
  onToggle={() => handleToggle(item.id, item.isAvailable)} 
  />
+ </div>
+ </td>
+
+ {/* Actions */}
+ <td className="px-6 py-5 text-left whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+ <div className="flex items-center justify-start gap-2">
+ <Link
+ to={`/food/${item.id}`}
+ className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-all"
+ title="View Details"
+ >
+ <Eye className="w-4 h-4" />
+ </Link>
  </div>
  </td>
  </motion.tr>

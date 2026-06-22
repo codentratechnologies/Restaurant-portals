@@ -12,7 +12,8 @@ export default function OrderNotificationListener() {
     if (!userStr) return;
     const currentUser = JSON.parse(userStr);
 
-    let unsubOrders: any;
+    let isCancelled = false;
+ let unsubOrders: any;
 
     const initListener = async () => {
       let branchPushId = currentUser.branch;
@@ -28,6 +29,8 @@ export default function OrderNotificationListener() {
           }
         }
       } catch (e) {}
+
+      if (isCancelled) return;
 
       const ordersRef = ref(rtdb, `order/${currentUser.adminId}/${branchPushId}`);
       
@@ -94,7 +97,10 @@ export default function OrderNotificationListener() {
 
     initListener();
 
-    return () => { if (unsubOrders) unsubOrders(); };
+    return () => { 
+ isCancelled = true;
+ if (unsubOrders) unsubOrders(); 
+ };
   }, []);
 
   return null;

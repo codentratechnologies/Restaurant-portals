@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Filter, MessageSquareText, StarHalf } from 'lucide-react';
 import { ref, onValue } from 'firebase/database';
@@ -9,9 +10,10 @@ import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 
 import ReviewDrawer, { ReviewData } from './components/ReviewDrawer';
-import OrderDrawer, { OrderData } from '../orders/components/OrderDrawer';
+import { OrderData } from '../../hooks/useRestaurantOrders';
 
 export default function ReviewsDashboard() {
+ const navigate = useNavigate();
  const [reviews, setReviews] = useState<ReviewData[]>([]);
  const [allOrdersMap, setAllOrdersMap] = useState<Record<string, OrderData>>({});
  const [currentUser, setCurrentUser] = useState<any>(null);
@@ -28,8 +30,6 @@ export default function ReviewsDashboard() {
  // Drawer States
  const [reviewDrawerOpen, setReviewDrawerOpen] = useState(false);
  const [selectedReview, setSelectedReview] = useState<ReviewData | null>(null);
- const [orderDrawerOpen, setOrderDrawerOpen] = useState(false);
- const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
 
  useEffect(() => {
  const userStr = localStorage.getItem('restaurant_user');
@@ -201,17 +201,7 @@ export default function ReviewsDashboard() {
  };
 
  const handleOpenLinkedOrder = (orderId: string) => {
- const order = allOrdersMap[orderId] || {
- id: orderId,
- status: 'Unknown',
- type: 'Delivery',
- customer: { name: 'Customer', phone: 'Unknown' },
- items: [],
- billing: { subtotal: 0, tax: 0, total: 0 },
- payment: { method: 'Online', status: 'Paid' },
- };
- setSelectedOrder(order);
- setOrderDrawerOpen(true);
+ navigate(`/orders/${orderId}`);
  };
 
  // --- Rendering Helpers ---
@@ -295,12 +285,6 @@ export default function ReviewsDashboard() {
  onClose={() => setReviewDrawerOpen(false)} 
  review={selectedReview} 
  onOpenOrder={handleOpenLinkedOrder}
- />
- 
- <OrderDrawer 
- isOpen={orderDrawerOpen}
- onClose={() => setOrderDrawerOpen(false)}
- order={selectedOrder}
  />
 
  <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">

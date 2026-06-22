@@ -77,7 +77,7 @@ export default function Select({
             transition={{ duration: 0.15 }}
             className="absolute z-50 w-full mt-2 bg-white/95 backdrop-blur-xl border border-border/60 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.12)] overflow-hidden"
           >
-            <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
+            <div className="max-h-[190px] overflow-y-auto p-1 custom-scrollbar">
               {options.length === 0 ? (
                 <div className="px-4 py-2 text-sm text-text-secondary text-center">
                   No options available

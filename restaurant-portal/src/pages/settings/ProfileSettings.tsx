@@ -1,20 +1,24 @@
 import { useState, useEffect } from 'react';
-import { ref, get, update } from 'firebase/database';
+import { ref, get, update, onValue } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
 import toast from 'react-hot-toast';
 import { Loader2, Edit2, X, Save, Store, LogOut } from 'lucide-react';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import PhoneInput from '../../components/common/PhoneInput';
+import Badge from '../../components/common/Badge';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProfileSettings() {
  const navigate = useNavigate();
  const [userStr, setUserStr] = useState<string | null>(localStorage.getItem('restaurant_user'));
+ const [currentTab, setCurrentTab] = useState<'profile' | 'employees'>('profile');
  const [isLoading, setIsLoading] = useState(true);
  const [isSaving, setIsSaving] = useState(false);
  const [isEditing, setIsEditing] = useState(false);
  const [assignedBranch, setAssignedBranch] = useState<{ name: string; city?: string; address?: string } | null>(null);
+ const [branchEmployees, setBranchEmployees] = useState<any[]>([]);
  const [profileData, setProfileData] = useState({
  fullName: '',
  email: '',
@@ -118,6 +122,29 @@ export default function ProfileSettings() {
  fetchProfileData();
  }, [userStr]);
 
+ useEffect(() => {
+ if (!userStr) return;
+ try {
+ const userObj = JSON.parse(userStr);
+ if (!userObj.adminId || !userObj.branch) return;
+ 
+ const empRef = ref(rtdb, `employee/${userObj.adminId}/${userObj.branch}`);
+ const unsub = onValue(empRef, (snapshot) => {
+ if (snapshot.exists()) {
+ const data = snapshot.val();
+ const emps = Object.keys(data).map(key => ({
+ id: key,
+ ...data[key]
+ }));
+ setBranchEmployees(emps);
+ } else {
+ setBranchEmployees([]);
+ }
+ });
+ return () => unsub();
+ } catch (e) {}
+ }, [userStr]);
+
  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
  const { name, value } = e.target;
  setProfileData(prev => ({ ...prev, [name]: value }));
@@ -181,9 +208,8 @@ export default function ProfileSettings() {
  );
  }
 
- // Generate dynamic avatar based on name or email
- const seed = profileData.fullName || profileData.email || 'Admin';
- const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
+ // Use consistent default avatar
+ const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=Admin&backgroundColor=f5f7fa`;
 
  return (
  <div className="space-y-6">
@@ -208,6 +234,41 @@ export default function ProfileSettings() {
  </div>
  </div>
  
+ {/* Tab Navigation */}
+ <div className="flex items-center gap-6 border-b border-border mb-6">
+ <button
+ onClick={() => setCurrentTab('profile')}
+ className={`relative py-3 text-sm font-bold transition-colors ${
+ currentTab === 'profile' ? 'text-brand-navy' : 'text-text-secondary hover:text-brand-navy'
+ }`}
+ >
+ Profile Details
+ {currentTab === 'profile' && (
+ <motion.div layoutId="profileTabActive" className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-orange-600" />
+ )}
+ </button>
+ <button
+ onClick={() => setCurrentTab('employees')}
+ className={`relative py-3 text-sm font-bold transition-colors ${
+ currentTab === 'employees' ? 'text-brand-navy' : 'text-text-secondary hover:text-brand-navy'
+ }`}
+ >
+ Branch Employees
+ {currentTab === 'employees' && (
+ <motion.div layoutId="profileTabActive" className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-orange-600" />
+ )}
+ </button>
+ </div>
+ 
+ <AnimatePresence mode="wait">
+ {currentTab === 'profile' ? (
+ <motion.div
+ key="profile"
+ initial={{ opacity: 0, y: 10 }}
+ animate={{ opacity: 1, y: 0 }}
+ exit={{ opacity: 0, y: -10 }}
+ transition={{ duration: 0.2 }}
+ >
  <Card className="p-8 border border-border/50 shadow-soft">
  <div className="flex items-center gap-6 pb-8 border-b border-border/60 mb-8">
  <div className="relative group">
@@ -304,6 +365,47 @@ export default function ProfileSettings() {
  )}
  </form>
  </Card>
+ </motion.div>
+ ) : (
+ <motion.div
+ key="employees"
+ initial={{ opacity: 0, y: 10 }}
+ animate={{ opacity: 1, y: 0 }}
+ exit={{ opacity: 0, y: -10 }}
+ transition={{ duration: 0.2 }}
+ >
+ <Card className="p-8 border border-border/50 shadow-soft">
+ <h3 className="text-lg font-black text-brand-navy mb-6 pb-4 border-b border-border">
+ Branch Employees &mdash; <span className="text-brand-orange-600">{assignedBranch?.name || 'Unknown Branch'}</span>
+ </h3>
+ {branchEmployees.length === 0 ? (
+ <p className="text-sm font-medium text-text-secondary bg-gray-50 p-4 rounded-xl text-center border border-border">No employees found for this branch.</p>
+ ) : (
+ <div className="space-y-4">
+ {branchEmployees.map(emp => (
+ <div key={emp.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-border/50 bg-gray-50/50 hover:bg-white hover:shadow-sm transition-all group">
+ <div className="flex items-center gap-4">
+ <div className="w-10 h-10 rounded-full bg-brand-orange-100 flex items-center justify-center text-brand-orange-600 font-bold uppercase shrink-0 border border-brand-orange-200">
+ {emp.firstName?.charAt(0) || emp.fullName?.charAt(0) || emp.name?.charAt(0) || 'E'}
+ </div>
+ <div>
+ <p className="text-sm font-bold text-brand-navy">{emp.firstName} {emp.lastName}</p>
+ <p className="text-xs font-medium text-text-secondary mt-0.5">{emp.role || 'Employee'} &bull; {emp.phone || emp.mobileNumber || 'No Phone'}</p>
+ </div>
+ </div>
+ <div className="mt-3 sm:mt-0 flex items-center gap-3">
+ <Badge variant={emp.status === 'Active' ? 'success' : (emp.status === 'Inactive' ? 'error' : 'default')} className="font-bold shadow-sm">
+ {emp.status || 'Active'}
+ </Badge>
+ </div>
+ </div>
+ ))}
+ </div>
+ )}
+ </Card>
+ </motion.div>
+ )}
+ </AnimatePresence>
  </div>
  );
 }

@@ -166,10 +166,9 @@ export default function CreateEmployee() {
 
  const hashedPassword = await hashPassword(formData.password);
  
- const dojDate = new Date(formData.doj);
  const today = new Date();
- today.setHours(0, 0, 0, 0);
- const isFutureDoj = dojDate > today;
+ const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+ const isFutureDoj = formData.doj > todayStr;
 
  const newEmployee = {
  empId: empId,
@@ -216,7 +215,7 @@ export default function CreateEmployee() {
  </div>
 
  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
- <Card className="p-0 border border-border/50 shadow-soft bg-white overflow-hidden">
+ <Card className="p-0 border border-border/50 shadow-soft bg-white overflow-visible">
  <form id="create-employee-form" onSubmit={handleSubmit} className="flex flex-col">
  
  {/* SECTION 1: Personal Details */}
