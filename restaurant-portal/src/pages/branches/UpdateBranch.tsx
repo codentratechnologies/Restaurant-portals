@@ -173,36 +173,6 @@ export default function UpdateBranch() {
  <p className="text-text-secondary mt-0.5 text-sm font-medium">Modify operational details for this branch.</p>
  </motion.div>
  </div>
- <div className="flex items-center gap-3">
- {currentStep === 1 ? (
- <>
- <Link to={`/branches/${id}`} onClick={handleCancelClick}>
- <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
- Cancel
- </button>
- </Link>
- <Button onClick={handleNextStep1} disabled={isSubmitting} className="gap-2 px-8">
- {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
- Next
- {!isSubmitting && <ChevronRight className="w-5 h-5" />}
- </Button>
- </>
- ) : (
- <>
- <button
- onClick={handleBackToStep1}
- className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all flex items-center gap-2"
- >
- <ChevronLeft className="w-5 h-5" />
- Back
- </button>
- <Button onClick={handleSaveAndFinish} disabled={isSubmitting} className="gap-2 px-8 shadow-sm">
- {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
- {isSubmitting ? 'Updating...' : 'Update Branch'}
- </Button>
- </>
- )}
- </div>
  </div>
 
  <BranchStepper steps={STEPS} currentStep={currentStep} />
@@ -316,7 +286,38 @@ export default function UpdateBranch() {
  </motion.div>
  )}
  </AnimatePresence>
- </Card>
+
+          <div className="p-8 border-t border-border bg-gray-50 flex items-center justify-end gap-3 rounded-b-xl">
+            {currentStep === 1 ? (
+              <>
+                <Link to={`/branches/${id}`} onClick={handleCancelClick}>
+                  <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
+                    Cancel
+                  </button>
+                </Link>
+                <Button onClick={handleNextStep1} disabled={isSubmitting} className="gap-2 px-8">
+                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                  Next
+                  {!isSubmitting && <ChevronRight className="w-5 h-5" />}
+                </Button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={handleBackToStep1}
+                  className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all flex items-center gap-2"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                  Back
+                </button>
+                <Button onClick={handleSaveAndFinish} disabled={isSubmitting} className="gap-2 px-8 shadow-sm">
+                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                  {isSubmitting ? 'Updating...' : 'Update Branch'}
+                </Button>
+              </>
+            )}
+          </div>
+        </Card>
  </motion.div>
  </div>
  );

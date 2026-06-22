@@ -250,17 +250,7 @@ export default function UpdateBranch() {
  <p className="text-text-secondary mt-0.5 text-sm font-medium">Modify operational details for this branch.</p>
  </motion.div>
  </div>
- <div className="flex items-center gap-3">
- <Link to="/branches" onClick={handleCancelClick}>
- <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
- Cancel
- </button>
- </Link>
- <Button onClick={handleSaveAndFinish} disabled={isSubmitting} className="gap-2 px-8 shadow-sm">
- {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
- {isSubmitting ? 'Updating...' : 'Update Branch'}
- </Button>
- </div>
+ 
  </div>
 
  <motion.div layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
@@ -340,8 +330,19 @@ export default function UpdateBranch() {
  </div>
  </div>
 
- </Card>
- </motion.div>
+        <div className="p-8 border-t border-border bg-gray-50 flex items-center justify-end gap-3 rounded-b-xl">
+          <Link to={`/branches/${id}`} onClick={handleCancelClick}>
+            <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
+              Cancel
+            </button>
+          </Link>
+          <Button onClick={handleSaveAndFinish} disabled={isSubmitting} className="gap-2 px-8 shadow-sm">
+            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+            {isSubmitting ? 'Updating...' : 'Update Branch'}
+          </Button>
+        </div>
+      </Card>
+    </motion.div>
  </div>
  );
 }

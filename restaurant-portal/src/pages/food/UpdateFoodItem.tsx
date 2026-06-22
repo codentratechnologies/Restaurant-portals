@@ -136,17 +136,7 @@ export default function UpdateFoodItem() {
  <p className="text-text-secondary mt-0.5 text-sm font-medium">Edit master details for this menu item.</p>
  </motion.div>
  </div>
- <div className="flex items-center gap-3">
- <Link to="/food" onClick={(e) => handleNavigation('/food', e)}>
- <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
- Cancel
- </button>
- </Link>
- <Button form="update-food-form" type="submit" disabled={isSubmitting || !hasUnsavedChanges} className="gap-2 px-8 shadow-sm">
- {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
- {isSubmitting ? 'Updating...' : 'Save Changes'}
- </Button>
- </div>
+ 
  </div>
 
  <AnimatePresence>
@@ -297,7 +287,18 @@ export default function UpdateFoodItem() {
  </div>
  </div>
 
- </form>
+   <div className="p-8 border-t border-border bg-gray-50 flex items-center justify-end gap-3 rounded-b-xl">
+ <Link to="/food" onClick={(e) => handleNavigation('/food', e)}>
+ <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
+ Cancel
+ </button>
+ </Link>
+ <Button form="update-food-form" type="submit" disabled={isSubmitting || !hasUnsavedChanges} className="gap-2 px-8 shadow-sm">
+ {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+ {isSubmitting ? 'Updating...' : 'Save Changes'}
+ </Button>
+ </div>
+        </form>
  </Card>
  </motion.div>
  </div>
