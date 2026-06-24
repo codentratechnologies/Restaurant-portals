@@ -92,7 +92,16 @@ export default function TopNav() {
 
         {/* RIGHT: Actions */}
         <div className="flex items-center gap-2 sm:gap-5">
-          <div ref={searchContainerRef} className="hidden lg:flex items-center relative group">
+          {/* Mobile Search Icon (Opens Drawer) */}
+          <button 
+            className="md:hidden p-2 text-text-secondary hover:text-brand-navy rounded-lg hover:bg-gray-50 transition-colors"
+            onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Search"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+
+          <div ref={searchContainerRef} className="hidden md:flex items-center relative group">
             <Search className="w-4 h-4 absolute left-3 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
             <input
               ref={searchInputRef}
@@ -104,10 +113,10 @@ export default function TopNav() {
                 setIsDropdownOpen(true);
               }}
               onFocus={() => setIsDropdownOpen(true)}
-              className="pl-10 pr-4 py-2.5 w-72 bg-gray-50/50 border border-border/60 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 focus:bg-white transition-all shadow-sm placeholder:text-text-secondary/60 placeholder:font-medium"
+              className="pl-10 pr-4 py-2.5 w-48 lg:w-72 bg-gray-50/50 border border-border/60 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 focus:bg-white transition-all shadow-sm placeholder:text-text-secondary/60 placeholder:font-medium"
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1 pointer-events-none">
-              <kbd className="hidden sm:inline-flex items-center gap-1 rounded-md border border-border/60 bg-white/50 px-1.5 font-mono text-[10px] font-bold text-text-secondary shadow-sm">
+              <kbd className="hidden lg:inline-flex items-center gap-1 rounded-md border border-border/60 bg-white/50 px-1.5 font-mono text-[10px] font-bold text-text-secondary shadow-sm">
                 <span className="text-xs">⌘</span>K
               </kbd>
             </div>
@@ -186,6 +195,41 @@ export default function TopNav() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
+              
+              <div className="p-4 border-b border-border bg-white">
+                <div className="relative">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+                  <input
+                    type="text"
+                    placeholder="Search anything..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-border/60 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500"
+                  />
+                </div>
+                {searchQuery.length > 0 && (
+                  <div className="mt-2 max-h-48 overflow-y-auto">
+                    {filteredResults.length > 0 ? (
+                      filteredResults.map((result, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            handleResultClick(result.path);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-brand-orange-50 rounded-lg text-sm mb-1"
+                        >
+                          <span className="font-semibold block">{result.name}</span>
+                          <span className="text-xs text-text-secondary">{result.type}</span>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="text-sm text-text-secondary text-center py-2">No results</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 bg-white">
                 {navItems.map((item) => (
                   <NavLink

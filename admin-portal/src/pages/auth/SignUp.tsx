@@ -78,7 +78,7 @@ export default function SignUp() {
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
       </div>
 
-      <div className="relative z-10 min-h-full min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 py-12">
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 py-12">
         {/* Centered Card */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}

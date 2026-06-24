@@ -467,7 +467,7 @@ export default function Dashboard() {
       {/* ── Hero Banner & Floating Command Bar ── */}
       <div className="relative w-full pt-2">
         {/* Banner Image & Gradient */}
-        <div className="relative w-full h-[280px] rounded-[2rem] overflow-hidden shadow-xl">
+        <div className="relative w-full h-[180px] sm:h-[220px] md:h-[280px] rounded-[2rem] overflow-hidden shadow-xl">
           <img
             src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2000&auto=format&fit=crop"
             alt="Restaurant Dashboard"
@@ -481,7 +481,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="relative -mt-10 mx-2 sm:mx-12 z-20 mb-10 sm:mb-16"
+          className="relative -mt-10 mx-2 sm:mx-6 md:mx-12 z-20 mb-10 sm:mb-16"
         >
           <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.12)] border border-white/50 p-4 sm:p-5 flex flex-col gap-4 sm:gap-5">
             {/* Nav Links Bar (Top Row) */}
