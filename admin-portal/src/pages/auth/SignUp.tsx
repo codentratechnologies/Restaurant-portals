@@ -66,9 +66,9 @@ export default function SignUp() {
   const displayError = localError || error;
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen relative flex p-4 sm:p-6 lg:p-8 py-10">
       {/* Full Screen Background */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      <div className="fixed inset-0 z-0 overflow-hidden">
         <img 
           src="/restaurant_auth_bg_light.png" 
           alt="Restaurant Atmosphere" 
@@ -83,7 +83,7 @@ export default function SignUp() {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-[380px] bg-white rounded-3xl shadow-2xl p-6 sm:px-8 sm:py-6 flex flex-col max-h-[85vh]"
+        className="relative z-10 w-full max-w-[380px] bg-white rounded-3xl shadow-2xl p-6 sm:px-8 sm:py-6 flex flex-col m-auto"
       >
         <div className="flex justify-center mb-2 shrink-0">
           <img src="/logo_horizontal.png" alt="DineOS Logo" className="h-16 sm:h-18 w-auto object-contain" />
@@ -94,8 +94,8 @@ export default function SignUp() {
           <p className="mt-1.5 text-sm text-text-secondary">Start managing your restaurant empire.</p>
         </div>
 
-        <form className="flex flex-col overflow-hidden" onSubmit={handleSubmit} noValidate>
-          <div className="overflow-y-auto px-1 -mx-1 space-y-4 pb-2 custom-scrollbar max-h-[290px]">
+        <form className="flex flex-col" onSubmit={handleSubmit} noValidate>
+          <div className="space-y-4 pb-2">
             <div>
               <label htmlFor="name" className="block text-sm font-semibold text-text-primary mb-1.5">
                 Full Name
