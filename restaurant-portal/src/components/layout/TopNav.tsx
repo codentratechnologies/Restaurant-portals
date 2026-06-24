@@ -1,7 +1,8 @@
-import { NavLink, Link } from 'react-router-dom';
-import { Search, LogOut, ChevronDown, ChefHat } from 'lucide-react';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { Search, LogOut, ChevronDown, ChefHat, Bell, Menu, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
 
 const navItems = [
   { name: 'Home & Analytics', path: '/dashboard' },
@@ -19,14 +20,30 @@ const navItems = [
 ];
 
 export default function TopNav() {
+  const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({});
+
+  const toggleSubmenu = (name: string) => {
+    setOpenSubmenus(prev => ({ ...prev, [name]: !prev[name] }));
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-border shadow-sm">
-      <div className="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
 
-        {/* LEFT: Logo */}
-        <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="DineOS Logo" className="h-16 w-auto object-contain scale-125 origin-left ml-4" />
+        {/* LEFT: Logo & Mobile Menu */}
+        <div className="flex items-center gap-3 sm:gap-8">
+          <button 
+            className="md:hidden p-2 -ml-2 text-text-secondary hover:text-brand-navy focus:outline-none transition-colors rounded-lg hover:bg-gray-50"
+            onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Open Menu"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+
+          <Link to="/" className="flex items-center">
+            <img src="/logo.png" alt="DineOS Logo" className="h-12 sm:h-16 w-auto object-contain sm:scale-125 origin-left" />
           </Link>
 
           {/* CENTER: Navigation Tabs */}
@@ -80,7 +97,7 @@ export default function TopNav() {
         </div>
 
         {/* RIGHT: Actions */}
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-2 sm:gap-5">
           <div className="hidden lg:flex items-center relative group">
             <Search className="w-4 h-4 absolute left-3 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
             <input
@@ -95,20 +112,99 @@ export default function TopNav() {
             </div>
           </div>
 
-
-
-          <div className="h-8 w-px bg-border"></div>
+          <div className="hidden sm:block h-8 w-px bg-border"></div>
 
           {/* Profile Link */}
-          <Link to="/profile" className="flex items-center hover:bg-gray-50 p-1 rounded-full transition-colors border border-transparent hover:border-border">
+          <Link to="/profile" className="flex items-center hover:bg-gray-50 p-1 sm:p-1.5 rounded-full transition-colors border border-transparent hover:border-border">
             <img
               src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin&backgroundColor=f5f7fa"
               alt="Profile"
-              className="w-8 h-8 rounded-full border border-border bg-background object-cover"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-border bg-background object-cover"
             />
           </Link>
         </div>
       </div>
+
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/60 z-[60] md:hidden backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 bottom-0 left-0 w-[280px] bg-white z-[70] shadow-2xl flex flex-col md:hidden"
+            >
+              <div className="p-5 border-b border-border flex justify-between items-center bg-gray-50/50">
+                <img src="/logo_horizontal.png" alt="DineOS Logo" className="h-8 w-auto object-contain" />
+                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-text-secondary hover:text-brand-navy rounded-lg hover:bg-white transition-colors border border-transparent hover:border-border">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 bg-white">
+                {navItems.map((item) => (
+                  <div key={item.name}>
+                    <NavLink
+                      to={item.subItems ? '#' : item.path}
+                      onClick={(e) => {
+                        if (item.subItems) {
+                          e.preventDefault();
+                          toggleSubmenu(item.name);
+                        } else {
+                          setIsMobileMenuOpen(false);
+                        }
+                      }}
+                      className={({ isActive }) =>
+                        cn(
+                          "flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-bold transition-all",
+                          isActive && !item.subItems ? "bg-brand-orange-50 text-brand-orange-700 shadow-sm" : "text-text-secondary hover:bg-gray-50 hover:text-brand-navy"
+                        )
+                      }
+                    >
+                      <span>{item.name}</span>
+                      {item.subItems && (
+                        <ChevronDown className={`w-4 h-4 transition-transform ${openSubmenus[item.name] ? 'rotate-180' : ''}`} />
+                      )}
+                    </NavLink>
+                    
+                    <AnimatePresence>
+                      {item.subItems && openSubmenus[item.name] && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden ml-4 pl-4 border-l-2 border-border mt-1"
+                        >
+                          <div className="flex flex-col gap-1 py-2">
+                            {item.subItems.map(sub => (
+                              <Link 
+                                key={sub.name}
+                                to={sub.path}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="px-3 py-2 text-sm font-semibold text-text-secondary hover:text-brand-orange-600 rounded-lg transition-colors"
+                              >
+                                {sub.name}
+                              </Link>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+              </nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

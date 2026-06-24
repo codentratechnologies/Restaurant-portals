@@ -1,5 +1,5 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { Search, LogOut, ChevronDown, ChefHat, Bell } from 'lucide-react';
+import { Search, LogOut, ChevronDown, ChefHat, Bell, Menu, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
@@ -32,6 +32,7 @@ export default function TopNav() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
@@ -72,19 +73,25 @@ export default function TopNav() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-2xl border-b border-border/50 shadow-[0_4px_30px_rgba(0,0,0,0.03)]">
-      <div className="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
 
-        {/* LEFT: Logo */}
-        <div className="flex items-center gap-8">
+        {/* LEFT: Logo & Mobile Menu */}
+        <div className="flex items-center gap-3 sm:gap-8">
+          <button 
+            className="md:hidden p-2 -ml-2 text-text-secondary hover:text-brand-navy focus:outline-none transition-colors rounded-lg hover:bg-gray-50"
+            onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Open Menu"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+
           <Link to="/" className="flex items-center">
-            <img src="/logo.png" alt="DineOS Logo" className="h-16 w-auto object-contain scale-125 origin-left ml-4" />
+            <img src="/logo.png" alt="DineOS Logo" className="h-12 sm:h-16 w-auto object-contain sm:scale-125 origin-left" />
           </Link>
-
-
         </div>
 
         {/* RIGHT: Actions */}
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-2 sm:gap-5">
           <div ref={searchContainerRef} className="hidden lg:flex items-center relative group">
             <Search className="w-4 h-4 absolute left-3 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
             <input
@@ -142,26 +149,70 @@ export default function TopNav() {
             </AnimatePresence>
           </div>
 
-
-
-          <div className="h-8 w-px bg-border"></div>
+          <div className="hidden sm:block h-8 w-px bg-border"></div>
 
           {/* Notifications */}
-          <button className="p-2.5 text-text-secondary hover:text-brand-navy hover:bg-gray-50 rounded-xl transition-all relative group" title="Notifications">
+          <button className="p-2 sm:p-2.5 text-text-secondary hover:text-brand-navy hover:bg-gray-50 rounded-xl transition-all relative group" title="Notifications">
             <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-brand-orange-500 rounded-full border-2 border-white animate-pulse" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-brand-orange-500 rounded-full border-2 border-white animate-pulse" />
           </button>
 
           {/* Profile Link */}
-          <Link to="/settings/profile" className="flex items-center hover:bg-gray-50 p-1.5 rounded-full transition-colors border border-transparent hover:border-border group">
+          <Link to="/settings/profile" className="flex items-center hover:bg-gray-50 p-1 sm:p-1.5 rounded-full transition-colors border border-transparent hover:border-border group">
             <img
               src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin&backgroundColor=f5f7fa"
               alt="Profile"
-              className="w-8 h-8 rounded-full border border-border bg-background object-cover group-hover:border-brand-orange-300 transition-colors"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-border bg-background object-cover group-hover:border-brand-orange-300 transition-colors"
             />
           </Link>
         </div>
       </div>
+
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/60 z-[60] md:hidden backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 bottom-0 left-0 w-[280px] bg-white z-[70] shadow-2xl flex flex-col md:hidden"
+            >
+              <div className="p-5 border-b border-border flex justify-between items-center bg-gray-50/50">
+                <img src="/logo_horizontal.png" alt="DineOS Logo" className="h-8 w-auto object-contain" />
+                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-text-secondary hover:text-brand-navy rounded-lg hover:bg-white transition-colors border border-transparent hover:border-border">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 bg-white">
+                {navItems.map((item) => (
+                  <NavLink
+                    key={item.name}
+                    to={item.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        "block px-4 py-3.5 rounded-xl text-sm font-bold transition-all",
+                        isActive ? "bg-brand-orange-50 text-brand-orange-700 shadow-sm" : "text-text-secondary hover:bg-gray-50 hover:text-brand-navy"
+                      )
+                    }
+                  >
+                    {item.name}
+                  </NavLink>
+                ))}
+              </nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

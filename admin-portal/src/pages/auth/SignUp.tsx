@@ -66,7 +66,7 @@ export default function SignUp() {
   const displayError = localError || error;
 
   return (
-    <div className="min-h-screen relative flex p-4 sm:p-6 lg:p-8 py-10">
+    <div className="h-screen relative w-full overflow-y-auto">
       {/* Full Screen Background */}
       <div className="fixed inset-0 z-0 overflow-hidden">
         <img 
@@ -78,13 +78,14 @@ export default function SignUp() {
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
       </div>
 
-      {/* Centered Card */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-[380px] bg-white rounded-3xl shadow-2xl p-6 sm:px-8 sm:py-6 flex flex-col m-auto"
-      >
+      <div className="relative z-10 min-h-full flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 py-12">
+        {/* Centered Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-[380px] bg-white rounded-3xl shadow-2xl p-6 sm:px-8 sm:py-6 flex flex-col"
+        >
         <div className="flex justify-center mb-2 shrink-0">
           <img src="/logo_horizontal.png" alt="DineOS Logo" className="h-16 sm:h-18 w-auto object-contain" />
         </div>
@@ -208,7 +209,6 @@ export default function SignUp() {
             </Button>
           </div>
         </form>
-
         <p className="mt-4 text-center text-sm text-text-secondary font-medium shrink-0">
           Already have an account?{' '}
           <Link to="/login" className="text-brand-orange-600 hover:text-brand-orange-500 transition-colors">
@@ -216,6 +216,7 @@ export default function SignUp() {
           </Link>
         </p>
       </motion.div>
+      </div>
     </div>
   );
 }

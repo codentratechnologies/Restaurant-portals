@@ -31,7 +31,7 @@ export default function AppLayout() {
     <div className="min-h-screen bg-background font-sans text-text-primary">
       <OrderNotificationListener />
       <TopNav />
-      <main className="max-w-[1600px] mx-auto px-6 py-8">
+      <main className="max-w-[1600px] mx-auto px-4 py-4 sm:px-6 sm:py-8 relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
