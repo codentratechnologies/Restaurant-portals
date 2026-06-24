@@ -18,10 +18,19 @@ import {
   TrendingUp, TrendingDown, Users, ShoppingBag, IndianRupee,
   Clock, Download, Store, Utensils, ArrowUpRight, ChevronRight,
   Flame, MapPin, CircleDot, Package, CheckCircle2, Activity,
-  XCircle, RefreshCw, Sparkles
+  XCircle, RefreshCw, Sparkles, LayoutDashboard, Tag
 } from 'lucide-react';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
+
+const navLinks = [
+  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+  { name: 'Branches', path: '/branches', icon: Store },
+  { name: 'Employees', path: '/employees', icon: Users },
+  { name: 'Menu', path: '/food', icon: Utensils },
+  { name: 'Coupons & Promotions', path: '/coupons', icon: Tag },
+  { name: 'Orders', path: '/orders', icon: ShoppingBag },
+];
 
 const quickActions = [
   {
@@ -413,17 +422,17 @@ export default function Dashboard() {
       <div className="-mt-8 space-y-12 animate-pulse" style={{ fontFamily: "'Inter', sans-serif" }}>
         {/* Skeleton Hero Banner */}
         <div className="relative rounded-[2rem] overflow-hidden bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 h-56" />
-        
+
         {/* Skeleton Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          {[1,2,3,4].map(i => (
+          {[1, 2, 3, 4].map(i => (
             <div key={i} className="rounded-[1.5rem] bg-gray-100 h-48" />
           ))}
         </div>
 
         {/* Skeleton Stat Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => (
+          {[1, 2, 3, 4].map(i => (
             <div key={i} className="rounded-2xl bg-white border border-border/50 h-32 p-6">
               <div className="h-3 bg-gray-100 rounded-full w-24 mb-4" />
               <div className="h-8 bg-gray-100 rounded-full w-32" />
@@ -487,63 +496,86 @@ export default function Dashboard() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="absolute -bottom-8 left-8 right-8 sm:left-12 sm:right-12 z-20"
         >
-          <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.12)] border border-white/50 p-3 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            {/* Range Selectors */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-              <div className="flex items-center bg-gray-100/80 p-1.5 rounded-[1.25rem] w-full sm:w-auto">
-                {['Today', 'This Week', 'This Month', 'Custom'].map(r => (
-                  <button
-                    key={r}
-                    onClick={() => setActiveRange(r)}
-                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-black transition-all duration-300 ${activeRange === r ? 'bg-white text-brand-navy shadow-sm' : 'text-text-secondary hover:text-brand-navy hover:bg-white hover:shadow-md hover:-translate-y-0.5'}`}
-                  >
-                    {r}
-                  </button>
-                ))}
+          <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.12)] border border-white/50 p-5 flex flex-col gap-5">
+            {/* Nav Links Bar (Top Row) */}
+            <div className="flex items-center overflow-x-auto custom-scrollbar w-full">
+              <div className="flex items-center divide-x divide-border/60 min-w-max">
+                {navLinks.map((link, i) => {
+                  const Icon = link.icon;
+                  const isActive = link.name === 'Dashboard';
+                  return (
+                    <Link 
+                      key={i} 
+                      to={link.path}
+                      className={`flex items-center gap-2 px-6 py-1 group hover:text-brand-orange-500 transition-colors ${i === 0 ? 'pl-2' : ''}`}
+                    >
+                      <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-brand-navy' : 'text-text-secondary group-hover:text-brand-orange-500'}`} />
+                      <span className={`text-base font-bold transition-colors ${isActive ? 'text-brand-navy' : 'text-text-secondary group-hover:text-brand-orange-500'}`}>{link.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Filters & Actions (Bottom Row) */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full pt-2">
+              {/* Range Selectors */}
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                <div className="flex items-center bg-gray-100/80 p-1.5 rounded-[1.25rem] w-full sm:w-auto">
+                  {['Today', 'This Week', 'This Month', 'Custom'].map(r => (
+                    <button
+                      key={r}
+                      onClick={() => setActiveRange(r)}
+                      className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-black transition-all duration-300 ${activeRange === r ? 'bg-white text-brand-navy shadow-sm' : 'text-text-secondary hover:text-brand-navy hover:bg-white hover:shadow-md hover:-translate-y-0.5'}`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+
+                <AnimatePresence>
+                  {activeRange === 'Custom' && (
+                    <motion.div
+                      initial={{ opacity: 0, width: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, width: 'auto', scale: 1 }}
+                      exit={{ opacity: 0, width: 0, scale: 0.9 }}
+                      className="flex items-center gap-2 overflow-hidden"
+                    >
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={e => setCustomStartDate(e.target.value)}
+                        className="px-4 py-2 bg-gray-50 border border-border/60 rounded-xl text-sm font-bold text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 shadow-sm"
+                      />
+                      <span className="text-text-secondary font-bold text-sm">to</span>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={e => setCustomEndDate(e.target.value)}
+                        className="px-4 py-2 bg-gray-50 border border-border/60 rounded-xl text-sm font-bold text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 shadow-sm"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              <AnimatePresence>
-                {activeRange === 'Custom' && (
-                  <motion.div 
-                    initial={{ opacity: 0, width: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, width: 'auto', scale: 1 }}
-                    exit={{ opacity: 0, width: 0, scale: 0.9 }}
-                    className="flex items-center gap-2 overflow-hidden"
-                  >
-                    <input 
-                      type="date" 
-                      value={customStartDate} 
-                      onChange={e => setCustomStartDate(e.target.value)}
-                      className="px-4 py-2 bg-gray-50 border border-border/60 rounded-xl text-sm font-bold text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 shadow-sm"
-                    />
-                    <span className="text-text-secondary font-bold text-sm">to</span>
-                    <input 
-                      type="date" 
-                      value={customEndDate} 
-                      onChange={e => setCustomEndDate(e.target.value)}
-                      className="px-4 py-2 bg-gray-50 border border-border/60 rounded-xl text-sm font-bold text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 shadow-sm"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-              <button
-                onClick={handleRefresh}
-                className="p-3 bg-gray-50 border border-border rounded-xl text-text-secondary hover:text-brand-navy hover:bg-white hover:shadow-md hover:-translate-y-0.5 hover:scale-105 transition-all duration-300"
-              >
-                <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-              </button>
-              <button
-                onClick={handleExportReport}
-                disabled={isExporting}
-                className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-orange-500 text-white text-sm font-black rounded-xl hover:bg-brand-orange-600 hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 shadow-lg hover:shadow-brand-orange-500/40 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:translate-y-0 w-full sm:w-auto"
-              >
-                {isExporting ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-                {isExporting ? 'Exporting...' : 'Export Report'}
-              </button>
+              {/* Actions */}
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <button
+                  onClick={handleRefresh}
+                  className="p-3 bg-gray-50 border border-border rounded-xl text-text-secondary hover:text-brand-navy hover:bg-white hover:shadow-md hover:-translate-y-0.5 hover:scale-105 transition-all duration-300"
+                >
+                  <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                </button>
+                <button
+                  onClick={handleExportReport}
+                  disabled={isExporting}
+                  className="flex items-center justify-center gap-2 px-8 py-3.5 bg-brand-orange-500 text-white text-base font-black rounded-xl hover:bg-brand-orange-600 hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 shadow-lg hover:shadow-brand-orange-500/40 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:translate-y-0 w-full sm:w-auto"
+                >
+                  {isExporting ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                  {isExporting ? 'Exporting...' : 'Export Report'}
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>

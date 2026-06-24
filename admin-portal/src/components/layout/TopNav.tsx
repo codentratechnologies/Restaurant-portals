@@ -80,35 +80,7 @@ export default function TopNav() {
             <img src="/logo.png" alt="DineOS Logo" className="h-16 w-auto object-contain scale-125 origin-left ml-4" />
           </Link>
 
-          {/* CENTER: Navigation Tabs */}
-          <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.name}
-                to={item.path}
-                className={({ isActive }) =>
-                  cn(
-                    "relative px-4 py-2 text-sm font-bold transition-colors z-10",
-                    isActive ? "text-brand-orange-700" : "text-text-secondary hover:text-brand-navy"
-                  )
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <span className="relative z-10">{item.name}</span>
-                    {isActive && (
-                      <motion.div
-                        layoutId="active-nav-pill"
-                        className="absolute inset-0 bg-brand-orange-50 rounded-xl border border-brand-orange-100/50 shadow-sm"
-                        initial={false}
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                      />
-                    )}
-                  </>
-                )}
-              </NavLink>
-            ))}
-          </nav>
+
         </div>
 
         {/* RIGHT: Actions */}
