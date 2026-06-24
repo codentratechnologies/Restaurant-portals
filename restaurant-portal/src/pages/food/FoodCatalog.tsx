@@ -329,7 +329,8 @@ export default function FoodCatalog() {
  initial={{ opacity: 0, y: 5 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.2, delay: i * 0.03 }}
- className={`hover:bg-orange-50/30 transition-colors group ${!item.isAvailable && 'opacity-70'}`}
+ onClick={() => navigate(`/food/${item.id}`)}
+ className={`hover:bg-orange-50/30 transition-colors group cursor-pointer ${!item.isAvailable && 'opacity-70'}`}
  >
  {/* Item Details */}
  <td className="px-6 py-5 relative">
@@ -392,10 +393,11 @@ export default function FoodCatalog() {
  <div className="flex items-center justify-start gap-2">
  <Link
  to={`/food/${item.id}`}
- className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-all"
+ className="px-3 py-1.5 text-sm font-semibold text-brand-navy bg-gray-100 hover:bg-brand-orange-50 hover:text-brand-orange-600 rounded-lg transition-all flex items-center gap-1.5"
  title="View Details"
  >
  <Eye className="w-4 h-4" />
+ <span>View</span>
  </Link>
  </div>
  </td>

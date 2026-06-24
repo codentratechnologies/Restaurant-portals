@@ -2,11 +2,14 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import TopNav from './TopNav';
 import OrderNotificationListener from './OrderNotificationListener';
+import { useBranchStatusMonitor } from '../../hooks/useBranchStatusMonitor';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  useBranchStatusMonitor();
 
   useEffect(() => {
     const userStr = localStorage.getItem('restaurant_user');

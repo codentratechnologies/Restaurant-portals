@@ -13,6 +13,7 @@ export default function FoodDetails() {
   
   const [foodItem, setFoodItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFoodDetails = async () => {
@@ -27,14 +28,15 @@ export default function FoodDetails() {
         const branchId = user.branch;
 
         // Fetch Branch Availability
-        const branchQuery = query(ref(rtdb, `branch/${adminId}`), orderByChild('code'), equalTo(branchId));
-        const branchSnap = await get(branchQuery);
+        const branchSnap = await get(ref(rtdb, `branch/${adminId}`));
         let menuAvailability: Record<string, boolean> = {};
         
         if (branchSnap.exists()) {
           const data = branchSnap.val();
-          const firstKey = Object.keys(data)[0];
-          menuAvailability = data[firstKey].menu_availability || {};
+          const matchingBranchKey = Object.keys(data).find(key => data[key].code === branchId);
+          if (matchingBranchKey) {
+            menuAvailability = data[matchingBranchKey].menu_availability || {};
+          }
         }
 
         // Fetch Master Menu to find the item
@@ -66,11 +68,11 @@ export default function FoodDetails() {
           foundItem.is_available = isAvailable;
           setFoodItem(foundItem);
         } else {
-          navigate('/food');
+          setErrorMsg(`Item not found in menu for ID: ${id}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching food details:", error);
-        navigate('/food');
+        setErrorMsg(`Error fetching details: ${error.message}`);
       } finally {
         setLoading(false);
       }
@@ -80,6 +82,19 @@ export default function FoodDetails() {
       fetchFoodDetails();
     }
   }, [id, navigate]);
+
+  if (errorMsg) {
+    return (
+      <div className="p-12 text-center space-y-4">
+        <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
+        <h2 className="text-xl font-bold text-brand-navy">Oops! Something went wrong.</h2>
+        <p className="text-text-secondary">{errorMsg}</p>
+        <Link to="/food" className="mt-4 inline-block px-4 py-2 bg-brand-navy text-white rounded-lg font-bold">
+          Back to Menu
+        </Link>
+      </div>
+    );
+  }
 
   if (loading || !foodItem) {
     return (

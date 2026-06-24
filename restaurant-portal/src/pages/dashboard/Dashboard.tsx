@@ -34,6 +34,26 @@ export default function Dashboard() {
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
 
+    const prevStart = new Date(start.getTime() - diffDays * 24 * 60 * 60 * 1000);
+    const prevEnd = new Date(start.getTime() - 1);
+
+    const prevFilteredOrders = orders.filter(o => {
+      const orderDate = new Date(o.created_at || Date.now());
+      return orderDate >= prevStart && orderDate <= prevEnd;
+    });
+
+    let prevTotalRevenue = 0;
+    let prevTotalRejections = 0;
+    let prevTotalCancellations = 0;
+
+    prevFilteredOrders.forEach(order => {
+      if (order.status !== 'Rejected' && order.status !== 'Cancelled') {
+        prevTotalRevenue += order.billing?.total || 0;
+      }
+      if (order.status === 'Rejected') prevTotalRejections++;
+      if (order.status === 'Cancelled') prevTotalCancellations++;
+    });
+
     const chartData = Array.from({ length: diffDays }, (_, i) => {
       const d = new Date(start);
       d.setDate(d.getDate() + i);
@@ -118,6 +138,20 @@ export default function Dashboard() {
       };
     });
 
+    const getTrend = (current: number, prev: number, inverse = false) => {
+      if (prev === 0) {
+        if (current === 0) return { text: '0%', isUp: true };
+        return { text: '+100%', isUp: !inverse };
+      }
+      const diff = current - prev;
+      const percent = (diff / prev) * 100;
+      const isPositive = percent >= 0;
+      return {
+        text: `${percent > 0 ? '+' : ''}${percent.toFixed(1)}%`,
+        isUp: inverse ? !isPositive : isPositive
+      };
+    };
+
     return {
       totalRevenue,
       totalOrders: filteredOrders.length,
@@ -125,7 +159,13 @@ export default function Dashboard() {
       totalCancellations,
       topItems: topItemsData,
       recentOrders: recentOrdersData,
-      chartData: chartData
+      chartData: chartData,
+      trends: {
+        revenue: getTrend(totalRevenue, prevTotalRevenue),
+        orders: getTrend(filteredOrders.length, prevFilteredOrders.length),
+        rejections: getTrend(totalRejections, prevTotalRejections, true),
+        cancellations: getTrend(totalCancellations, prevTotalCancellations, true)
+      }
     };
   }, [orders, masterMenu, startDate, endDate]);
 
@@ -141,6 +181,49 @@ export default function Dashboard() {
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+  };
+
+  const handleExportCSV = () => {
+    import('xlsx').then(XLSX => {
+      const wb = XLSX.utils.book_new();
+
+      const kpiData = [{
+        'Total Revenue': dynamicStats.totalRevenue,
+        'Total Orders': dynamicStats.totalOrders,
+        'Total Rejections': dynamicStats.totalRejections,
+        'Total Cancellations': dynamicStats.totalCancellations
+      }];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(kpiData), 'KPI Summary');
+
+      const trendsData = dynamicStats.chartData.map(d => ({
+        'Date': d.date,
+        'Name': d.name,
+        'Revenue': d.revenue,
+        'Orders': d.orders
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(trendsData), 'Revenue & Orders');
+
+      const topItemsData = dynamicStats.topItems.map(item => ({
+        'Rank': item.rank,
+        'Item Name': item.name,
+        'Orders': item.orders,
+        'Revenue (INR)': Number(item.revenue.replace(/[^0-9.-]+/g, ""))
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(topItemsData), 'Top Selling Items');
+
+      const recentOrdersData = dynamicStats.recentOrders.map(order => ({
+        'Order ID': order.id,
+        'Items': order.items,
+        'Amount (INR)': Number(order.amount.replace(/[^0-9.-]+/g, "")),
+        'Status': order.status,
+        'Payment Method': order.method
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(recentOrdersData), 'Recent Orders');
+
+      XLSX.writeFile(wb, `dashboard_export_${startDate}_to_${endDate}.xlsx`);
+    }).catch(err => {
+      console.error('Failed to export xlsx', err);
+    });
   };
 
   if (loading) {
@@ -184,6 +267,7 @@ export default function Dashboard() {
             totalOrders={dynamicStats.totalOrders}
             totalRejections={dynamicStats.totalRejections}
             totalCancellations={dynamicStats.totalCancellations}
+            trends={dynamicStats.trends}
           />
         </motion.div>
 
@@ -194,7 +278,7 @@ export default function Dashboard() {
           </h2>
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div className="xl:col-span-2">
-              <RevenueOrdersChart data={dynamicStats.chartData} isManager={isManager} />
+              <RevenueOrdersChart data={dynamicStats.chartData} isManager={isManager} onExportCSV={handleExportCSV} />
             </div>
 
             <div className="xl:col-span-1">

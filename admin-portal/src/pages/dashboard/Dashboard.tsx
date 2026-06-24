@@ -223,9 +223,11 @@ export default function Dashboard() {
     let startDate = new Date(0);
     let endDate = now;
     let chartData: any[] = [];
+    let diffDays = 1;
 
     if (activeRange === 'Today') {
       startDate = todayStart;
+      diffDays = 1;
       chartData = Array.from({ length: 24 }, (_, i) => ({
         name: `${i.toString().padStart(2, '0')}:00`,
         revenue: 0,
@@ -234,6 +236,7 @@ export default function Dashboard() {
       }));
     } else if (activeRange === 'This Week') {
       startDate = new Date(todayStart.getTime() - 6 * 24 * 60 * 60 * 1000);
+      diffDays = 7;
       chartData = Array.from({ length: 7 }, (_, i) => {
         const d = new Date();
         d.setDate(d.getDate() - (6 - i));
@@ -246,6 +249,7 @@ export default function Dashboard() {
       });
     } else if (activeRange === 'This Month') {
       startDate = new Date(todayStart.getTime() - 29 * 24 * 60 * 60 * 1000);
+      diffDays = 30;
       chartData = Array.from({ length: 30 }, (_, i) => {
         const d = new Date();
         d.setDate(d.getDate() - (29 - i));
@@ -262,7 +266,7 @@ export default function Dashboard() {
         endDate = new Date(customEndDate);
         endDate.setHours(23, 59, 59, 999);
       }
-      const diffDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+      diffDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
       chartData = Array.from({ length: Math.min(diffDays + 1, 60) }, (_, i) => {
         const d = new Date(startDate);
         d.setDate(d.getDate() + i);
@@ -275,9 +279,28 @@ export default function Dashboard() {
       });
     }
 
+    const prevEndDate = new Date(startDate.getTime() - 1);
+    const prevStartDate = new Date(startDate.getTime() - diffDays * 24 * 60 * 60 * 1000);
+
     const filteredOrders = orders.filter(o => {
       const d = new Date(o.created_at);
       return d >= startDate && d <= endDate;
+    });
+
+    const prevOrders = orders.filter(o => {
+      const d = new Date(o.created_at);
+      return d >= prevStartDate && d <= prevEndDate;
+    });
+
+    let prevTotalRevenue = 0;
+    let prevRejectedCount = 0;
+
+    prevOrders.forEach(order => {
+      const isRejectedOrCancelled = order.status === 'Rejected' || order.status === 'Cancelled';
+      if (!isRejectedOrCancelled) {
+        prevTotalRevenue += order.billing?.total || 0;
+      }
+      if (order.status === 'Rejected') prevRejectedCount++;
     });
 
     filteredOrders.forEach(order => {
@@ -310,7 +333,8 @@ export default function Dashboard() {
       }
     });
 
-    const activeBranches = branches.filter(b => b.is_active).length;
+    const currentBranches = branches.filter(b => b.is_active && new Date(b.created_at || 0) <= endDate).length;
+    const prevBranches = branches.filter(b => b.is_active && new Date(b.created_at || 0) <= prevEndDate).length;
 
     const topItemsData = Object.values(itemsMap)
       .sort((a, b) => b.orders - a.orders)
@@ -344,15 +368,40 @@ export default function Dashboard() {
       };
     });
 
+    const getTrend = (current: number, prev: number, inverse = false) => {
+      if (prev === 0) {
+        if (current === 0) return { text: '0%', up: true };
+        return { text: '+100%', up: !inverse };
+      }
+      const diff = current - prev;
+      const percent = (diff / prev) * 100;
+      const isPositive = percent >= 0;
+      return {
+        text: `${percent > 0 ? '+' : ''}${percent.toFixed(1)}%`,
+        up: inverse ? !isPositive : isPositive
+      };
+    };
+
+    const revTrend = getTrend(totalRevenue, prevTotalRevenue);
+    const ordTrend = getTrend(filteredOrders.length, prevOrders.length);
+    const branchTrend = getTrend(currentBranches, prevBranches);
+    const rejTrend = getTrend(rejectedCount, prevRejectedCount, true);
+
     return {
       totalRevenue: `₹${totalRevenue.toLocaleString()}`,
       totalOrders: filteredOrders.length.toLocaleString(),
-      activeBranches: activeBranches.toString(),
+      activeBranches: currentBranches.toString(),
       rejectedOrders: rejectedCount.toString(),
       topItems: topItemsData,
       recentOrders: recentOrdersData,
       revenueData: chartData.map(d => ({ name: d.name, revenue: d.revenue, prev: 0 })),
-      ordersBar: chartData.map(d => ({ name: d.name, count: d.count }))
+      ordersBar: chartData.map(d => ({ name: d.name, count: d.count })),
+      trends: {
+        revenue: revTrend,
+        orders: ordTrend,
+        branches: branchTrend,
+        rejected: rejTrend
+      }
     };
   }, [orders, branches, menuItems, activeRange, customStartDate, customEndDate]);
 
@@ -514,10 +563,10 @@ export default function Dashboard() {
       <div>
         <h3 className="text-lg font-bold text-[#1a1f36] mb-4">KPIs</h3>
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-          <StatCard title="Total Revenue" value={dynamicStats.totalRevenue} icon={IndianRupee} trend="+12.5%" up color="#FF6B00" bg="#FFF3E8" delay={0.2} />
-          <StatCard title="Total Orders" value={dynamicStats.totalOrders} icon={ShoppingBag} trend="+8.3%" up color="#7C3AED" bg="#F3EEFF" delay={0.25} />
-          <StatCard title="Active Branches" value={dynamicStats.activeBranches} icon={Store} trend="Stable" up color="#0EA5E9" bg="#E6F6FD" delay={0.3} />
-          <StatCard title="Rejected Orders" value={dynamicStats.rejectedOrders} icon={XCircle} trend="Requires Action" up={false} color="#EF4444" bg="#FFF0F0" delay={0.35} />
+          <StatCard title="Total Revenue" value={dynamicStats.totalRevenue} icon={IndianRupee} trend={dynamicStats.trends.revenue.text} up={dynamicStats.trends.revenue.up} color="#FF6B00" bg="#FFF3E8" delay={0.2} />
+          <StatCard title="Total Orders" value={dynamicStats.totalOrders} icon={ShoppingBag} trend={dynamicStats.trends.orders.text} up={dynamicStats.trends.orders.up} color="#7C3AED" bg="#F3EEFF" delay={0.25} />
+          <StatCard title="Active Branches" value={dynamicStats.activeBranches} icon={Store} trend={dynamicStats.trends.branches.text} up={dynamicStats.trends.branches.up} color="#0EA5E9" bg="#E6F6FD" delay={0.3} />
+          <StatCard title="Rejected Orders" value={dynamicStats.rejectedOrders} icon={XCircle} trend={dynamicStats.trends.rejected.text} up={dynamicStats.trends.rejected.up} color="#EF4444" bg="#FFF0F0" delay={0.35} />
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import { Clock, MapPin } from 'lucide-react';
 import Badge from '../../../components/common/Badge';
+import { Link } from 'react-router-dom';
 
 interface RecentOrdersTableProps {
  orders: any[];
@@ -16,9 +17,9 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
  </h3>
  <p className="text-xs font-bold text-text-secondary mt-1 uppercase tracking-widest">Real-time Command Center</p>
  </div>
- <button className="text-brand-orange-600 text-sm font-bold hover:text-brand-orange-700 bg-brand-orange-50 px-4 py-2 rounded-xl transition-colors">
+ <Link to="/orders/list" className="text-brand-orange-600 text-sm font-bold hover:text-brand-orange-700 bg-brand-orange-50 px-4 py-2 rounded-xl transition-colors">
  View All Orders
- </button>
+ </Link>
  </div>
 
  <div className="flex-1 overflow-x-auto">
