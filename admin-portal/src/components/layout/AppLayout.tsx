@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import TopNav from './TopNav';
+import Breadcrumbs from '../common/Breadcrumbs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 
@@ -32,13 +33,15 @@ export default function AppLayout() {
         }}
       />
       <TopNav />
-      <main className="max-w-[1600px] mx-auto px-4 py-4 sm:px-6 sm:py-8 relative z-10">
+      <main className="max-w-[1600px] mx-auto px-4 py-4 sm:px-6 sm:py-8 relative z-10 flex flex-col">
+        <Breadcrumbs />
         <AnimatePresence mode="wait">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
+            className="flex-1"
           >
             <Outlet />
           </motion.div>

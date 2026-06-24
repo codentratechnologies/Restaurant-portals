@@ -39,19 +39,20 @@ export default function ForgotPassword() {
  const displayError = localError || error;
 
  return (
- <div className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 lg:p-8">
- {/* Full Screen Background */}
- <div className="absolute inset-0 z-0 overflow-hidden">
- <img 
- src="/restaurant_auth_bg_light.png" 
- alt="Restaurant Atmosphere" 
- className="h-full w-full object-cover"
- />
- {/* Dark overlay to create the dark theme effect */}
- <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
- </div>
+    <div className="min-h-screen relative w-full">
+      {/* Full Screen Background */}
+      <div className="fixed inset-0 z-0 overflow-hidden">
+        <img 
+          src="/restaurant_auth_bg_light.png" 
+          alt="Restaurant Atmosphere" 
+          className="h-full w-full object-cover"
+        />
+        {/* Dark overlay to create the dark theme effect */}
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      </div>
 
- {/* Centered Card */}
+      <div className="relative z-10 min-h-full min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 py-12">
+        {/* Centered Card */}
  <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -131,8 +132,8 @@ export default function ForgotPassword() {
  </Link>
  </div>
  </form>
- )}
  </motion.div>
- </div>
- );
+      </div>
+    </div>
+  );
 }

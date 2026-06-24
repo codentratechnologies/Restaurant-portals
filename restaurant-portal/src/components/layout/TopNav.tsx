@@ -117,7 +117,7 @@ export default function TopNav() {
           {/* Profile Link */}
           <Link to="/profile" className="flex items-center hover:bg-gray-50 p-1 sm:p-1.5 rounded-full transition-colors border border-transparent hover:border-border">
             <img
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin&backgroundColor=f5f7fa"
+              src="https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"
               alt="Profile"
               className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-border bg-background object-cover"
             />

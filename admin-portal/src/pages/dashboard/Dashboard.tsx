@@ -119,8 +119,7 @@ const getGreeting = () => {
   const h = new Date().getHours();
   if (h < 12) return 'Good morning';
   if (h < 17) return 'Good afternoon';
-  if (h < 20) return 'Good evening';
-  return 'Good night';
+  return 'Good evening';
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -475,18 +474,6 @@ export default function Dashboard() {
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1a1f36]/95 via-[#1a1f36]/50 to-transparent" />
-
-          <div className="absolute bottom-16 left-6 sm:left-12">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-              <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight drop-shadow-md mb-3">
-                {greeting}, Admin
-              </h1>
-              <p className="text-white/90 font-medium text-sm sm:text-lg flex items-center gap-2">
-                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-brand-orange-400" />
-                Here's your live restaurant overview for {today}
-              </p>
-            </motion.div>
-          </div>
         </div>
 
         {/* Floating Command Bar */}
