@@ -132,6 +132,7 @@ export default function ForgotPassword() {
  </Link>
  </div>
  </form>
+ )}
  </motion.div>
       </div>
     </div>
