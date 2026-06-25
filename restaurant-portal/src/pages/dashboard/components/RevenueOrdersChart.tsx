@@ -5,9 +5,10 @@ import { useState } from 'react';
 interface RevenueOrdersChartProps {
  data: any[];
  isManager: boolean;
+ onExportCSV: () => void;
 }
 
-export default function RevenueOrdersChart({ data, isManager }: RevenueOrdersChartProps) {
+export default function RevenueOrdersChart({ data, isManager, onExportCSV }: RevenueOrdersChartProps) {
  const [isRefreshing, setIsRefreshing] = useState(false);
 
  const handleRefresh = () => {
@@ -41,7 +42,9 @@ export default function RevenueOrdersChart({ data, isManager }: RevenueOrdersCha
  >
  <RefreshCw className="w-4 h-4" />
  </button>
- <button className="flex items-center gap-2 bg-white border border-border/80 px-4 py-2 rounded-xl text-sm font-bold text-brand-navy hover:bg-gray-50 hover:shadow-sm transition-all shadow-sm">
+ <button 
+ onClick={onExportCSV}
+ className="flex items-center gap-2 bg-white border border-border/80 px-4 py-2 rounded-xl text-sm font-bold text-brand-navy hover:bg-gray-50 hover:shadow-sm transition-all shadow-sm">
  <Download className="w-4 h-4" />
  Export CSV
  </button>
@@ -53,14 +56,14 @@ export default function RevenueOrdersChart({ data, isManager }: RevenueOrdersCha
  <ComposedChart data={data} margin={{ top: 20, right: 20, left: 20, bottom: 0 }}>
  <defs>
  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
- <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
- <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+ <stop offset="5%" stopColor="#FF6B00" stopOpacity={0.2} />
+ <stop offset="95%" stopColor="#FF6B00" stopOpacity={0} />
  </linearGradient>
  </defs>
  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12, fontWeight: 700 }} dy={10} />
- <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: '#10B981', fontSize: 12, fontWeight: 700 }} tickFormatter={(val) => `₹${val/1000}k`} />
- <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fill: '#3B82F6', fontSize: 12, fontWeight: 700 }} />
+ <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: '#FF6B00', fontSize: 12, fontWeight: 700 }} tickFormatter={(val) => `₹${val/1000}k`} />
+ <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fill: '#1a1f36', fontSize: 12, fontWeight: 700 }} />
  
  <Tooltip
  contentStyle={{ borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', padding: '16px', backgroundColor: '#ffffff' }}
@@ -68,8 +71,8 @@ export default function RevenueOrdersChart({ data, isManager }: RevenueOrdersCha
  labelStyle={{ color: '#64748B', fontSize: '12px', marginBottom: '8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}
  />
  
- <Area yAxisId="left" type="monotone" dataKey="revenue" name="Revenue" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" activeDot={{ r: 6, strokeWidth: 3 }} />
- <Line yAxisId="right" type="monotone" dataKey="orders" name="Orders Volume" stroke="#3B82F6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6, strokeWidth: 3 }} />
+ <Area yAxisId="left" type="monotone" dataKey="revenue" name="Revenue" stroke="#FF6B00" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" activeDot={{ r: 6, strokeWidth: 3 }} />
+ <Line yAxisId="right" type="monotone" dataKey="orders" name="Orders Volume" stroke="#1a1f36" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6, strokeWidth: 3 }} />
  </ComposedChart>
  </ResponsiveContainer>
  </div>

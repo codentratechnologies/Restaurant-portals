@@ -286,7 +286,7 @@ export default function UpdateFoodItem() {
  }
 
  return (
- <div className="max-w-4xl mx-auto space-y-6">
+ <div className="max-w-3xl mx-auto space-y-6">
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
  <div className="flex items-center gap-4">
  <button onClick={() => navigate(-1)} type="button" className="p-2 hover:bg-white rounded-full transition-colors shadow-sm bg-gray-50 border border-border">

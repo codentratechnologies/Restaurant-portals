@@ -12,6 +12,8 @@ import { get, query, orderByChild, equalTo } from 'firebase/database';
 export default function OrderCalendar() {
  const [orders, setOrders] = useState<OrderData[]>([]);
  const [isOnline, setIsOnline] = useState(true);
+ const [branchDetails, setBranchDetails] = useState<any>(null);
+ const [isWithinWorkingHours, setIsWithinWorkingHours] = useState(true);
  const [soundEnabled, setSoundEnabled] = useState(() => {
  return localStorage.getItem('order_sound_enabled') === 'true';
  });
@@ -92,28 +94,78 @@ export default function OrderCalendar() {
  const [customersData, setCustomersData] = useState<any>({});
  const [branchPushId, setBranchPushId] = useState<string>('');
 
- // 1. Fetch branch push ID
+ // 1. Fetch branch push ID & sync status
  useEffect(() => {
- if (!currentUser) return;
- 
- const unsub = onValue(ref(rtdb, `branch/${currentUser.adminId}`), (branchSnap) => {
- if (branchSnap.exists()) {
- const branches = branchSnap.val();
- const matchedPushId = Object.keys(branches).find(key => 
- branches[key].code?.toLowerCase() === currentUser.branch?.toLowerCase()
- );
- if (matchedPushId) {
- setBranchPushId(matchedPushId);
- } else {
- setBranchPushId(currentUser.branch);
- }
- } else {
- setBranchPushId(currentUser.branch);
- }
- });
+   if (!currentUser) return;
+   
+   const unsub = onValue(ref(rtdb, `branch/${currentUser.adminId}`), (branchSnap) => {
+     if (branchSnap.exists()) {
+       const branches = branchSnap.val();
+       const matchedPushId = Object.keys(branches).find(key => 
+         branches[key].code?.toLowerCase() === currentUser.branch?.toLowerCase()
+       );
+       const bId = matchedPushId || currentUser.branch;
+       setBranchPushId(bId);
+       
+       const bDetails = branches[bId];
+       if (bDetails) {
+         setBranchDetails(bDetails);
+         setIsOnline(bDetails.is_active ?? true);
+       }
+     } else {
+       setBranchPushId(currentUser.branch);
+     }
+   });
 
- return () => unsub();
+   return () => unsub();
  }, [currentUser]);
+
+ // Auto-close interval based on branch time
+ useEffect(() => {
+   if (!branchDetails?.closeTime || !branchDetails?.openTime || !currentUser || !branchPushId) return;
+
+   const checkTime = () => {
+     const now = new Date();
+     const currentHour = now.getHours();
+     const currentMin = now.getMinutes();
+     const currentTime = currentHour * 60 + currentMin;
+
+     const [openH, openM] = branchDetails.openTime.split(':').map(Number);
+     const [closeH, closeM] = branchDetails.closeTime.split(':').map(Number);
+     
+     const openTimeMins = openH * 60 + openM;
+     const closeTimeMins = closeH * 60 + closeM;
+
+     let isOpen = false;
+     if (closeTimeMins < openTimeMins) {
+       if (currentTime >= openTimeMins || currentTime < closeTimeMins) isOpen = true;
+     } else {
+       if (currentTime >= openTimeMins && currentTime < closeTimeMins) isOpen = true;
+     }
+
+     setIsWithinWorkingHours(isOpen);
+   };
+
+   checkTime();
+   const interval = setInterval(checkTime, 60000);
+   return () => clearInterval(interval);
+ }, [branchDetails, currentUser, branchPushId]);
+
+ const handleToggleOnline = async () => {
+   if (!branchPushId || !currentUser || !branchDetails) return;
+   const newState = !(branchDetails.is_active ?? true);
+   if (newState && !isWithinWorkingHours) {
+     toast.error("Cannot activate branch outside of configured working hours.");
+     return;
+   }
+   
+   try {
+     await set(ref(rtdb, `branch/${currentUser.adminId}/${branchPushId}/is_active`), newState);
+     toast.success(`Branch is now ${newState ? 'ACTIVE' : 'PAUSED'}`);
+   } catch (e) {
+     toast.error("Failed to update status");
+   }
+ };
 
  // 2. Listen to customers
  useEffect(() => {
@@ -196,8 +248,8 @@ export default function OrderCalendar() {
  }, [rawOrders, customersData, branchPushId]);
 
  const handleAccept = async (order: OrderData) => {
- if (!isOnline) {
- toast.error("Branch is currently offline. Order actions unavailable.");
+ if (!isOnline || !isWithinWorkingHours) {
+ toast.error("Branch is currently offline or closed. Order actions unavailable.");
  return;
  }
  if (!currentUser || !order._customerId || !order._key) return;
@@ -212,8 +264,8 @@ export default function OrderCalendar() {
  };
 
  const handleRejectClick = (order: OrderData) => {
- if (!isOnline) {
- toast.error("Branch is currently offline. Order actions unavailable.");
+ if (!isOnline || !isWithinWorkingHours) {
+ toast.error("Branch is currently offline or closed. Order actions unavailable.");
  return;
  }
  setOrderToReject(order);
@@ -279,13 +331,13 @@ export default function OrderCalendar() {
  </button>
  )}
  
- <button
- onClick={() => setIsOnline(!isOnline)}
+  <button
+ onClick={handleToggleOnline}
  className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-bold shadow-sm transition-colors ${
- isOnline ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+ isOnline && isWithinWorkingHours ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
  }`}
  >
- {isOnline ? (
+ {isOnline && isWithinWorkingHours ? (
  <>
  <div className="relative flex h-3 w-3">
  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -299,17 +351,21 @@ export default function OrderCalendar() {
  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
  </div>
- <WifiOff className="w-4 h-4" /> RECONNECTING
+ <WifiOff className="w-4 h-4" /> {!isWithinWorkingHours ? 'CLOSED NOW' : 'PAUSED'}
  </>
  )}
  </button>
  </div>
  </div>
 
- {!isOnline && (
+ {(!isOnline || !isWithinWorkingHours) && (
  <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-center justify-center gap-2">
  <AlertCircle className="w-5 h-5 text-red-600" />
- <p className="text-red-900 font-bold text-sm">Branch is offline. Incoming orders are paused. Actions are disabled.</p>
+ <p className="text-red-900 font-bold text-sm">
+    {!isWithinWorkingHours 
+      ? 'Branch is currently outside working hours. Actions are disabled.' 
+      : 'Branch is paused by admin. Actions are disabled.'}
+  </p>
  </div>
  )}
 
@@ -339,7 +395,7 @@ export default function OrderCalendar() {
  onAccept={() => handleAccept(order)}
  onReject={() => handleRejectClick(order)}
  onAutoReject={() => handleAutoReject(order)}
- disabled={!isOnline}
+ disabled={!isOnline || !isWithinWorkingHours}
  />
  ))
  )}

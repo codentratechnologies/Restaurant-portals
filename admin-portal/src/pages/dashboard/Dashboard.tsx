@@ -18,10 +18,19 @@ import {
   TrendingUp, TrendingDown, Users, ShoppingBag, IndianRupee,
   Clock, Download, Store, Utensils, ArrowUpRight, ChevronRight,
   Flame, MapPin, CircleDot, Package, CheckCircle2, Activity,
-  XCircle, RefreshCw, Sparkles
+  XCircle, RefreshCw, Sparkles, LayoutDashboard, Tag
 } from 'lucide-react';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
+
+const navLinks = [
+  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+  { name: 'Branches', path: '/branches', icon: Store },
+  { name: 'Employees', path: '/employees', icon: Users },
+  { name: 'Menu', path: '/food', icon: Utensils },
+  { name: 'Coupons & Promotions', path: '/coupons', icon: Tag },
+  { name: 'Orders', path: '/orders', icon: ShoppingBag },
+];
 
 const quickActions = [
   {
@@ -110,8 +119,7 @@ const getGreeting = () => {
   const h = new Date().getHours();
   if (h < 12) return 'Good morning';
   if (h < 17) return 'Good afternoon';
-  if (h < 20) return 'Good evening';
-  return 'Good night';
+  return 'Good evening';
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -223,9 +231,11 @@ export default function Dashboard() {
     let startDate = new Date(0);
     let endDate = now;
     let chartData: any[] = [];
+    let diffDays = 1;
 
     if (activeRange === 'Today') {
       startDate = todayStart;
+      diffDays = 1;
       chartData = Array.from({ length: 24 }, (_, i) => ({
         name: `${i.toString().padStart(2, '0')}:00`,
         revenue: 0,
@@ -234,6 +244,7 @@ export default function Dashboard() {
       }));
     } else if (activeRange === 'This Week') {
       startDate = new Date(todayStart.getTime() - 6 * 24 * 60 * 60 * 1000);
+      diffDays = 7;
       chartData = Array.from({ length: 7 }, (_, i) => {
         const d = new Date();
         d.setDate(d.getDate() - (6 - i));
@@ -246,6 +257,7 @@ export default function Dashboard() {
       });
     } else if (activeRange === 'This Month') {
       startDate = new Date(todayStart.getTime() - 29 * 24 * 60 * 60 * 1000);
+      diffDays = 30;
       chartData = Array.from({ length: 30 }, (_, i) => {
         const d = new Date();
         d.setDate(d.getDate() - (29 - i));
@@ -262,7 +274,7 @@ export default function Dashboard() {
         endDate = new Date(customEndDate);
         endDate.setHours(23, 59, 59, 999);
       }
-      const diffDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+      diffDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
       chartData = Array.from({ length: Math.min(diffDays + 1, 60) }, (_, i) => {
         const d = new Date(startDate);
         d.setDate(d.getDate() + i);
@@ -275,9 +287,28 @@ export default function Dashboard() {
       });
     }
 
+    const prevEndDate = new Date(startDate.getTime() - 1);
+    const prevStartDate = new Date(startDate.getTime() - diffDays * 24 * 60 * 60 * 1000);
+
     const filteredOrders = orders.filter(o => {
       const d = new Date(o.created_at);
       return d >= startDate && d <= endDate;
+    });
+
+    const prevOrders = orders.filter(o => {
+      const d = new Date(o.created_at);
+      return d >= prevStartDate && d <= prevEndDate;
+    });
+
+    let prevTotalRevenue = 0;
+    let prevRejectedCount = 0;
+
+    prevOrders.forEach(order => {
+      const isRejectedOrCancelled = order.status === 'Rejected' || order.status === 'Cancelled';
+      if (!isRejectedOrCancelled) {
+        prevTotalRevenue += order.billing?.total || 0;
+      }
+      if (order.status === 'Rejected') prevRejectedCount++;
     });
 
     filteredOrders.forEach(order => {
@@ -310,7 +341,8 @@ export default function Dashboard() {
       }
     });
 
-    const activeBranches = branches.filter(b => b.is_active).length;
+    const currentBranches = branches.filter(b => b.is_active && new Date(b.created_at || 0) <= endDate).length;
+    const prevBranches = branches.filter(b => b.is_active && new Date(b.created_at || 0) <= prevEndDate).length;
 
     const topItemsData = Object.values(itemsMap)
       .sort((a, b) => b.orders - a.orders)
@@ -344,15 +376,40 @@ export default function Dashboard() {
       };
     });
 
+    const getTrend = (current: number, prev: number, inverse = false) => {
+      if (prev === 0) {
+        if (current === 0) return { text: '0%', up: true };
+        return { text: '+100%', up: !inverse };
+      }
+      const diff = current - prev;
+      const percent = (diff / prev) * 100;
+      const isPositive = percent >= 0;
+      return {
+        text: `${percent > 0 ? '+' : ''}${percent.toFixed(1)}%`,
+        up: inverse ? !isPositive : isPositive
+      };
+    };
+
+    const revTrend = getTrend(totalRevenue, prevTotalRevenue);
+    const ordTrend = getTrend(filteredOrders.length, prevOrders.length);
+    const branchTrend = getTrend(currentBranches, prevBranches);
+    const rejTrend = getTrend(rejectedCount, prevRejectedCount, true);
+
     return {
       totalRevenue: `₹${totalRevenue.toLocaleString()}`,
       totalOrders: filteredOrders.length.toLocaleString(),
-      activeBranches: activeBranches.toString(),
+      activeBranches: currentBranches.toString(),
       rejectedOrders: rejectedCount.toString(),
       topItems: topItemsData,
       recentOrders: recentOrdersData,
       revenueData: chartData.map(d => ({ name: d.name, revenue: d.revenue, prev: 0 })),
-      ordersBar: chartData.map(d => ({ name: d.name, count: d.count }))
+      ordersBar: chartData.map(d => ({ name: d.name, count: d.count })),
+      trends: {
+        revenue: revTrend,
+        orders: ordTrend,
+        branches: branchTrend,
+        rejected: rejTrend
+      }
     };
   }, [orders, branches, menuItems, activeRange, customStartDate, customEndDate]);
 
@@ -364,17 +421,17 @@ export default function Dashboard() {
       <div className="-mt-8 space-y-12 animate-pulse" style={{ fontFamily: "'Inter', sans-serif" }}>
         {/* Skeleton Hero Banner */}
         <div className="relative rounded-[2rem] overflow-hidden bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 h-56" />
-        
+
         {/* Skeleton Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          {[1,2,3,4].map(i => (
+          {[1, 2, 3, 4].map(i => (
             <div key={i} className="rounded-[1.5rem] bg-gray-100 h-48" />
           ))}
         </div>
 
         {/* Skeleton Stat Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => (
+          {[1, 2, 3, 4].map(i => (
             <div key={i} className="rounded-2xl bg-white border border-border/50 h-32 p-6">
               <div className="h-3 bg-gray-100 rounded-full w-24 mb-4" />
               <div className="h-8 bg-gray-100 rounded-full w-32" />
@@ -408,27 +465,15 @@ export default function Dashboard() {
       </div>
 
       {/* ── Hero Banner & Floating Command Bar ── */}
-      <div className="relative w-full mb-16 pt-2">
+      <div className="relative w-full pt-2">
         {/* Banner Image & Gradient */}
-        <div className="relative w-full h-[280px] rounded-[2rem] overflow-hidden shadow-xl">
+        <div className="relative w-full h-[180px] sm:h-[220px] md:h-[280px] rounded-[2rem] overflow-hidden shadow-xl">
           <img
             src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2000&auto=format&fit=crop"
             alt="Restaurant Dashboard"
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1a1f36]/95 via-[#1a1f36]/50 to-transparent" />
-
-          <div className="absolute bottom-16 left-8 sm:left-12">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-              <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow-md mb-3">
-                {greeting}, Admin
-              </h1>
-              <p className="text-white/90 font-medium text-lg flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-brand-orange-400" />
-                Here's your live restaurant overview for {today}
-              </p>
-            </motion.div>
-          </div>
         </div>
 
         {/* Floating Command Bar */}
@@ -436,65 +481,88 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="absolute -bottom-8 left-8 right-8 sm:left-12 sm:right-12 z-20"
+          className="relative -mt-10 mx-2 sm:mx-6 md:mx-12 z-20 mb-10 sm:mb-16"
         >
-          <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.12)] border border-white/50 p-3 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            {/* Range Selectors */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-              <div className="flex items-center bg-gray-100/80 p-1.5 rounded-[1.25rem] w-full sm:w-auto">
-                {['Today', 'This Week', 'This Month', 'Custom'].map(r => (
-                  <button
-                    key={r}
-                    onClick={() => setActiveRange(r)}
-                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-black transition-all duration-300 ${activeRange === r ? 'bg-white text-brand-navy shadow-sm' : 'text-text-secondary hover:text-brand-navy hover:bg-white hover:shadow-md hover:-translate-y-0.5'}`}
-                  >
-                    {r}
-                  </button>
-                ))}
+          <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.12)] border border-white/50 p-4 sm:p-5 flex flex-col gap-4 sm:gap-5">
+            {/* Nav Links Bar (Top Row) */}
+            <div className="flex items-center overflow-x-auto custom-scrollbar w-full pb-2 sm:pb-0">
+              <div className="flex items-center divide-x divide-border/60 min-w-max">
+                {navLinks.map((link, i) => {
+                  const Icon = link.icon;
+                  const isActive = link.name === 'Dashboard';
+                  return (
+                    <Link 
+                      key={i} 
+                      to={link.path}
+                      className={`flex items-center gap-2 px-4 sm:px-6 py-1 group hover:text-brand-orange-500 transition-colors ${i === 0 ? 'pl-2' : ''}`}
+                    >
+                      <Icon className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors ${isActive ? 'text-brand-navy' : 'text-text-secondary group-hover:text-brand-orange-500'}`} />
+                      <span className={`text-sm sm:text-base font-bold transition-colors ${isActive ? 'text-brand-navy' : 'text-text-secondary group-hover:text-brand-orange-500'}`}>{link.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Filters & Actions (Bottom Row) */}
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-4 w-full">
+              {/* Range Selectors */}
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+                <div className="flex items-center bg-gray-100/80 p-1.5 rounded-[1.25rem] w-full sm:w-auto overflow-x-auto custom-scrollbar">
+                  {['Today', 'This Week', 'This Month', 'Custom'].map(r => (
+                    <button
+                      key={r}
+                      onClick={() => setActiveRange(r)}
+                      className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all duration-300 min-w-max ${activeRange === r ? 'bg-white text-brand-navy shadow-sm' : 'text-text-secondary hover:text-brand-navy hover:bg-white hover:shadow-md hover:-translate-y-0.5'}`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+
+                <AnimatePresence>
+                  {activeRange === 'Custom' && (
+                    <motion.div
+                      initial={{ opacity: 0, width: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, width: 'auto', scale: 1 }}
+                      exit={{ opacity: 0, width: 0, scale: 0.9 }}
+                      className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0"
+                    >
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={e => setCustomStartDate(e.target.value)}
+                        className="px-3 sm:px-4 py-2 bg-gray-50 border border-border/60 rounded-xl text-xs sm:text-sm font-bold text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 shadow-sm w-full"
+                      />
+                      <span className="text-text-secondary font-bold text-xs sm:text-sm shrink-0">to</span>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={e => setCustomEndDate(e.target.value)}
+                        className="px-3 sm:px-4 py-2 bg-gray-50 border border-border/60 rounded-xl text-xs sm:text-sm font-bold text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 shadow-sm w-full"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              <AnimatePresence>
-                {activeRange === 'Custom' && (
-                  <motion.div 
-                    initial={{ opacity: 0, width: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, width: 'auto', scale: 1 }}
-                    exit={{ opacity: 0, width: 0, scale: 0.9 }}
-                    className="flex items-center gap-2 overflow-hidden"
-                  >
-                    <input 
-                      type="date" 
-                      value={customStartDate} 
-                      onChange={e => setCustomStartDate(e.target.value)}
-                      className="px-4 py-2 bg-gray-50 border border-border/60 rounded-xl text-sm font-bold text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 shadow-sm"
-                    />
-                    <span className="text-text-secondary font-bold text-sm">to</span>
-                    <input 
-                      type="date" 
-                      value={customEndDate} 
-                      onChange={e => setCustomEndDate(e.target.value)}
-                      className="px-4 py-2 bg-gray-50 border border-border/60 rounded-xl text-sm font-bold text-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 shadow-sm"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-              <button
-                onClick={handleRefresh}
-                className="p-3 bg-gray-50 border border-border rounded-xl text-text-secondary hover:text-brand-navy hover:bg-white hover:shadow-md hover:-translate-y-0.5 hover:scale-105 transition-all duration-300"
-              >
-                <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-              </button>
-              <button
-                onClick={handleExportReport}
-                disabled={isExporting}
-                className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-orange-500 text-white text-sm font-black rounded-xl hover:bg-brand-orange-600 hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 shadow-lg hover:shadow-brand-orange-500/40 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:translate-y-0 w-full sm:w-auto"
-              >
-                {isExporting ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-                {isExporting ? 'Exporting...' : 'Export Report'}
-              </button>
+              {/* Actions */}
+              <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
+                <button
+                  onClick={handleRefresh}
+                  className="p-3 sm:p-3.5 bg-gray-50 border border-border rounded-xl text-text-secondary hover:text-brand-navy hover:bg-white hover:shadow-md hover:-translate-y-0.5 hover:scale-105 transition-all duration-300 shrink-0"
+                >
+                  <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                </button>
+                <button
+                  onClick={handleExportReport}
+                  disabled={isExporting}
+                  className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 bg-brand-orange-500 text-white text-sm sm:text-base font-black rounded-xl hover:bg-brand-orange-600 hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 shadow-lg hover:shadow-brand-orange-500/40 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:translate-y-0"
+                >
+                  {isExporting ? <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> : <Download className="w-4 h-4 sm:w-5 sm:h-5" />}
+                  {isExporting ? 'Exporting...' : 'Export Report'}
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -505,7 +573,7 @@ export default function Dashboard() {
       {/* ── Quick Actions ── */}
       <div>
         <h3 className="text-lg font-bold text-[#1a1f36] mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {quickActions.map((a, i) => (
             <ActionCard key={i} action={a} />
           ))}
@@ -513,11 +581,11 @@ export default function Dashboard() {
       </div>
       <div>
         <h3 className="text-lg font-bold text-[#1a1f36] mb-4">KPIs</h3>
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-          <StatCard title="Total Revenue" value={dynamicStats.totalRevenue} icon={IndianRupee} trend="+12.5%" up color="#FF6B00" bg="#FFF3E8" delay={0.2} />
-          <StatCard title="Total Orders" value={dynamicStats.totalOrders} icon={ShoppingBag} trend="+8.3%" up color="#7C3AED" bg="#F3EEFF" delay={0.25} />
-          <StatCard title="Active Branches" value={dynamicStats.activeBranches} icon={Store} trend="Stable" up color="#0EA5E9" bg="#E6F6FD" delay={0.3} />
-          <StatCard title="Rejected Orders" value={dynamicStats.rejectedOrders} icon={XCircle} trend="Requires Action" up={false} color="#EF4444" bg="#FFF0F0" delay={0.35} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <StatCard title="Total Revenue" value={dynamicStats.totalRevenue} icon={IndianRupee} trend={dynamicStats.trends.revenue.text} up={dynamicStats.trends.revenue.up} color="#FF6B00" bg="#FFF3E8" delay={0.2} />
+          <StatCard title="Total Orders" value={dynamicStats.totalOrders} icon={ShoppingBag} trend={dynamicStats.trends.orders.text} up={dynamicStats.trends.orders.up} color="#7C3AED" bg="#F3EEFF" delay={0.25} />
+          <StatCard title="Active Branches" value={dynamicStats.activeBranches} icon={Store} trend={dynamicStats.trends.branches.text} up={dynamicStats.trends.branches.up} color="#0EA5E9" bg="#E6F6FD" delay={0.3} />
+          <StatCard title="Rejected Orders" value={dynamicStats.rejectedOrders} icon={XCircle} trend={dynamicStats.trends.rejected.text} up={dynamicStats.trends.rejected.up} color="#EF4444" bg="#FFF0F0" delay={0.35} />
         </div>
       </div>
 

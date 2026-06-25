@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Download, FileX, CheckCircle2, PackageCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
+import * as XLSX from 'xlsx';
 
 import Table, { Column } from '../../components/common/Table';
 import Badge from '../../components/common/Badge';
@@ -179,9 +180,41 @@ export default function OrderTable() {
  return filteredOrders.slice(start, start + itemsPerPage);
  }, [filteredOrders, currentPage]);
 
- const handleExportCSV = () => {
- toast.success('CSV Export initiated. It will download shortly.');
- };
+  const handleExportCSV = () => {
+    if (!orders || orders.length === 0) {
+      toast.error('No orders to export.');
+      return;
+    }
+
+    try {
+      const wb = XLSX.utils.book_new();
+
+      TABS.forEach(tab => {
+        const tabOrders = orders.filter(order => tab.statuses.includes(order.status));
+        const wsData = tabOrders.map(o => ({
+          'Order ID': o.id,
+          'Items': o.items.map((i: any) => i.name).join(', '),
+          'Total Value (INR)': o.billing?.total || 0,
+          'Status': o.status,
+          'Payment Mode': o.payment?.method || 'Online',
+          'Reason': o.rejectionReason || o.cancellationReason || '',
+          'Created At': new Date(o.created_at || Date.now()).toLocaleString()
+        }));
+
+        const ws = wsData.length > 0 
+          ? XLSX.utils.json_to_sheet(wsData) 
+          : XLSX.utils.json_to_sheet([{'Order ID': '', 'Items': '', 'Total Value (INR)': '', 'Status': '', 'Payment Mode': '', 'Reason': '', 'Created At': ''}]);
+        
+        XLSX.utils.book_append_sheet(wb, ws, tab.label.substring(0, 31));
+      });
+
+      XLSX.writeFile(wb, 'orders_export.xlsx');
+      toast.success('Export downloaded successfully!');
+    } catch (e) {
+      console.error('Export failed:', e);
+      toast.error('Failed to export orders.');
+    }
+  };
 
 
 

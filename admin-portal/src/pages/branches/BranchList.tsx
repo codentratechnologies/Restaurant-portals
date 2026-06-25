@@ -123,7 +123,7 @@ export default function BranchList() {
   // ── Empty State ──────────────────────────────────────────────────
   if (!isLoading && branches.length === 0) {
     return (
-      <div className="space-y-6 h-[calc(100vh-100px)] flex flex-col">
+      <div className="space-y-6 min-h-[500px] flex-1 flex flex-col">
         {/* Top Section */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>

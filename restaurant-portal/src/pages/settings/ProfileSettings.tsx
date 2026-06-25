@@ -17,7 +17,7 @@ export default function ProfileSettings() {
  const [isLoading, setIsLoading] = useState(true);
  const [isSaving, setIsSaving] = useState(false);
  const [isEditing, setIsEditing] = useState(false);
- const [assignedBranch, setAssignedBranch] = useState<{ name: string; city?: string; address?: string } | null>(null);
+ const [assignedBranch, setAssignedBranch] = useState<{ name: string; city?: string; address?: string; code?: string } | null>(null);
  const [branchEmployees, setBranchEmployees] = useState<any[]>([]);
  const [profileData, setProfileData] = useState({
  fullName: '',
@@ -64,16 +64,24 @@ export default function ProfileSettings() {
  // Fetch assigned branch if branchId exists
  if (data.branch) {
  try {
- const branchRef = ref(rtdb, `branch/${userObj.adminId}/${data.branch}`);
- const branchSnap = await get(branchRef);
+ const branchesRef = ref(rtdb, `branch/${userObj.adminId}`);
+ const branchSnap = await get(branchesRef);
  if (branchSnap.exists()) {
- const bd = branchSnap.val();
- setAssignedBranch({ name: bd.name || 'Unknown Branch', city: bd.city, address: bd.address });
+ const allBranches = branchSnap.val();
+ let bd = allBranches[data.branch];
+ if (!bd) {
+ bd = Object.values(allBranches).find((b: any) => b.code === data.branch);
+ }
+ if (bd) {
+ setAssignedBranch({ name: bd.name || 'Unknown Branch', city: bd.city, address: bd.address, code: bd.code || data.branch });
  } else {
- setAssignedBranch({ name: data.branch });
+ setAssignedBranch({ name: data.branch, code: data.branch });
+ }
+ } else {
+ setAssignedBranch({ name: data.branch, code: data.branch });
  }
  } catch {
- setAssignedBranch({ name: data.branch });
+ setAssignedBranch({ name: data.branch, code: data.branch });
  }
  }
  } else {
@@ -98,16 +106,24 @@ export default function ProfileSettings() {
  });
  if (userObj.branch) {
  try {
- const branchRef = ref(rtdb, `branch/${userObj.adminId}/${userObj.branch}`);
- const branchSnap = await get(branchRef);
+ const branchesRef = ref(rtdb, `branch/${userObj.adminId}`);
+ const branchSnap = await get(branchesRef);
  if (branchSnap.exists()) {
- const bd = branchSnap.val();
- setAssignedBranch({ name: bd.name || 'Unknown Branch', city: bd.city, address: bd.address });
+ const allBranches = branchSnap.val();
+ let bd = allBranches[userObj.branch];
+ if (!bd) {
+ bd = Object.values(allBranches).find((b: any) => b.code === userObj.branch);
+ }
+ if (bd) {
+ setAssignedBranch({ name: bd.name || 'Unknown Branch', city: bd.city, address: bd.address, code: bd.code || userObj.branch });
  } else {
- setAssignedBranch({ name: userObj.branch });
+ setAssignedBranch({ name: userObj.branch, code: userObj.branch });
+ }
+ } else {
+ setAssignedBranch({ name: userObj.branch, code: userObj.branch });
  }
  } catch {
- setAssignedBranch({ name: userObj.branch });
+ setAssignedBranch({ name: userObj.branch, code: userObj.branch });
  }
  }
  }
@@ -285,75 +301,80 @@ export default function ProfileSettings() {
  </div>
 
  <form onSubmit={handleSave} className="space-y-6 max-w-2xl">
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div className="md:col-span-2">
- <label className="block text-sm font-bold text-text-primary mb-2">Full Name</label>
- <input 
- type="text" 
- name="fullName"
- className={`w-full px-4 py-3 bg-gray-50 border rounded-xl text-sm font-medium transition-all ${!isEditing ? 'opacity-80 cursor-not-allowed border-transparent' : 'border-border focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 focus:bg-white hover:border-brand-orange-300'}`}
- value={profileData.fullName} 
- onChange={handleInputChange}
- disabled={!isEditing}
- />
- </div>
- </div>
- 
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div>
- <label className="block text-sm font-bold text-text-primary mb-2">Email Address</label>
- <input 
- type="email" 
- name="email"
- className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl text-sm font-medium opacity-80 cursor-not-allowed"
- value={profileData.email} 
- disabled
- />
- <p className="text-[11px] font-semibold text-text-secondary mt-1.5">Email cannot be changed.</p>
- </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-bold text-brand-navy mb-1.5">Full Name</label>
+              <input 
+                type="text" 
+                name="fullName"
+                className={`w-full px-4 py-3 bg-gray-50 border rounded-xl text-sm font-medium transition-all ${!isEditing ? 'opacity-80 cursor-not-allowed border-transparent' : 'border-border focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 focus:bg-white hover:border-brand-orange-300'}`}
+                value={profileData.fullName} 
+                onChange={handleInputChange}
+                disabled={!isEditing}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-bold text-brand-navy mb-1.5">Email Address</label>
+              <input 
+                type="email" 
+                name="email"
+                className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl text-sm font-medium opacity-80 cursor-not-allowed"
+                value={profileData.email} 
+                disabled
+              />
+              <p className="text-[11px] font-semibold text-text-secondary mt-1.5">Email cannot be changed.</p>
+            </div>
 
- <div className="mt-[-28px]">
- <PhoneInput
- name="phone"
- value={profileData.phone}
- extValue={profileData.phoneExt}
- onChange={handleInputChange as any}
- onExtChange={handleInputChange as any}
- disabled={!isEditing}
- />
- </div>
- </div>
+            <div>
+              <PhoneInput
+                name="phone"
+                value={profileData.phone}
+                extValue={profileData.phoneExt}
+                onChange={handleInputChange as any}
+                onExtChange={handleInputChange as any}
+                disabled={!isEditing}
+              />
+            </div>
 
- <div>
- <label className="block text-sm font-bold text-text-primary mb-2">Role</label>
- <input 
- type="text" 
- name="role"
- className="w-full px-4 py-3 bg-brand-orange-50/50 border border-transparent rounded-xl text-sm font-bold text-brand-orange-800 opacity-80 cursor-not-allowed"
- value={profileData.role} 
- disabled 
- />
- </div>
+            <div>
+              <label className="block text-sm font-bold text-brand-navy mb-1.5">Role</label>
+              <input 
+                type="text" 
+                name="role"
+                className="w-full px-4 py-3 bg-brand-orange-50/50 border border-transparent rounded-xl text-sm font-bold text-brand-orange-800 opacity-80 cursor-not-allowed"
+                value={profileData.role} 
+                disabled 
+              />
+            </div>
 
- {assignedBranch && (
- <div>
- <label className="block text-sm font-bold text-text-primary mb-2">Assigned Branch</label>
- <div className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl flex items-start gap-3 opacity-90">
- <div className="w-9 h-9 rounded-lg bg-brand-orange-100 flex items-center justify-center shrink-0 border border-brand-orange-200 mt-0.5">
- <Store className="w-4 h-4 text-brand-orange-600" />
- </div>
- <div>
- <p className="text-sm font-bold text-brand-navy">{assignedBranch.name}</p>
- {(assignedBranch.city || assignedBranch.address) && (
- <p className="text-xs text-text-secondary font-medium mt-0.5">
- {[assignedBranch.address, assignedBranch.city].filter(Boolean).join(', ')}
- </p>
- )}
- </div>
- </div>
- <p className="text-[11px] font-semibold text-text-secondary mt-1.5">Branch assignment is managed by your admin.</p>
- </div>
- )}
+            {assignedBranch && (
+              <div>
+                <label className="block text-sm font-bold text-brand-navy mb-1.5">Assigned Branch</label>
+                <div className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl flex items-start gap-3 opacity-90">
+                  <div className="w-9 h-9 rounded-lg bg-brand-orange-100 flex items-center justify-center shrink-0 border border-brand-orange-200 mt-0.5">
+                    <Store className="w-4 h-4 text-brand-orange-600" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-brand-navy">{assignedBranch.name}</p>
+                      {assignedBranch.code && assignedBranch.name !== assignedBranch.code && (
+                        <span className="text-[10px] font-mono font-bold text-text-secondary bg-gray-200/60 px-1.5 py-0.5 rounded border border-border/50">
+                          {assignedBranch.code}
+                        </span>
+                      )}
+                    </div>
+                    {(assignedBranch.city || assignedBranch.address) && (
+                      <p className="text-xs text-text-secondary font-medium mt-0.5">
+                        {[assignedBranch.address, assignedBranch.city].filter(Boolean).join(', ')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <p className="text-[11px] font-semibold text-text-secondary mt-1.5">Branch assignment is managed by your admin.</p>
+              </div>
+            )}
+          </div>
 
  {isEditing && (
  <div className="pt-6 border-t border-border mt-8 flex justify-end">

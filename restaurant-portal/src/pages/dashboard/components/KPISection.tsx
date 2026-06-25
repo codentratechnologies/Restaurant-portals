@@ -7,14 +7,15 @@ interface KPISectionProps {
  totalOrders: number;
  totalRejections: number;
  totalCancellations: number;
+ trends?: any;
 }
 
-export default function KPISection({ isManager, totalRevenue, totalOrders, totalRejections, totalCancellations }: KPISectionProps) {
+export default function KPISection({ isManager, totalRevenue, totalOrders, totalRejections, totalCancellations, trends }: KPISectionProps) {
  const kpis = [
- { title: 'Revenue', amount: `₹${totalRevenue.toLocaleString()}`, trend: '+12.5%', isUp: true, icon: IndianRupee, colorClass: 'text-emerald-600', bgClass: 'bg-emerald-100', hiddenAmount: 'Hidden' },
- { title: 'Orders', amount: totalOrders.toString(), trend: '+8.3%', isUp: true, icon: ShoppingBag, colorClass: 'text-blue-600', bgClass: 'bg-blue-100', hiddenAmount: totalOrders.toString() },
- { title: 'Rejections', amount: totalRejections.toString(), trend: '2.3%', isUp: false, icon: XCircle, colorClass: 'text-red-600', bgClass: 'bg-red-100', hiddenAmount: totalRejections.toString() },
- { title: 'Cancellations', amount: totalCancellations.toString(), trend: '0.6%', isUp: false, icon: AlertTriangle, colorClass: 'text-orange-600', bgClass: 'bg-orange-100', hiddenAmount: totalCancellations.toString() },
+ { title: 'Revenue', amount: `₹${totalRevenue.toLocaleString()}`, trend: trends?.revenue?.text || '+0%', isUp: trends?.revenue?.isUp ?? true, icon: IndianRupee, colorClass: 'text-emerald-600', bgClass: 'bg-emerald-100', hiddenAmount: 'Hidden' },
+ { title: 'Orders', amount: totalOrders.toString(), trend: trends?.orders?.text || '+0%', isUp: trends?.orders?.isUp ?? true, icon: ShoppingBag, colorClass: 'text-blue-600', bgClass: 'bg-blue-100', hiddenAmount: totalOrders.toString() },
+ { title: 'Rejections', amount: totalRejections.toString(), trend: trends?.rejections?.text || '0%', isUp: trends?.rejections?.isUp ?? false, icon: XCircle, colorClass: 'text-red-600', bgClass: 'bg-red-100', hiddenAmount: totalRejections.toString() },
+ { title: 'Cancellations', amount: totalCancellations.toString(), trend: trends?.cancellations?.text || '0%', isUp: trends?.cancellations?.isUp ?? false, icon: AlertTriangle, colorClass: 'text-orange-600', bgClass: 'bg-orange-100', hiddenAmount: totalCancellations.toString() },
  ];
 
  return (

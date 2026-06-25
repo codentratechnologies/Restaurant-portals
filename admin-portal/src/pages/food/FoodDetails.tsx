@@ -15,6 +15,7 @@ export default function FoodDetails() {
   const { branches, loading: branchesLoading } = useBranches();
   
   const [foodItem, setFoodItem] = useState<MenuItem | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!menuLoading && id) {
@@ -23,10 +24,23 @@ export default function FoodDetails() {
         setFoodItem(item);
       } else {
         // Not found
-        navigate('/food');
+        setErrorMsg(`Item not found for ID: ${id}`);
       }
     }
   }, [id, menuItems, menuLoading, navigate]);
+
+  if (errorMsg) {
+    return (
+      <div className="p-12 text-center space-y-4">
+        <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
+        <h2 className="text-xl font-bold text-brand-navy">Oops! Something went wrong.</h2>
+        <p className="text-text-secondary">{errorMsg}</p>
+        <Link to="/food" className="mt-4 inline-block px-4 py-2 bg-brand-navy text-white rounded-lg font-bold">
+          Back to Menu
+        </Link>
+      </div>
+    );
+  }
 
   if (menuLoading || branchesLoading || !foodItem) {
     return (

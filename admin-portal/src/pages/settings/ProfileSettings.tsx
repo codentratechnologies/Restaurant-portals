@@ -80,7 +80,7 @@ export default function ProfileSettings() {
  );
  }
 
- const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=Admin&backgroundColor=f5f7fa`;
+ const avatarUrl = `https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg`;
 
  return (
  <div className="space-y-6 relative">
@@ -132,14 +132,9 @@ export default function ProfileSettings() {
  <div>
  <label className="block text-sm font-medium text-text-secondary mb-1.5">Email Address</label>
  {isEditing ? (
- <input 
- type="email" 
- className="input-field" 
- value={email}
- onChange={(e) => setEmail(e.target.value)}
- required
- disabled={saving}
- />
+ <div className="text-base font-medium text-text-secondary bg-gray-50 p-3 rounded-xl border border-border w-full cursor-not-allowed flex items-center h-[52px]">
+   {email || '-'}
+ </div>
  ) : (
  <p className="text-base font-semibold text-text-primary">{email || '-'}</p>
  )}

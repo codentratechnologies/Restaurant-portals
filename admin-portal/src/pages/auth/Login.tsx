@@ -47,27 +47,37 @@ export default function Login() {
 
  const displayError = localError || error;
 
- return (
- <div className="min-h-screen flex lg:flex-row-reverse bg-background">
- {/* Right side: Premium Login Form */}
- <div className="flex-1 flex flex-col justify-center py-6 px-4 sm:px-6 lg:w-1/2 lg:flex-none lg:px-24 xl:px-32 relative z-10 bg-white shadow-[-20px_0_40px_-10px_rgba(0,0,0,0.05)]">
+  return (
+    <div className="min-h-screen relative w-full">
+      {/* Full Screen Background */}
+      <div className="fixed inset-0 z-0 overflow-hidden">
+        <img 
+          src="/restaurant_auth_bg_light.png" 
+          alt="Restaurant Atmosphere" 
+          className="h-full w-full object-cover"
+        />
+        {/* Dark overlay to create the dark theme effect */}
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      </div>
+
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 py-12">
+        {/* Centered Card */}
  <motion.div
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ duration: 0.5 }}
- className="mx-auto w-full max-w-md"
- >
- <div className="flex items-center mb-8">
- <img src="/logo_horizontal.png" alt="DineOS Logo" className="h-16 sm:h-20 w-auto object-contain" />
- </div>
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative z-10 w-full max-w-[380px] bg-white rounded-3xl shadow-2xl p-6 sm:px-8 sm:py-6"
+      >
+        <div className="flex justify-center mb-2">
+          <img src="/logo_horizontal.png" alt="DineOS Logo" className="h-16 sm:h-18 w-auto object-contain" />
+        </div>
 
- <div>
+        <div className="text-center mb-4">
  <h2 className="text-2xl font-bold tracking-tight text-text-primary">Sign in to DineOS</h2>
- <p className="mt-1 text-sm text-text-secondary">Welcome back. Enter your credentials to access the command center.</p>
+ <p className="mt-1.5 text-sm text-text-secondary">Welcome back. Enter your credentials.</p>
  </div>
 
- <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
- <div className="space-y-4">
+ <form className="space-y-4" onSubmit={handleSubmit} noValidate>
  <div>
  <label htmlFor="email" className="block text-sm font-semibold text-text-primary mb-1.5">
  Email address
@@ -110,11 +120,10 @@ export default function Login() {
  </button>
  </div>
  {passwordError && <p className="mt-1.5 text-sm text-red-600 font-medium">{passwordError}</p>}
- <div className="flex justify-end mt-1.5">
+ <div className="flex justify-end mt-2">
  <Link to="/forgot-password" className="text-sm font-medium text-brand-orange-600 hover:text-brand-orange-500 transition-colors">
  Forgot password?
  </Link>
- </div>
  </div>
  </div>
 
@@ -145,38 +154,7 @@ export default function Login() {
  </Link>
  </p>
  </motion.div>
- </div>
-
- {/* Left side: Elegant Visual Section */}
- <div className="hidden lg:block relative lg:w-1/2 overflow-hidden bg-brand-navy">
- <div className="absolute inset-0">
- <img 
- src="/restaurant_auth_bg_light.png" 
- alt="Restaurant Atmosphere" 
- className="h-full w-full object-cover opacity-90"
- />
- <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-black/40 to-brand-navy/95"></div>
- </div>
-
- <div className="absolute inset-0 h-full w-full flex flex-col items-center justify-center p-12">
- <motion.div
- initial={{ opacity: 0, scale: 0.95 }}
- animate={{ opacity: 1, scale: 1 }}
- transition={{ duration: 0.8, delay: 0.2 }}
- className="relative z-10 w-full max-w-2xl p-12 text-center"
- >
- <div className="w-80 mx-auto -mb-10 relative z-20 transition-transform hover:scale-105 duration-300">
- <img src="/logo_horizontal_transparent.png" alt="DineOS Logo" className="w-full h-auto object-contain" />
- </div>
- <h2 className="text-4xl font-extrabold text-white tracking-tight mb-6 drop-shadow-lg relative z-30">
- The Enterprise Restaurant Operating System.
- </h2>
- <p className="text-xl text-white/90 leading-relaxed max-w-lg mx-auto drop-shadow-md font-medium">
- Unify your branches, staff, menus, and analytics into one seamless command center designed for modern dining businesses.
- </p>
- </motion.div>
- </div>
- </div>
- </div>
- );
+      </div>
+    </div>
+  );
 }
