@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { motion } from 'framer-motion';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import ImageUploadZone from './components/ImageUploadZone';
@@ -63,8 +64,8 @@ export default function CreateFoodItem() {
  navigate('/food');
  };
 
- const InputField = ({ label, name, type = 'text', placeholder = '', required = false, children }: any) => (
- <div ref={el => errorRefs.current[name] = el} className="flex flex-col gap-1.5">
+ const InputField = ({ label, name, type = 'text', placeholder = '', required = false, children }: { label: string, name: string, type?: string, placeholder?: string, required?: boolean, children?: React.ReactNode }) => (
+ <div ref={el => { errorRefs.current[name] = el; }} className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy">
  {label} {required && <span className="text-red-500">*</span>}
  </label>
@@ -172,7 +173,7 @@ export default function CreateFoodItem() {
  <span>2. Item Image <span className="text-red-500 text-sm">*</span></span>
  <span className="text-xs text-text-secondary font-medium font-normal">Max 2MB. JPG or PNG only.</span>
  </h2>
- <div ref={el => errorRefs.current['image'] = el} className="max-w-sm">
+ <div ref={el => { errorRefs.current['image'] = el; }} className="max-w-sm">
  <ImageUploadZone 
  currentImage={image} 
  onUploadSuccess={(url) => { setImage(url); setErrors(prev => ({ ...prev, image: '' })); }} 
