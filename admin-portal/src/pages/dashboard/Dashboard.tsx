@@ -77,38 +77,48 @@ const quickActions = [
   },
 ];
 
-function ActionCard({ action }: { action: typeof quickActions[0] }) {
+const quickActionColors = [
+  { gradient: 'from-orange-500 to-orange-400', light: 'bg-orange-50', text: 'text-orange-600', ring: 'ring-orange-200' },
+  { gradient: 'from-violet-500 to-purple-400', light: 'bg-violet-50', text: 'text-violet-600', ring: 'ring-violet-200' },
+  { gradient: 'from-sky-500 to-blue-400', light: 'bg-sky-50', text: 'text-sky-600', ring: 'ring-sky-200' },
+  { gradient: 'from-emerald-500 to-green-400', light: 'bg-emerald-50', text: 'text-emerald-600', ring: 'ring-emerald-200' },
+];
+
+function ActionCard({ action, colorIdx }: { action: typeof quickActions[0]; colorIdx: number }) {
+  const c = quickActionColors[colorIdx % quickActionColors.length];
+  const Icon = action.icon;
   return (
     <Link to={action.path}>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        whileHover={{ y: -4 }}
+        whileHover={{ y: -4, scale: 1.015 }}
         whileTap={{ scale: 0.98 }}
-        className="relative overflow-hidden rounded-[1.5rem] h-48 cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-300"
+        transition={{ duration: 0.3 }}
+        className="relative group rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:border-gray-200 transition-all duration-300 cursor-pointer flex flex-col"
       >
-        {/* Background Image */}
-        <img
-          src={action.image}
-          alt={action.name}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-        />
-
-        {/* Bottom Dark Gradient for Text Legibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-        {/* Content */}
-        <div className="absolute bottom-0 left-0 w-full p-5 flex items-end justify-between">
-          <div>
-            <h3 className="text-xl font-black text-white tracking-tight leading-tight group-hover:-translate-y-1 transition-transform duration-300">
-              {action.name}
-            </h3>
-            <p className="text-sm text-white/80 font-bold mt-1 group-hover:-translate-y-1 transition-transform duration-300 delay-75">
-              {action.sub}
-            </p>
+        {/* Image */}
+        <div className="relative h-36 overflow-hidden">
+          <img
+            src={action.image}
+            alt={action.name}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+          {/* Icon badge */}
+          <div className={`absolute top-3 left-3 w-9 h-9 rounded-xl bg-gradient-to-br ${c.gradient} flex items-center justify-center shadow-lg`}>
+            <Icon className="w-4 h-4 text-white" />
           </div>
-          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:-translate-y-1 transition-all duration-300">
-            <ArrowUpRight className="w-5 h-5 text-white" />
+        </div>
+
+        {/* Bottom content */}
+        <div className="flex items-center justify-between px-4 py-3">
+          <div>
+            <p className="text-sm font-black text-brand-navy leading-tight">{action.name}</p>
+            <p className={`text-xs font-semibold mt-0.5 ${c.text}`}>{action.sub}</p>
+          </div>
+          <div className={`w-8 h-8 rounded-xl ${c.light} ring-1 ${c.ring} flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-[-10deg]`}>
+            <ArrowUpRight className={`w-4 h-4 ${c.text}`} />
           </div>
         </div>
       </motion.div>
@@ -645,9 +655,9 @@ export default function Dashboard() {
       {/* ── Quick Actions ── */}
       <div>
         <h3 className="text-lg font-bold text-[#1a1f36] mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {quickActions.map((a, i) => (
-            <ActionCard key={i} action={a} />
+            <ActionCard key={i} action={a} colorIdx={i} />
           ))}
         </div>
       </div>
