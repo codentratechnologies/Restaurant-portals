@@ -98,24 +98,15 @@ export default function OrderCalendar() {
  };
 
  return (
- <div className="space-y-8 max-w-7xl mx-auto">
+ <div className="space-y-0 max-w-7xl mx-auto">
 
- {/* Header */}
- <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
- <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
- <h1 className="text-3xl font-black text-brand-navy tracking-tight flex items-center gap-3">
- <div className="p-2.5 bg-white border border-border shadow-sm rounded-xl">
- <CalendarIcon className="w-6 h-6 text-brand-orange-500" />
- </div>
- Order Reports
- </h1>
- <p className="text-text-secondary mt-2 text-sm font-medium">
- Track historical order performance, revenue analytics, and branch activity.
- </p>
- </motion.div>
+ {/* Calendar Grid */}
+ <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
+ <Card className="p-0 border border-border/60 shadow-lg overflow-hidden bg-white/50 backdrop-blur-xl rounded-3xl">
 
- <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="flex items-center gap-2 bg-white/80 backdrop-blur p-1.5 rounded-2xl border border-border shadow-sm">
- <button onClick={handlePrevMonth} className="p-2.5 hover:bg-gray-100 rounded-xl transition-all text-text-secondary hover:text-brand-navy active:scale-95">
+ <div className="flex justify-end p-4 bg-white/80 backdrop-blur-xl border-b border-border">
+ <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="flex items-center gap-2 bg-white border border-border rounded-2xl shadow-sm p-1">
+ <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-100 rounded-xl transition-all text-text-secondary hover:text-brand-navy active:scale-95">
  <ChevronLeft className="w-5 h-5" />
  </button>
  <div className="font-black text-brand-navy min-w-[140px] text-center text-lg tracking-tight">
@@ -132,15 +123,11 @@ export default function OrderCalendar() {
  </motion.span>
  </AnimatePresence>
  </div>
- <button onClick={handleNextMonth} className="p-2.5 hover:bg-gray-100 rounded-xl transition-all text-text-secondary hover:text-brand-navy active:scale-95">
+ <button onClick={handleNextMonth} className="p-2 hover:bg-gray-100 rounded-xl transition-all text-text-secondary hover:text-brand-navy active:scale-95">
  <ChevronRight className="w-5 h-5" />
  </button>
  </motion.div>
  </div>
-
- {/* Calendar Grid */}
- <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
- <Card className="p-0 border border-border/60 shadow-lg overflow-hidden bg-white/50 backdrop-blur-xl rounded-3xl">
 
  <div className="grid grid-cols-7 border-b border-border bg-white">
  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (

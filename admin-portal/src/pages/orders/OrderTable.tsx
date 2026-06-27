@@ -174,37 +174,22 @@ export default function OrderTable() {
   ];
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-0 max-w-7xl mx-auto">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
+        <Card className="overflow-hidden p-0 border border-border/50 shadow-lg flex flex-col min-h-[600px] bg-white rounded-[2rem]">
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="flex items-start gap-4">
-          <Link to="/orders" className="p-2.5 bg-white border border-border shadow-sm rounded-xl hover:bg-gray-50 transition-all text-text-secondary shrink-0 mt-1">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-4 p-4 border-b border-border bg-gray-50/50">
+            <Link to="/orders" className="p-2 bg-white border border-border shadow-sm rounded-lg hover:bg-gray-50 transition-all text-text-secondary shrink-0">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div className="flex items-center gap-2">
               <Link to="/orders" className="text-sm font-bold text-brand-orange-600 hover:underline flex items-center gap-1">
                 <Calendar className="w-4 h-4" /> Calendar View
               </Link>
               <span className="text-text-secondary">/</span>
               <span className="text-sm font-bold text-text-secondary">{displayDate}</span>
             </div>
-            <h1 className="text-3xl font-black text-brand-navy tracking-tight">Orders for {displayDate}</h1>
-            <p className="text-text-secondary mt-1 text-sm font-medium">View and manage all historical orders for the selected date.</p>
           </div>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
-          <Button onClick={handleExportCSV} disabled={isExporting} className="gap-2 shadow-md font-bold bg-brand-navy hover:bg-brand-navy/90 text-white rounded-xl py-2.5 px-6">
-            {isExporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-            {isExporting ? 'Generating CSV...' : 'Export to CSV'}
-          </Button>
-        </motion.div>
-      </div>
-
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
-        <Card className="overflow-hidden p-0 border border-border/50 shadow-lg flex flex-col min-h-[600px] bg-white rounded-[2rem]">
 
           {/* Sticky Filter Bar */}
           <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-border p-5 flex flex-col lg:flex-row gap-4 items-center justify-between shadow-sm">
@@ -248,6 +233,10 @@ export default function OrderTable() {
                   ]}
                 />
               </div>
+              <Button onClick={handleExportCSV} disabled={isExporting} className="hidden md:flex gap-2 shadow-sm font-bold bg-brand-navy hover:bg-brand-navy/90 text-white rounded-xl">
+                {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                Export
+              </Button>
             </div>
           </div>
 

@@ -146,12 +146,7 @@ export default function FoodCatalog() {
     if (!isLoading && menuItems.length === 0) {
         return (
             <div className="space-y-6 h-[calc(100vh-100px)] flex flex-col">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-                        <h1 className="text-3xl font-black text-brand-navy tracking-tight">Menu</h1>
-                        <p className="text-text-secondary mt-1 text-sm font-medium">Manage your central menu items and availability.</p>
-                    </motion.div>
-                </div>
+
 
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -182,7 +177,7 @@ export default function FoodCatalog() {
 
     // ── Normal List View ─────────────────────────────────────────────
     return (
-        <div className="space-y-6">
+        <div className="space-y-0">
 
             <DisableConfirmationModal
                 isOpen={modalOpen}
@@ -191,22 +186,7 @@ export default function FoodCatalog() {
                 itemName={itemToDisable?.name || ''}
             />
 
-            {/* Top Section */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-                    <h1 className="text-3xl font-black text-brand-navy tracking-tight">Menu</h1>
-                    <p className="text-text-secondary mt-1 text-sm font-medium">Manage your central menu items and availability.</p>
-                </motion.div>
 
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
-                    <Link to="/food/new">
-                        <Button className="gap-2 shadow-sm font-bold">
-                            <Plus className="w-5 h-5" />
-                            Add Item
-                        </Button>
-                    </Link>
-                </motion.div>
-            </div>
 
             {/* Main Content Area */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
@@ -251,6 +231,12 @@ export default function FoodCatalog() {
                                     ]}
                                 />
                             </div>
+                            <Link to="/food/new" className="hidden md:block">
+                                <Button className="gap-2 shadow-sm font-bold bg-brand-orange-500 text-white border-0 hover:bg-brand-orange-600">
+                                    <Plus className="w-4 h-4" />
+                                    Add Item
+                                </Button>
+                            </Link>
                         </div>
                     </div>
 
@@ -400,10 +386,10 @@ export default function FoodCatalog() {
                                             onClick={() => typeof page === 'number' ? setCurrentPage(page) : undefined}
                                             disabled={page === '...'}
                                             className={`min-w-[32px] h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${page === currentPage
-                                                    ? 'bg-brand-navy text-white shadow-sm'
-                                                    : page === '...'
-                                                        ? 'text-text-secondary cursor-default'
-                                                        : 'text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm'
+                                                ? 'bg-brand-navy text-white shadow-sm'
+                                                : page === '...'
+                                                    ? 'text-text-secondary cursor-default'
+                                                    : 'text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm'
                                                 }`}
                                         >
                                             {page}

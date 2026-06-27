@@ -16,36 +16,19 @@ const navItems = [
 
 export default function TopNav() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showNavSearch, setShowNavSearch] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
-    // Hide nav search initially if we are on dashboard
-    if (location.pathname === '/dashboard') {
-      setShowNavSearch(false);
-    } else {
-      setShowNavSearch(true);
-    }
-  }, [location.pathname]);
-
-  useEffect(() => {
-    const handleVisibilityChange = (e: Event) => {
-      const customEvent = e as CustomEvent<boolean>;
-      setShowNavSearch(customEvent.detail);
-    };
-    
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
 
-    window.addEventListener('nav-search-visibility', handleVisibilityChange);
     window.addEventListener('scroll', handleScroll, { passive: true });
-    
+
     handleScroll();
-    
+
     return () => {
-      window.removeEventListener('nav-search-visibility', handleVisibilityChange);
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
@@ -71,76 +54,56 @@ export default function TopNav() {
             <img src="/logo.png" alt="DineOS Logo" className="h-12 sm:h-16 w-auto object-contain sm:scale-125 origin-left" />
           </Link>
 
-          <AnimatePresence>
-            {showNavSearch && (
-              <motion.nav
-                initial={{ opacity: 0, x: -20, width: 0 }}
-                animate={{ opacity: 1, x: 0, width: 'auto' }}
-                exit={{ opacity: 0, x: -20, width: 0 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                className="hidden lg:flex items-center gap-2 xl:gap-4 overflow-hidden"
+          <nav className="hidden lg:flex items-center gap-2 xl:gap-4 overflow-visible">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  cn(
+                    "relative px-3 py-2 text-[15px] font-bold transition-all duration-300 whitespace-nowrap group",
+                    isActive
+                      ? "text-brand-orange-500"
+                      : "text-text-secondary hover:text-brand-navy"
+                  )
+                }
               >
-                {navItems.map((item) => (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    className={({ isActive }) =>
-                      cn(
-                        "relative px-3 py-2 text-[15px] font-bold transition-all duration-300 whitespace-nowrap group",
-                        isActive
-                          ? "text-brand-orange-500"
-                          : "text-text-secondary hover:text-brand-navy"
-                      )
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        {item.name === 'Coupons & Promotions' ? 'Coupons' : item.name}
-                        {isActive && (
-                          <motion.div
-                            layoutId="topnav-active"
-                            className="absolute bottom-0 left-3 right-3 h-[3px] bg-brand-orange-500 rounded-t-full"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.3 }}
-                          />
-                        )}
-                        {!isActive && (
-                          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[3px] bg-brand-navy/20 rounded-t-full transition-all duration-300 group-hover:w-[calc(100%-24px)]" />
-                        )}
-                      </>
+                {({ isActive }) => (
+                  <>
+                    {item.name === 'Coupons & Promotions' ? 'Coupons' : item.name}
+                    {isActive && (
+                      <motion.div
+                        layoutId="topnav-active"
+                        className="absolute bottom-0 left-3 right-3 h-[3px] bg-brand-orange-500 rounded-t-full"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                      />
                     )}
-                  </NavLink>
-                ))}
-              </motion.nav>
-            )}
-          </AnimatePresence>
+                    {!isActive && (
+                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[3px] bg-brand-navy/20 rounded-t-full transition-all duration-300 group-hover:w-[calc(100%-24px)]" />
+                    )}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </nav>
         </div>
 
         {/* RIGHT: Actions */}
         <div className="flex items-center gap-2 sm:gap-5">
-          <AnimatePresence>
-            {showNavSearch && (
-              <motion.div
-                initial={{ opacity: 0, width: 0, overflow: 'hidden' }}
-                animate={{ opacity: 1, width: 'auto', overflow: 'visible' }}
-                exit={{ opacity: 0, width: 0, overflow: 'hidden' }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                className="flex items-center"
-              >
-                <div className="hidden md:block">
-                  <GlobalSearch variant="nav" />
-                </div>
-                <button 
-                  className="md:hidden p-2 text-text-secondary hover:text-brand-navy rounded-lg hover:bg-gray-50 transition-colors mr-2"
-                  onClick={() => setIsMobileMenuOpen(true)}
-                  aria-label="Search"
-                >
-                  <Search className="w-5 h-5" />
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className="flex items-center">
+            <div className="hidden md:block">
+              <GlobalSearch variant="nav" />
+            </div>
+            <button
+              className="md:hidden p-2 text-text-secondary hover:text-brand-navy rounded-lg hover:bg-gray-50 transition-colors mr-2"
+              onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="Search"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+          </div>
 
           <div className="hidden sm:block h-8 w-px bg-border"></div>
 
