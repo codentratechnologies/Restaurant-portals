@@ -1,10 +1,12 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useOrders } from '../../hooks/useOrders';
 import { useBranches } from '../../hooks/useBranches';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { ref, get, update } from 'firebase/database';
+import { rtdb } from '../../lib/firebase';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar
@@ -171,6 +173,7 @@ export default function Dashboard() {
 
   const { orders, loading: ordersLoading } = useOrders();
   const { branches, loading: branchesLoading } = useBranches();
+
 
   const handleRefresh = () => {
     setIsRefreshing(true);

@@ -53,14 +53,14 @@ def check_branches(db):
                         
                 current_is_active = branch_data.get("is_active")
                 
-                if is_open and current_is_active is False:
-                    print(f" -> OPENING: {branch_name} (ID: {branch_id})")
-                    get_ref(f"branch/{admin_id}/{branch_id}").update({"is_active": True})
-                    updates_made += 1
-                elif not is_open and current_is_active is not False:
-                    print(f" -> CLOSING: {branch_name} (ID: {branch_id})")
-                    get_ref(f"branch/{admin_id}/{branch_id}").update({"is_active": False})
-                    updates_made += 1
+                # if is_open and current_is_active is False:
+                #     print(f" -> OPENING: {branch_name} (ID: {branch_id})")
+                #     get_ref(f"branch/{admin_id}/{branch_id}").update({"is_active": True})
+                #     updates_made += 1
+                # elif not is_open and current_is_active is not False:
+                #     print(f" -> CLOSING: {branch_name} (ID: {branch_id})")
+                #     get_ref(f"branch/{admin_id}/{branch_id}").update({"is_active": False})
+                #     updates_made += 1
                     
             except Exception as e:
                 print(f"Error processing branch {branch_id}: {e}")

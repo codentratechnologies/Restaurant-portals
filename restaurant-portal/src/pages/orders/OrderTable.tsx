@@ -1,14 +1,15 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Download, FileX, CheckCircle2, PackageCheck } from 'lucide-react';
+import { Search, Download, FileX, CheckCircle2, PackageCheck, User, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 
 import Table, { Column } from '../../components/common/Table';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
-import { ref, set } from 'firebase/database';
+import CancelModal from './components/CancelModal';
+import { ref, set, update } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
 import { useRestaurantOrders, OrderData } from '../../hooks/useRestaurantOrders';
 
@@ -98,6 +99,9 @@ export default function OrderTable() {
  const [currentPage, setCurrentPage] = useState(1);
  const itemsPerPage = 8;
 
+ const [cancelModalOpen, setCancelModalOpen] = useState(false);
+ const [orderToCancel, setOrderToCancel] = useState<OrderData | null>(null);
+
 
 
  // ─── Auto-transition: Accepted → Preparing after 1 minute ────────────────
@@ -137,7 +141,33 @@ export default function OrderTable() {
  }
  }, [currentUser]);
 
- // ─── Ready for Pickup handler ─────────────────────────────────────────────
+  const handleCancelConfirm = async (reasonType: string, notes: string) => {
+    if (!orderToCancel || !currentUser || !orderToCancel._branchId || !orderToCancel._key) return;
+    setUpdatingIds(prev => new Set(prev).add(orderToCancel._key!));
+    try {
+      const finalReason = reasonType === 'Other' ? notes : (notes ? `${reasonType} - ${notes}` : reasonType);
+      const updates = {
+        [`order/${currentUser.adminId}/${orderToCancel._branchId}/${orderToCancel._key}/status`]: 'Cancelled',
+        [`order/${currentUser.adminId}/${orderToCancel._branchId}/${orderToCancel._key}/cancellationReason`]: finalReason,
+        [`order/${currentUser.adminId}/${orderToCancel._branchId}/${orderToCancel._key}/cancelledAt`]: Date.now(),
+      };
+      await update(ref(rtdb), updates);
+      toast.success(`Order #${orderToCancel.id} cancelled successfully.`);
+      setCancelModalOpen(false);
+      setOrderToCancel(null);
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to cancel order.');
+    } finally {
+      setUpdatingIds(prev => {
+        const next = new Set(prev);
+        next.delete(orderToCancel._key!);
+        return next;
+      });
+    }
+  };
+
+  // ─── Ready for Pickup handler ─────────────────────────────────────────────
  const handleReadyForPickup = useCallback(async (order: OrderData) => {
  if (!currentUser || !order._branchId || !order._key) return;
  setUpdatingIds(prev => new Set(prev).add(order._key!));
@@ -241,6 +271,20 @@ export default function OrderTable() {
  )
  },
  {
+ header: 'Customer',
+ cell: (item) => (
+ <div>
+ <div className="flex items-center gap-1.5 font-bold text-brand-navy text-sm truncate max-w-[150px]">
+ <User className="w-4 h-4 text-text-secondary shrink-0" />
+ <span className="truncate">{item.customer?.name || 'N/A'}</span>
+ </div>
+ <div className="text-xs font-medium text-text-secondary mt-0.5 ml-[22px]">
+ {item.customer?.phone || 'N/A'}
+ </div>
+ </div>
+ )
+ },
+ {
  header: 'Total Value',
  cell: (item) => <span className="font-black text-brand-navy">₹{Number(item.billing.total || 0).toFixed(2)}</span>
  },
@@ -291,6 +335,19 @@ export default function OrderTable() {
  updatingIds={updatingIds} 
  onReady={handleReadyForPickup} 
  />
+ )}
+
+ {['Accepted', 'Preparing', 'Ready For Pickup'].includes(item.status) && (
+ <button
+ onClick={() => {
+ setOrderToCancel(item);
+ setCancelModalOpen(true);
+ }}
+ disabled={updatingIds.has(item._key!)}
+ className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+ >
+ <XCircle className="w-3.5 h-3.5" /> Cancel
+ </button>
  )}
 
  {/* View button — always visible */}
@@ -421,8 +478,14 @@ export default function OrderTable() {
  )}
  </AnimatePresence>
  </div>
-
  </div>
+
+ <CancelModal 
+ isOpen={cancelModalOpen} 
+ onClose={() => { setCancelModalOpen(false); setOrderToCancel(null); }} 
+ onConfirm={handleCancelConfirm}
+ orderId={orderToCancel?.id || ''}
+ />
  </div>
  );
 }

@@ -75,11 +75,11 @@ export function useBranchStatusMonitor() {
           const currentIsActive = branchData.is_active;
 
           // Strictly enforce database correctness
-          if (isOpen && currentIsActive === false) {
-            set(ref(rtdb, `branch/${user.adminId}/${branchId}/is_active`), true).catch(console.error);
-          } else if (!isOpen && currentIsActive !== false) {
-            set(ref(rtdb, `branch/${user.adminId}/${branchId}/is_active`), false).catch(console.error);
-          }
+          // if (isOpen && currentIsActive === false) {
+          //   set(ref(rtdb, `branch/${user.adminId}/${branchId}/is_active`), true).catch(console.error);
+          // } else if (!isOpen && currentIsActive !== false) {
+          //   set(ref(rtdb, `branch/${user.adminId}/${branchId}/is_active`), false).catch(console.error);
+          // }
         } catch (e) {
           console.error("Error monitoring branch:", e);
         }

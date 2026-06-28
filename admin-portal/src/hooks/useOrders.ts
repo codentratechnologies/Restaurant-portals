@@ -90,9 +90,9 @@ export function useOrders() {
             const mappedOrder: Order = {
               id: rawOrder.id || rawOrder.orderId || orderId,
               customer: {
-                name: rawOrder.customer?.name || rawOrder.customerName || custData.fullName || custData.name || 'Unknown Customer',
-                phone: rawOrder.customer?.phone || rawOrder.customerMobile || custData.mobileNumber || custData.phone || 'N/A',
-                address: rawOrder.deliveryAddress?.addressLine || rawOrder.deliveryAddress || custData.address || ''
+                name: custData.fullName || custData.name || rawOrder.customer?.name || rawOrder.customerName || 'Unknown Customer',
+                phone: custData.mobileNumber || custData.phone || rawOrder.customer?.phone || rawOrder.customerMobile || 'N/A',
+                address: custData.address || rawOrder.deliveryAddress?.addressLine || rawOrder.deliveryAddress || ''
               },
               branch: branchDisplayName,
               billing: {

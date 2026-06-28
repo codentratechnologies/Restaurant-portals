@@ -92,11 +92,12 @@ export function useRestaurantOrders() {
 
   // 2. Listen to customers
   useEffect(() => {
-    const unsub = onValue(ref(rtdb, 'user_customer'), (snap) => {
+    if (!currentUser) return;
+    const unsub = onValue(ref(rtdb, `user_customer/${currentUser.adminId}`), (snap) => {
       if (snap.exists()) setCustomersData(snap.val());
     });
     return () => unsub();
-  }, []);
+  }, [currentUser]);
 
   // 3. Listen to orders for this branch
   useEffect(() => {
@@ -146,7 +147,8 @@ export function useRestaurantOrders() {
   // 4. Merge data
   useEffect(() => {
     const mergedOrders: OrderData[] = rawOrders.map(rawOrder => {
-      const customer = customersData[rawOrder.customerId] || {};
+      const custId = rawOrder.customerId || rawOrder.userId || rawOrder.user_id;
+      const customer = custId ? (customersData[custId] || {}) : {};
       const itemsList = Array.isArray(rawOrder.items) 
         ? rawOrder.items 
         : rawOrder.items ? Object.values(rawOrder.items) : [];
@@ -154,14 +156,14 @@ export function useRestaurantOrders() {
       return {
         id: rawOrder.id || rawOrder._key,
         _key: rawOrder._key,
-        _customerId: rawOrder.customerId,
+        _customerId: custId,
         _branchId: branchPushId,
         status: rawOrder.status === 'Placed' ? 'Pending' : rawOrder.status,
         type: 'Delivery',
         customer: {
-          name: customer.fullName || 'Customer',
-          phone: customer.mobileNumber || '',
-          address: rawOrder.deliveryAddress?.addressLine || ''
+          name: customer.fullName || customer.name || rawOrder.customer?.name || rawOrder.customerName || 'Customer',
+          phone: customer.mobileNumber || customer.phone || rawOrder.customer?.phone || rawOrder.customerMobile || '',
+          address: customer.address || rawOrder.deliveryAddress?.addressLine || ''
         },
         items: itemsList.map((i: any) => ({
           name: i.name || 'Item',

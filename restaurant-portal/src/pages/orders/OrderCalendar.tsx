@@ -151,13 +151,18 @@ export default function OrderCalendar() {
    return () => clearInterval(interval);
  }, [branchDetails, currentUser, branchPushId]);
 
+ // FORCE DB UPDATE TO TRUE
+ useEffect(() => {
+    if (currentUser?.adminId && branchPushId && branchDetails?.is_active === false) {
+      set(ref(rtdb, `branch/${currentUser.adminId}/${branchPushId}/is_active`), true)
+        .then(() => toast.success("Branch force-activated in database!"))
+        .catch(console.error);
+    }
+  }, [currentUser, branchPushId, branchDetails]);
+
  const handleToggleOnline = async () => {
    if (!branchPushId || !currentUser || !branchDetails) return;
    const newState = !(branchDetails.is_active ?? true);
-   if (newState && !isWithinWorkingHours) {
-     toast.error("Cannot activate branch outside of configured working hours.");
-     return;
-   }
    
    try {
      await set(ref(rtdb, `branch/${currentUser.adminId}/${branchPushId}/is_active`), newState);
