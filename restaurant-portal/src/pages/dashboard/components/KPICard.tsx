@@ -13,10 +13,11 @@ interface KPICardProps {
  delay?: number;
  isManager?: boolean;
  hiddenAmount?: string;
+ description?: string;
 }
 
 export default function KPICard({ 
- title, amount, trend, isUp, icon: Icon, colorClass, bgClass, delay = 0, isManager = true, hiddenAmount = '***' 
+ title, amount, trend, isUp, icon: Icon, colorClass, bgClass, delay = 0, isManager = true, hiddenAmount = '***', description 
 }: KPICardProps) {
  
  return (
@@ -33,12 +34,15 @@ export default function KPICard({
  <div className={`w-12 h-12 rounded-2xl ${bgClass} flex items-center justify-center shadow-inner ring-1 ring-white/50 backdrop-blur-sm`}>
  <Icon className={`w-6 h-6 ${colorClass}`} />
  </div>
+ <div className="flex items-center gap-2">
  {trend && (
  <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider shadow-sm border ${isUp ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
  {isUp ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
  {trend}
  </div>
  )}
+ {description && <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">{description}</span>}
+ </div>
  </div>
 
  <div className="relative z-10 flex-1 flex flex-col justify-end">

@@ -17,7 +17,6 @@ export default function OrderCalendar() {
  const [soundEnabled, setSoundEnabled] = useState(() => {
  return localStorage.getItem('order_sound_enabled') === 'true';
  });
- const audioCtxRef = useRef<AudioContext | null>(null);
 
  const [currentUser, setCurrentUser] = useState<any>(null);
 
@@ -25,44 +24,15 @@ export default function OrderCalendar() {
  const [rejectModalOpen, setRejectModalOpen] = useState(false);
  const [orderToReject, setOrderToReject] = useState<OrderData | null>(null);
 
- // Sound generator
- const playBeep = useCallback(() => {
- if (!soundEnabled) return;
- try {
- if (!audioCtxRef.current) {
- audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
- }
- const ctx = audioCtxRef.current;
- if (ctx.state === 'suspended') ctx.resume();
- 
- const osc = ctx.createOscillator();
- const gainNode = ctx.createGain();
- 
- osc.type = 'sine';
- osc.frequency.setValueAtTime(880, ctx.currentTime); // A5
- osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.1);
- 
- gainNode.gain.setValueAtTime(0.5, ctx.currentTime);
- gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
- 
- osc.connect(gainNode);
- gainNode.connect(ctx.destination);
- 
- osc.start();
- osc.stop(ctx.currentTime + 0.3);
- } catch (e) {
- console.error("Audio play failed", e);
- }
- }, [soundEnabled]);
 
  const enableSound = () => {
  setSoundEnabled(true);
  localStorage.setItem('order_sound_enabled', 'true');
- // Initialize audio context on user interaction
- if (!audioCtxRef.current) {
- audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
- }
- audioCtxRef.current.resume();
+ try {
+ const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+ audio.volume = 0.5;
+ audio.play().catch(e => {});
+ } catch (e) {}
  toast.success("Sound notifications enabled");
  };
 
@@ -72,22 +42,7 @@ export default function OrderCalendar() {
  setCurrentUser(JSON.parse(userStr));
  }
 
- const unlockAudio = () => {
- if (localStorage.getItem('order_sound_enabled') === 'true') {
- if (!audioCtxRef.current) {
- audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
- }
- if (audioCtxRef.current.state === 'suspended') {
- audioCtxRef.current.resume();
- }
- }
- document.removeEventListener('click', unlockAudio);
- };
- document.addEventListener('click', unlockAudio);
- 
- return () => {
- document.removeEventListener('click', unlockAudio);
- };
+
  }, []);
 
  const [rawOrders, setRawOrders] = useState<any[]>([]);
@@ -199,17 +154,14 @@ export default function OrderCalendar() {
  
  pending.sort((a, b) => (a.orderDate ? new Date(a.orderDate).getTime() : 0) - (b.orderDate ? new Date(b.orderDate).getTime() : 0));
  
- setRawOrders(prev => {
- if (pending.length > prev.length) playBeep();
- return pending;
- });
+ setRawOrders(pending);
  } else {
  setRawOrders([]);
  }
  });
  
  return () => unsub();
- }, [currentUser, branchPushId, playBeep]);
+ }, [currentUser, branchPushId]);
 
  // 4. Merge data
  useEffect(() => {

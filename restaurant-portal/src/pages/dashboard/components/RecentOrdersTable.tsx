@@ -40,8 +40,8 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
  <span className="font-black text-brand-navy group-hover:text-brand-orange-600 transition-colors text-base">{order.id}</span>
  <div className="text-xs font-bold text-text-secondary mt-1">{order.time}</div>
  </td>
- <td className="py-4 px-6">
- <p className="font-bold text-brand-navy line-clamp-1">{order.items}</p>
+ <td className="py-4 px-6 max-w-[250px]">
+ <p className="font-bold text-brand-navy truncate" title={order.items}>{order.items}</p>
  </td>
  <td className="py-4 px-6 font-black text-brand-navy whitespace-nowrap text-base text-right">
  {order.amount}

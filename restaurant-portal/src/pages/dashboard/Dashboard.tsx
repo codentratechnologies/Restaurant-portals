@@ -123,10 +123,11 @@ export default function Dashboard() {
       });
 
     const recentOrdersData = filteredOrders.slice(0, 5).map(order => {
-      const timeDiff = Math.floor((new Date().getTime() - new Date(order.created_at || Date.now()).getTime()) / 60000);
-      let timeStr = `${timeDiff} min ago`;
-      if (timeDiff > 60) timeStr = `${Math.floor(timeDiff / 60)} hr ago`;
-      if (timeDiff > 1440) timeStr = `${Math.floor(timeDiff / 1440)} days ago`;
+      let timeDiff = Math.floor((new Date().getTime() - new Date(order.created_at || Date.now()).getTime()) / 60000);
+      if (timeDiff < 0) timeDiff = 0;
+      let timeStr = timeDiff === 0 ? 'Just now' : `${timeDiff} min ago`;
+      if (timeDiff >= 1440) timeStr = `${Math.floor(timeDiff / 1440)} days ago`;
+      else if (timeDiff >= 60) timeStr = `${Math.floor(timeDiff / 60)} hr ago`;
 
       return {
         id: `#${(order.id || '').toString().slice(-4)}`,
@@ -140,15 +141,16 @@ export default function Dashboard() {
 
     const getTrend = (current: number, prev: number, inverse = false) => {
       if (prev === 0) {
-        if (current === 0) return { text: '0%', isUp: true };
-        return { text: '+100%', isUp: !inverse };
+        if (current === 0) return { text: '0%', isUp: true, desc: 'vs prev period' };
+        return { text: '100%', isUp: !inverse, desc: 'vs prev period' };
       }
       const diff = current - prev;
-      const percent = (diff / prev) * 100;
-      const isPositive = percent >= 0;
+      const percent = Math.abs(diff / prev) * 100;
+      const isPositive = diff >= 0;
       return {
-        text: `${percent > 0 ? '+' : ''}${percent.toFixed(1)}%`,
-        isUp: inverse ? !isPositive : isPositive
+        text: `${isPositive ? '+' : '-'}${percent.toFixed(1)}%`,
+        isUp: inverse ? !isPositive : isPositive,
+        desc: 'vs prev period'
       };
     };
 

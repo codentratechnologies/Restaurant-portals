@@ -288,10 +288,11 @@ export default function Dashboard() {
     const recentOrdersData = orders.slice(0, 5).map(order => {
       const custName = order.customer?.name || 'Unknown';
       const initials = custName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-      const timeDiff = Math.floor((new Date().getTime() - new Date(order.created_at).getTime()) / 60000);
-      let timeStr = `${timeDiff} min ago`;
-      if (timeDiff > 60) timeStr = `${Math.floor(timeDiff / 60)} hr ago`;
-      if (timeDiff > 1440) timeStr = `${Math.floor(timeDiff / 1440)} days ago`;
+      let timeDiff = Math.floor((new Date().getTime() - new Date(order.created_at).getTime()) / 60000);
+      if (timeDiff < 0) timeDiff = 0;
+      let timeStr = timeDiff === 0 ? 'Just now' : `${timeDiff} min ago`;
+      if (timeDiff >= 1440) timeStr = `${Math.floor(timeDiff / 1440)} days ago`;
+      else if (timeDiff >= 60) timeStr = `${Math.floor(timeDiff / 60)} hr ago`;
       return {
         id: `#${(order.id || '').toString().slice(-4)}`,
         customer: custName,
