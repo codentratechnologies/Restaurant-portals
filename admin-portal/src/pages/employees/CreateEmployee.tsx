@@ -317,7 +317,7 @@ export default function CreateEmployee() {
  value={formData.branch}
  onChange={(e) => handleChange(e as any)}
  disabled={branchesLoading}
- options={branches.map((b) => ({ value: b.code, label: `${b.name} ${b.city ? `(${b.city})` : ''}` }))}
+ options={branches.map((b) => ({ value: b.code || '', label: `${b.name} ${b.city ? `(${b.city})` : ''}` }))}
  placeholder={branchesLoading ? 'Loading branches...' : 'Select Branch'}
  error={errors.branch}
  />

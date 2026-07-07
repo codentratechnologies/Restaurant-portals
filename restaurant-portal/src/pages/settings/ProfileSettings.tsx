@@ -2,432 +2,521 @@ import { useState, useEffect } from 'react';
 import { ref, get, update, onValue } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
 import toast from 'react-hot-toast';
-import { Loader2, Edit2, X, Save, Store, LogOut } from 'lucide-react';
+import {
+  Loader2, Edit3, X, Save, Store, LogOut, Phone, Shield,
+  MapPin, Users, Building2, CheckCircle2, Camera, ChevronRight
+} from 'lucide-react';
 import Button from '../../components/common/Button';
-import Card from '../../components/common/Card';
 import PhoneInput from '../../components/common/PhoneInput';
 import Badge from '../../components/common/Badge';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function ProfileSettings() {
- const navigate = useNavigate();
- const [userStr, setUserStr] = useState<string | null>(localStorage.getItem('restaurant_user'));
- const [currentTab, setCurrentTab] = useState<'profile' | 'employees'>('profile');
- const [isLoading, setIsLoading] = useState(true);
- const [isSaving, setIsSaving] = useState(false);
- const [isEditing, setIsEditing] = useState(false);
- const [assignedBranch, setAssignedBranch] = useState<{ name: string; city?: string; address?: string; code?: string } | null>(null);
- const [branchEmployees, setBranchEmployees] = useState<any[]>([]);
- const [profileData, setProfileData] = useState({
- fullName: '',
- email: '',
- phoneExt: '+91',
- phone: '',
- role: '',
- adminId: '',
- id: ''
- });
+type Tab = 'profile' | 'employees';
 
- useEffect(() => {
- const fetchProfileData = async () => {
- if (!userStr) {
- setIsLoading(false);
- return;
- }
- try {
- const userObj = JSON.parse(userStr);
- const userRef = ref(rtdb, `users/${userObj.adminId}/${userObj.id}`);
- const snapshot = await get(userRef);
- 
- if (snapshot.exists()) {
- const data = snapshot.val();
- const phoneData = data.phone || '';
- let pExt = '+91';
- let pNum = phoneData;
- if (phoneData.includes(' ')) {
- const parts = phoneData.split(' ');
- pExt = parts[0];
- pNum = parts.slice(1).join(' ');
- }
-
- setProfileData({
- fullName: data.fullName || data.name || (data.firstName ? `${data.firstName} ${data.lastName}`.trim() : ''),
- email: data.email || '',
- phoneExt: pExt,
- phone: pNum,
- role: data.role || 'Employee',
- adminId: userObj.adminId,
- id: userObj.id
- });
-
- // Fetch assigned branch if branchId exists
- if (data.branch) {
- try {
- const branchesRef = ref(rtdb, `branch/${userObj.adminId}`);
- const branchSnap = await get(branchesRef);
- if (branchSnap.exists()) {
- const allBranches = branchSnap.val();
- let bd = allBranches[data.branch];
- if (!bd) {
- bd = Object.values(allBranches).find((b: any) => b.code === data.branch);
- }
- if (bd) {
- setAssignedBranch({ name: bd.name || 'Unknown Branch', city: bd.city, address: bd.address, code: bd.code || data.branch });
- } else {
- setAssignedBranch({ name: data.branch, code: data.branch });
- }
- } else {
- setAssignedBranch({ name: data.branch, code: data.branch });
- }
- } catch {
- setAssignedBranch({ name: data.branch, code: data.branch });
- }
- }
- } else {
- // Fallback to local storage data since DB record might have been cleared
- const phoneData = userObj.phone || '';
- let pExt = '+91';
- let pNum = phoneData;
- if (phoneData.includes(' ')) {
- const parts = phoneData.split(' ');
- pExt = parts[0];
- pNum = parts.slice(1).join(' ');
- }
-
- setProfileData({
- fullName: userObj.fullName || userObj.name || (userObj.firstName ? `${userObj.firstName} ${userObj.lastName}`.trim() : ''),
- email: userObj.email || '',
- phoneExt: pExt,
- phone: pNum,
- role: userObj.role || 'Employee',
- adminId: userObj.adminId,
- id: userObj.id
- });
- if (userObj.branch) {
- try {
- const branchesRef = ref(rtdb, `branch/${userObj.adminId}`);
- const branchSnap = await get(branchesRef);
- if (branchSnap.exists()) {
- const allBranches = branchSnap.val();
- let bd = allBranches[userObj.branch];
- if (!bd) {
- bd = Object.values(allBranches).find((b: any) => b.code === userObj.branch);
- }
- if (bd) {
- setAssignedBranch({ name: bd.name || 'Unknown Branch', city: bd.city, address: bd.address, code: bd.code || userObj.branch });
- } else {
- setAssignedBranch({ name: userObj.branch, code: userObj.branch });
- }
- } else {
- setAssignedBranch({ name: userObj.branch, code: userObj.branch });
- }
- } catch {
- setAssignedBranch({ name: userObj.branch, code: userObj.branch });
- }
- }
- }
- } catch (error) {
- console.error('Error fetching profile:', error);
- toast.error('Failed to load profile data');
- } finally {
- setIsLoading(false);
- }
- };
-
- fetchProfileData();
- }, [userStr]);
-
- useEffect(() => {
- if (!userStr) return;
- try {
- const userObj = JSON.parse(userStr);
- if (!userObj.adminId || !userObj.branch) return;
- 
- const empRef = ref(rtdb, `employee/${userObj.adminId}/${userObj.branch}`);
- const unsub = onValue(empRef, (snapshot) => {
- if (snapshot.exists()) {
- const data = snapshot.val();
- const emps = Object.keys(data).map(key => ({
- id: key,
- ...data[key]
- }));
- setBranchEmployees(emps);
- } else {
- setBranchEmployees([]);
- }
- });
- return () => unsub();
- } catch (e) {}
- }, [userStr]);
-
- const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
- const { name, value } = e.target;
- setProfileData(prev => ({ ...prev, [name]: value }));
- };
-
- const handleLogout = () => {
- localStorage.removeItem('restaurant_user');
- toast.success('Logged out successfully');
- navigate('/login');
- };
-
- const handleSave = async (e: React.FormEvent) => {
- e.preventDefault();
- if (!profileData.fullName.trim()) {
- toast.error('Name cannot be empty');
- return;
- }
-
- if (!profileData.phone || !/^\d{10}$/.test(profileData.phone)) {
- toast.error('Phone number must be exactly 10 digits');
- return;
- }
- 
- setIsSaving(true);
- try {
- const userRef = ref(rtdb, `users/${profileData.adminId}/${profileData.id}`);
- const nameParts = profileData.fullName.split(' ');
- const firstName = nameParts[0];
- const lastName = nameParts.slice(1).join(' ');
- 
- await update(userRef, {
- firstName: firstName,
- lastName: lastName,
- fullName: profileData.fullName,
- phone: `${profileData.phoneExt} ${profileData.phone}`
- });
- 
- // Update local storage representation just in case
- if (userStr) {
- const userObj = JSON.parse(userStr);
- const updatedUser = { ...userObj, fullName: profileData.fullName, phone: `${profileData.phoneExt} ${profileData.phone}` };
- localStorage.setItem('restaurant_user', JSON.stringify(updatedUser));
- setUserStr(JSON.stringify(updatedUser));
- }
- 
- toast.success('Profile updated successfully!');
- setIsEditing(false);
- } catch (error) {
- console.error('Error updating profile:', error);
- toast.error('Failed to update profile');
- } finally {
- setIsSaving(false);
- }
- };
-
- if (isLoading) {
- return (
- <div className="flex items-center justify-center py-12">
- <Loader2 className="w-8 h-8 text-brand-orange-500 animate-spin" />
- </div>
- );
- }
-
- // Use consistent default avatar
- const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=Admin&backgroundColor=f5f7fa`;
-
- return (
- <div className="space-y-6">
- <div className="flex items-center justify-between mb-4">
- <h2 className="text-xl font-black text-brand-navy">Profile Information</h2>
- <div className="flex items-center gap-3">
- {!isEditing ? (
- <Button onClick={() => setIsEditing(true)} className="gap-2 px-5 py-2" variant="outline">
- <Edit2 className="w-4 h-4" />
- Edit Profile
- </Button>
- ) : (
- <Button onClick={() => setIsEditing(false)} className="gap-2 px-5 py-2 bg-gray-100 text-text-secondary hover:bg-gray-200 border-none" variant="outline">
- <X className="w-4 h-4" />
- Cancel
- </Button>
- )}
- <Button onClick={handleLogout} className="gap-2 px-5 py-2 bg-red-50 text-red-600 hover:bg-red-100 border-red-100" variant="outline">
- <LogOut className="w-4 h-4" />
- Logout
- </Button>
- </div>
- </div>
- 
- {/* Tab Navigation */}
- <div className="flex items-center gap-6 border-b border-border mb-6">
- <button
- onClick={() => setCurrentTab('profile')}
- className={`relative py-3 text-sm font-bold transition-colors ${
- currentTab === 'profile' ? 'text-brand-navy' : 'text-text-secondary hover:text-brand-navy'
- }`}
- >
- Profile Details
- {currentTab === 'profile' && (
- <motion.div layoutId="profileTabActive" className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-orange-600" />
- )}
- </button>
- <button
- onClick={() => setCurrentTab('employees')}
- className={`relative py-3 text-sm font-bold transition-colors ${
- currentTab === 'employees' ? 'text-brand-navy' : 'text-text-secondary hover:text-brand-navy'
- }`}
- >
- Branch Employees
- {currentTab === 'employees' && (
- <motion.div layoutId="profileTabActive" className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-orange-600" />
- )}
- </button>
- </div>
- 
- <AnimatePresence mode="wait">
- {currentTab === 'profile' ? (
- <motion.div
- key="profile"
- initial={{ opacity: 0, y: 10 }}
- animate={{ opacity: 1, y: 0 }}
- exit={{ opacity: 0, y: -10 }}
- transition={{ duration: 0.2 }}
- >
- <Card className="p-8 border border-border/50 shadow-soft">
- <div className="flex items-center gap-6 pb-8 border-b border-border/60 mb-8">
- <div className="relative group">
- <img 
- src={avatarUrl} 
- alt="Profile" 
- className="w-24 h-24 rounded-full bg-brand-orange-50 border-2 border-white shadow-md transition-transform group-hover:scale-105"
- />
- </div>
- <div>
- <h3 className="text-2xl font-black text-brand-navy tracking-tight">{profileData.fullName || 'User'}</h3>
- <p className="text-sm font-bold text-text-secondary mt-1">{profileData.role}</p>
- </div>
- </div>
-
- <form onSubmit={handleSave} className="space-y-6 max-w-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-bold text-brand-navy mb-1.5">Full Name</label>
-              <input 
-                type="text" 
-                name="fullName"
-                className={`w-full px-4 py-3 bg-gray-50 border rounded-xl text-sm font-medium transition-all ${!isEditing ? 'opacity-80 cursor-not-allowed border-transparent' : 'border-border focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 focus:bg-white hover:border-brand-orange-300'}`}
-                value={profileData.fullName} 
-                onChange={handleInputChange}
-                disabled={!isEditing}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-bold text-brand-navy mb-1.5">Email Address</label>
-              <input 
-                type="email" 
-                name="email"
-                className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl text-sm font-medium opacity-80 cursor-not-allowed"
-                value={profileData.email} 
-                disabled
-              />
-              <p className="text-[11px] font-semibold text-text-secondary mt-1.5">Email cannot be changed.</p>
-            </div>
-
-            <div>
-              <PhoneInput
-                name="phone"
-                value={profileData.phone}
-                extValue={profileData.phoneExt}
-                onChange={handleInputChange as any}
-                onExtChange={handleInputChange as any}
-                disabled={!isEditing}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-brand-navy mb-1.5">Role</label>
-              <input 
-                type="text" 
-                name="role"
-                className="w-full px-4 py-3 bg-brand-orange-50/50 border border-transparent rounded-xl text-sm font-bold text-brand-orange-800 opacity-80 cursor-not-allowed"
-                value={profileData.role} 
-                disabled 
-              />
-            </div>
-
-            {assignedBranch && (
-              <div>
-                <label className="block text-sm font-bold text-brand-navy mb-1.5">Assigned Branch</label>
-                <div className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl flex items-start gap-3 opacity-90">
-                  <div className="w-9 h-9 rounded-lg bg-brand-orange-100 flex items-center justify-center shrink-0 border border-brand-orange-200 mt-0.5">
-                    <Store className="w-4 h-4 text-brand-orange-600" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-brand-navy">{assignedBranch.name}</p>
-                      {assignedBranch.code && assignedBranch.name !== assignedBranch.code && (
-                        <span className="text-[10px] font-mono font-bold text-text-secondary bg-gray-200/60 px-1.5 py-0.5 rounded border border-border/50">
-                          {assignedBranch.code}
-                        </span>
-                      )}
-                    </div>
-                    {(assignedBranch.city || assignedBranch.address) && (
-                      <p className="text-xs text-text-secondary font-medium mt-0.5">
-                        {[assignedBranch.address, assignedBranch.city].filter(Boolean).join(', ')}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <p className="text-[11px] font-semibold text-text-secondary mt-1.5">Branch assignment is managed by your admin.</p>
-              </div>
-            )}
-          </div>
-
- {isEditing && (
- <div className="pt-6 border-t border-border mt-8 flex justify-end">
- <Button type="submit" disabled={isSaving} className="gap-2 px-8 py-2.5 shadow-sm">
- {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
- {isSaving ? 'Saving...' : 'Save Changes'}
- </Button>
- </div>
- )}
- </form>
- </Card>
- </motion.div>
- ) : (
- <motion.div
- key="employees"
- initial={{ opacity: 0, y: 10 }}
- animate={{ opacity: 1, y: 0 }}
- exit={{ opacity: 0, y: -10 }}
- transition={{ duration: 0.2 }}
- >
- <Card className="p-8 border border-border/50 shadow-soft">
- <h3 className="text-lg font-black text-brand-navy mb-6 pb-4 border-b border-border">
- Branch Employees &mdash; <span className="text-brand-orange-600">{assignedBranch?.name || 'Unknown Branch'}</span>
- </h3>
- {branchEmployees.length === 0 ? (
- <p className="text-sm font-medium text-text-secondary bg-gray-50 p-4 rounded-xl text-center border border-border">No employees found for this branch.</p>
- ) : (
- <div className="space-y-4">
- {branchEmployees.map(emp => (
- <div key={emp.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-border/50 bg-gray-50/50 hover:bg-white hover:shadow-sm transition-all group">
- <div className="flex items-center gap-4">
- <div className="w-10 h-10 rounded-full bg-brand-orange-100 flex items-center justify-center text-brand-orange-600 font-bold uppercase shrink-0 border border-brand-orange-200">
- {emp.firstName?.charAt(0) || emp.fullName?.charAt(0) || emp.name?.charAt(0) || 'E'}
- </div>
- <div>
- <p className="text-sm font-bold text-brand-navy">{emp.firstName} {emp.lastName}</p>
- <p className="text-xs font-medium text-text-secondary mt-0.5">{emp.role || 'Employee'} &bull; {emp.phone || emp.mobileNumber || 'No Phone'}</p>
- </div>
- </div>
- <div className="mt-3 sm:mt-0 flex items-center gap-3">
- <Badge variant={emp.status === 'Active' ? 'success' : (emp.status === 'Inactive' ? 'error' : 'default')} className="font-bold shadow-sm">
- {emp.status || 'Active'}
- </Badge>
- </div>
- </div>
- ))}
- </div>
- )}
- </Card>
- </motion.div>
- )}
- </AnimatePresence>
- </div>
- );
+interface ProfileSettingsProps {
+  editing?: boolean;
+  onSetEditing?: (v: boolean) => void;
 }
 
+export default function ProfileSettings({ editing: editingProp, onSetEditing }: ProfileSettingsProps = {}) {
+  const navigate = useNavigate();
+  const [userStr, setUserStr] = useState<string | null>(localStorage.getItem('restaurant_user'));
+  const [tab, setTab] = useState<Tab>('profile');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [_editing, _setEditing] = useState(false);
+  const editing = editingProp !== undefined ? editingProp : _editing;
+  const setEditing = onSetEditing ?? _setEditing;
+  const [branch, setBranch] = useState<{ name: string; city?: string; address?: string; code?: string } | null>(null);
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [empFilter, setEmpFilter] = useState('');
+  const [profile, setProfile] = useState({
+    fullName: '', email: '', phoneExt: '+91', phone: '', role: '', adminId: '', id: ''
+  });
+  const [original, setOriginal] = useState({ fullName: '', phone: '', phoneExt: '+91' });
+
+  useEffect(() => {
+    const load = async () => {
+      if (!userStr) { setLoading(false); return; }
+      try {
+        const u = JSON.parse(userStr);
+        const snap = await get(ref(rtdb, `users/${u.adminId}/${u.id}`));
+        const src = snap.exists() ? snap.val() : u;
+        const rawPhone = src.phone || '';
+        let pExt = '+91', pNum = rawPhone;
+        if (rawPhone.includes(' ')) {
+          const p = rawPhone.split(' ');
+          pExt = p[0];
+          pNum = p.slice(1).join(' ');
+        }
+        const data = {
+          fullName: src.fullName || src.name || (src.firstName ? `${src.firstName} ${src.lastName || ''}`.trim() : ''),
+          email: src.email || '',
+          phoneExt: pExt,
+          phone: pNum,
+          role: src.role || 'Employee',
+          adminId: u.adminId,
+          id: u.id
+        };
+        setProfile(data);
+        setOriginal({ fullName: data.fullName, phone: data.phone, phoneExt: data.phoneExt });
+
+        if (src.branch) {
+          try {
+            const bSnap = await get(ref(rtdb, `branch/${u.adminId}`));
+            if (bSnap.exists()) {
+              const all = bSnap.val();
+              const bd = all[src.branch] || (Object.values(all) as any[]).find((b: any) => b.code === src.branch);
+              setBranch(bd
+                ? { name: bd.name || 'Branch', city: bd.city, address: bd.address, code: bd.code || src.branch }
+                : { name: src.branch, code: src.branch });
+            }
+          } catch {
+            setBranch({ name: src.branch, code: src.branch });
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        toast.error('Failed to load profile');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [userStr]);
+
+  useEffect(() => {
+    if (!userStr) return;
+    try {
+      const u = JSON.parse(userStr);
+      if (!u.adminId || !u.branch) return;
+      return onValue(ref(rtdb, `employee/${u.adminId}/${u.branch}`), snap => {
+        setEmployees(snap.exists()
+          ? Object.keys(snap.val()).map(k => ({ id: k, ...snap.val()[k] }))
+          : []);
+      });
+    } catch {}
+  }, [userStr]);
+
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setProfile(p => ({ ...p, [e.target.name]: e.target.value }));
+
+  const handleCancel = () => {
+    setProfile(p => ({ ...p, fullName: original.fullName, phone: original.phone, phoneExt: original.phoneExt }));
+    setEditing(false);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile.fullName.trim()) { toast.error('Name required'); return; }
+    if (!/^\d{10}$/.test(profile.phone)) { toast.error('10-digit phone required'); return; }
+    setSaving(true);
+    try {
+      const parts = profile.fullName.split(' ');
+      await update(ref(rtdb, `users/${profile.adminId}/${profile.id}`), {
+        firstName: parts[0],
+        lastName: parts.slice(1).join(' '),
+        fullName: profile.fullName,
+        phone: `${profile.phoneExt} ${profile.phone}`
+      });
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        const updated = { ...u, fullName: profile.fullName, phone: `${profile.phoneExt} ${profile.phone}` };
+        localStorage.setItem('restaurant_user', JSON.stringify(updated));
+        setUserStr(JSON.stringify(updated));
+      }
+      setOriginal({ fullName: profile.fullName, phone: profile.phone, phoneExt: profile.phoneExt });
+      toast.success('Profile saved');
+      setEditing(false);
+    } catch {
+      toast.error('Save failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('restaurant_user');
+    toast.success('Logged out');
+    navigate('/login');
+  };
+
+  if (loading) return (
+    <div className="flex items-center justify-center py-24">
+      <Loader2 className="w-8 h-8 text-brand-orange-500 animate-spin" />
+    </div>
+  );
+
+  const initials = (profile.fullName || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const activeCount = employees.filter(e => (e.status || 'Active') === 'Active').length;
+  const filteredEmps = empFilter
+    ? employees.filter(e =>
+        (e.firstName + ' ' + e.lastName).toLowerCase().includes(empFilter.toLowerCase()) ||
+        (e.role || '').toLowerCase().includes(empFilter.toLowerCase())
+      )
+    : employees;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col lg:flex-row gap-6"
+    >
+      {/* ── LEFT SIDEBAR ── */}
+      <motion.aside
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05, duration: 0.35 }}
+        className="lg:w-80 xl:w-96 shrink-0 space-y-4 self-start sticky top-6"
+      >
+        {/* Identity card */}
+        <div
+          className="rounded-2xl text-white p-8 flex flex-col items-center gap-6 shadow-xl relative overflow-hidden"
+          style={{ background: 'linear-gradient(160deg, #1e2340 0%, #2a3060 60%, #1a1f35 100%)' }}
+        >
+          {/* Background decorations */}
+          <div className="absolute top-0 right-0 w-36 h-36 rounded-full bg-white/5 -translate-y-14 translate-x-14 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-brand-orange-500/10 translate-y-10 -translate-x-10 pointer-events-none" />
+
+          {/* Avatar */}
+          <div className="relative z-10">
+            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-brand-orange-400 to-brand-orange-600 flex items-center justify-center text-white text-4xl font-black shadow-lg ring-4 ring-white/10">
+              {initials}
+            </div>
+            <button
+              type="button"
+              title="Change photo"
+              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-brand-orange-500 hover:bg-brand-orange-400 flex items-center justify-center shadow-md border-2 border-white/20 transition-colors"
+            >
+              <Camera className="w-3 h-3 text-white" />
+            </button>
+          </div>
+
+          {/* Name / email / role */}
+          <div className="text-center z-10 w-full">
+            <p className="text-lg font-black leading-tight truncate">{profile.fullName || 'User'}</p>
+            <p className="text-sm text-white/50 font-medium mt-1 truncate max-w-full px-2">{profile.email}</p>
+            <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-full bg-brand-orange-500/20 border border-brand-orange-400/30 text-brand-orange-300 text-xs font-bold">
+              <Shield className="w-2.5 h-2.5" />
+              {profile.role}
+            </span>
+          </div>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-2 gap-2 w-full z-10">
+            <div className="rounded-xl bg-white/5 border border-white/10 p-4 text-center">
+              <p className="text-2xl font-black">{employees.length}</p>
+              <p className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mt-1">Team</p>
+            </div>
+            <div className="rounded-xl bg-white/5 border border-white/10 p-4 text-center">
+              <p className="text-2xl font-black text-brand-orange-400">{activeCount}</p>
+              <p className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mt-1">Active</p>
+            </div>
+          </div>
+
+          {/* Branch pill */}
+          {branch && (
+            <div className="w-full z-10 rounded-xl bg-white/5 border border-white/10 p-3 flex items-start gap-2.5">
+              <div className="w-9 h-9 rounded-lg bg-brand-orange-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                <Building2 className="w-4 h-4 text-brand-orange-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mb-0.5">Branch</p>
+                <p className="text-sm font-bold text-white truncate">{branch.name}</p>
+                {(branch.city || branch.address) && (
+                  <p className="text-[11px] text-white/40 mt-0.5 flex items-center gap-1 truncate">
+                    <MapPin className="w-2.5 h-2.5 shrink-0" />
+                    {[branch.address, branch.city].filter(Boolean).join(', ')}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Logout */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full z-10 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 hover:text-red-300 text-sm font-bold transition-all"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            Log Out
+          </button>
+        </div>
+
+        {/* Contact card */}
+        <div className="rounded-2xl bg-white border border-border/50 shadow-soft p-5 space-y-3">
+          <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Quick Info</p>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-brand-orange-50 border border-brand-orange-100 flex items-center justify-center shrink-0">
+              <Phone className="w-3.5 h-3.5 text-brand-orange-500" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] text-text-secondary font-semibold uppercase tracking-wide">Phone</p>
+              <p className="text-sm font-bold text-brand-navy truncate">
+                {profile.phone ? `${profile.phoneExt} ${profile.phone}` : '—'}
+              </p>
+            </div>
+          </div>
+          {branch && (
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-brand-orange-50 border border-brand-orange-100 flex items-center justify-center shrink-0">
+                <Store className="w-3.5 h-3.5 text-brand-orange-500" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] text-text-secondary font-semibold uppercase tracking-wide">Branch Code</p>
+                <p className="text-sm font-bold text-brand-navy font-mono truncate">{branch.code || '—'}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.aside>
+
+      {/* ── RIGHT PANEL ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.35 }}
+        className="flex-1 min-w-0 space-y-4"
+      >
+        {/* Tab bar — SEPARATE from actions */}
+        <div className="bg-white rounded-2xl border border-border/50 shadow-soft px-5 py-3 flex items-center gap-3">
+          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 flex-shrink-0">
+            <button
+              onClick={() => setTab('profile')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                tab === 'profile' ? 'bg-white text-brand-navy shadow-sm' : 'text-text-secondary hover:text-brand-navy'
+              }`}
+            >
+              <Shield className="w-3 h-3" />
+              Profile Details
+            </button>
+            <button
+              onClick={() => setTab('employees')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                tab === 'employees' ? 'bg-white text-brand-navy shadow-sm' : 'text-text-secondary hover:text-brand-navy'
+              }`}
+            >
+              <Users className="w-3 h-3" />
+              Branch Employees
+              {employees.length > 0 && (
+                <span className="w-4 h-4 rounded-full bg-brand-orange-500 text-white text-[9px] font-black flex items-center justify-center leading-none">
+                  {employees.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+
+          {tab === 'employees' && (
+            <input
+              type="text"
+              placeholder="Search…"
+              value={empFilter}
+              onChange={e => setEmpFilter(e.target.value)}
+              className="px-3 py-1.5 text-xs font-medium bg-gray-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 w-36 transition-all"
+            />
+          )}
+        </div>
+
+        {/* Content */}
+        <AnimatePresence mode="wait">
+          {tab === 'profile' ? (
+            <motion.div key="profile" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
+              <form onSubmit={handleSave}>
+                <div className="bg-white rounded-2xl border border-border/50 shadow-soft overflow-hidden">
+
+                  {/* Section: Personal */}
+                  <div className="px-7 py-6 border-b border-border/40">
+                    <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-5">Personal Information</p>
+                    <div className="space-y-4 max-w-lg">
+
+                      {/* Full Name */}
+                      <div>
+                        <label className="block text-xs font-bold text-brand-navy mb-1.5">Full Name</label>
+                        {editing ? (
+                          <input
+                            type="text"
+                            name="fullName"
+                            value={profile.fullName}
+                            onChange={handleInput}
+                            disabled={saving}
+                            autoFocus
+                            className="w-full px-4 py-2.5 bg-white border-2 border-brand-orange-400 rounded-xl text-sm font-medium focus:outline-none focus:border-brand-orange-500 focus:ring-2 focus:ring-brand-orange-500/15 transition-all"
+                          />
+                        ) : (
+                          <p className="w-full px-4 py-2.5 bg-gray-50 rounded-xl text-sm font-semibold text-brand-navy border border-transparent">
+                            {profile.fullName || '—'}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Email */}
+                      <div>
+                        <label className="block text-xs font-bold text-brand-navy mb-1.5">
+                          Email Address
+                          <span className="ml-2 text-[10px] font-semibold text-text-secondary bg-gray-100 px-1.5 py-0.5 rounded normal-case tracking-normal">read-only</span>
+                        </label>
+                        <p className="w-full px-4 py-2.5 bg-gray-50 rounded-xl text-sm font-medium text-text-secondary border border-transparent cursor-not-allowed truncate">
+                          {profile.email || '—'}
+                        </p>
+                      </div>
+
+                      {/* Role */}
+                      <div>
+                        <label className="block text-xs font-bold text-brand-navy mb-1.5">Role</label>
+                        <div className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-orange-50 rounded-xl border border-brand-orange-200">
+                          <Shield className="w-3.5 h-3.5 text-brand-orange-500 shrink-0" />
+                          <span className="text-sm font-bold text-brand-orange-800">{profile.role}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section: Contact */}
+                  <div className="px-7 py-6 border-b border-border/40">
+                    <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-5">Contact Information</p>
+                    <div className="max-w-sm">
+                      <PhoneInput
+                        name="phone"
+                        value={profile.phone}
+                        extValue={profile.phoneExt}
+                        onChange={handleInput as any}
+                        onExtChange={(e: any) => setProfile(p => ({ ...p, phoneExt: e.target.value }))}
+                        disabled={!editing || saving}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Section: Branch */}
+                  {branch && (
+                    <div className="px-7 py-6 border-b border-border/40">
+                      <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-5">Branch Assignment</p>
+                      <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-border/50 max-w-lg">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-orange-400 to-brand-orange-600 flex items-center justify-center shadow-sm shrink-0">
+                          <Building2 className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-bold text-brand-navy text-sm">{branch.name}</p>
+                            {branch.code && branch.code !== branch.name && (
+                              <code className="text-[10px] bg-gray-200 text-text-secondary px-1.5 py-0.5 rounded font-mono">
+                                {branch.code}
+                              </code>
+                            )}
+                          </div>
+                          {(branch.city || branch.address) && (
+                            <p className="text-xs text-text-secondary font-medium mt-1 flex items-center gap-1">
+                              <MapPin className="w-3 h-3 shrink-0" />
+                              {[branch.address, branch.city].filter(Boolean).join(', ')}
+                            </p>
+                          )}
+                          <p className="text-[11px] text-text-secondary/70 mt-1.5">Assigned by your admin</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Save bar */}
+                  <AnimatePresence>
+                    {editing && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-7 py-4 bg-brand-orange-50 border-t border-brand-orange-100 flex items-center gap-3">
+                          <Button type="submit" disabled={saving} className="gap-2">
+                            {saving
+                              ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Saving…</>
+                              : <><Save className="w-3.5 h-3.5" />Save Changes</>}
+                          </Button>
+                          <Button type="button" variant="secondary" onClick={handleCancel} disabled={saving} size="sm" className="gap-2">
+                            <X className="w-3.5 h-3.5" />Cancel
+                          </Button>
+                          <span className="text-[11px] text-text-secondary font-medium ml-auto flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand-orange-400 inline-block" />
+                            Unsaved changes
+                          </span>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </form>
+            </motion.div>
+          ) : (
+            <motion.div key="employees" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
+              <div className="bg-white rounded-2xl border border-border/50 shadow-soft overflow-hidden">
+                {/* Header */}
+                <div className="px-7 py-5 border-b border-border/40 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Team Members</p>
+                    <p className="text-base font-black text-brand-navy mt-0.5">{branch?.name || 'Branch'}</p>
+                  </div>
+                  <span className="text-xs font-bold text-text-secondary">
+                    {filteredEmps.length} {empFilter ? `of ${employees.length}` : ''} members
+                  </span>
+                </div>
+
+                {filteredEmps.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-14 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-3">
+                      <Users className="w-7 h-7 text-gray-300" />
+                    </div>
+                    <p className="font-bold text-text-secondary text-sm">
+                      {empFilter ? 'No results found' : 'No employees assigned'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border/40">
+                    {filteredEmps.map((emp, i) => {
+                      const empName = [emp.firstName, emp.lastName].filter(Boolean).join(' ') || emp.fullName || emp.name || 'Employee';
+                      const initial = empName.charAt(0).toUpperCase();
+                      const isActive = (emp.status || 'Active') === 'Active';
+                      return (
+                        <motion.div
+                          key={emp.id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: i * 0.03 }}
+                          className="flex items-center gap-4 px-7 py-4 hover:bg-gray-50/50 transition-colors"
+                        >
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-black shrink-0 ${
+                            isActive ? 'bg-gradient-to-br from-brand-orange-400 to-brand-orange-600' : 'bg-gray-300'
+                          }`}>
+                            {initial}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-brand-navy truncate">{empName}</p>
+                            <p className="text-xs text-text-secondary font-medium mt-0.5 truncate">
+                              {emp.role || 'Employee'}
+                              {(emp.phone || emp.mobileNumber) && <> · {emp.phone || emp.mobileNumber}</>}
+                            </p>
+                          </div>
+                          <div className="shrink-0">
+                            {isActive ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-50 border border-green-200 text-green-700 text-[11px] font-bold">
+                                <CheckCircle2 className="w-3 h-3" />
+                                Active
+                              </span>
+                            ) : (
+                              <Badge variant="error">{emp.status || 'Inactive'}</Badge>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
+  );
+}

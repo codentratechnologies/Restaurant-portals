@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Check, X, AlertCircle, Volume2, VolumeX, Wifi, WifiOff, Plus } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Button from '../../components/common/Button';
 import RejectionModal from './components/RejectionModal';
@@ -270,6 +271,55 @@ export default function OrderCalendar() {
  />
  )}
 
+ {/* Orders Tab Bar */}
+ <div className="flex items-center gap-1 border-b border-border pb-0">
+   <NavLink
+     to="/orders"
+     end
+     className={({ isActive }) =>
+       `relative px-5 py-3 text-sm font-bold transition-colors rounded-t-lg ${
+         isActive ? 'text-brand-navy' : 'text-text-secondary hover:text-brand-navy'
+       }`
+     }
+   >
+     {({ isActive }) => (
+       <>
+         Live Order Queue
+         {isActive && (
+           <motion.div
+             layoutId="orders-tab-underline"
+             className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-brand-orange-600"
+             initial={false}
+             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+           />
+         )}
+       </>
+     )}
+   </NavLink>
+   <NavLink
+     to="/orders/list"
+     className={({ isActive }) =>
+       `relative px-5 py-3 text-sm font-bold transition-colors rounded-t-lg ${
+         isActive ? 'text-brand-navy' : 'text-text-secondary hover:text-brand-navy'
+       }`
+     }
+   >
+     {({ isActive }) => (
+       <>
+         Order List
+         {isActive && (
+           <motion.div
+             layoutId="orders-tab-underline"
+             className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-brand-orange-600"
+             initial={false}
+             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+           />
+         )}
+       </>
+     )}
+   </NavLink>
+ </div>
+
  {/* Header */}
  <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
  <div>
@@ -367,16 +417,16 @@ export default function OrderCalendar() {
 function OrderCard({ order, onAccept, onReject, onAutoReject, disabled }: { order: OrderData, onAccept: () => void, onReject: () => void, onAutoReject: () => void, disabled: boolean }) {
  const [timeLeft, setTimeLeft] = useState(300); // 5 mins in seconds
 
+ const didAutoReject = useRef(false);
  useEffect(() => {
  if (!order.created_at) return;
- let didAutoReject = false;
  
  const calculateTime = () => {
  const diff = Math.floor((order.created_at! + 300000 - Date.now()) / 1000);
  if (diff <= 0) {
  setTimeLeft(0);
- if (!didAutoReject) {
- didAutoReject = true;
+ if (!didAutoReject.current) {
+ didAutoReject.current = true;
  onAutoReject();
  }
  } else {

@@ -7,11 +7,10 @@ import Badge from '../../components/common/Badge';
 import Select from '../../components/common/Select';
 import AvailabilityToggle from './components/AvailabilityToggle';
 import DisableConfirmationModal from './components/DisableConfirmationModal';
+import EnableConfirmationModal from './components/EnableConfirmationModal';
 import { ref, onValue, set, query, orderByChild, equalTo } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
 import { useNavigate, Link } from 'react-router-dom';
-
-const categories = ['All', 'Starters', 'Main Course', 'Desserts', 'Beverages'];
 
 export default function FoodCatalog() {
  const navigate = useNavigate();
@@ -117,6 +116,14 @@ export default function FoodCatalog() {
  });
  }, [masterMenu, menuAvailability, currentUser, branchCode]);
  
+  const categories = useMemo(() => {
+    const uniqueCats = new Set<string>();
+    items.forEach(item => {
+      if (item.category) uniqueCats.add(item.category);
+    });
+    return ['All', ...Array.from(uniqueCats).sort()];
+  }, [items]);
+
  const getDietaryString = (item: any) => {
  if (item.tags?.includes('Egg')) return 'Egg';
  if (item.is_vegetarian) return 'Veg';
@@ -144,6 +151,9 @@ export default function FoodCatalog() {
  // Modal State
  const [modalOpen, setModalOpen] = useState(false);
  const [itemToDisable, setItemToDisable] = useState<any>(null);
+ 
+ const [enableModalOpen, setEnableModalOpen] = useState(false);
+ const [itemToEnable, setItemToEnable] = useState<any>(null);
 
  // Debounce search input
  useEffect(() => {
@@ -190,12 +200,8 @@ export default function FoodCatalog() {
  setItemToDisable(item);
  setModalOpen(true);
  } else {
- try {
- await set(ref(rtdb, `branch/${currentUser.adminId}/${branchKey}/menu_availability/${item.displayId}`), null);
- toast.success(`${item.name} availability restored.`);
- } catch (error) {
- toast.error("Failed to synchronize menu changes.");
- }
+ setItemToEnable(item);
+ setEnableModalOpen(true);
  }
  };
 
@@ -209,6 +215,21 @@ export default function FoodCatalog() {
  try {
  await set(ref(rtdb, `branch/${currentUser.adminId}/${branchKey}/menu_availability/${displayId}`), false);
  toast.success(`${name} marked as unavailable.`);
+ } catch (error) {
+ toast.error("Failed to synchronize menu changes.");
+ }
+ };
+
+ const handleConfirmEnable = async () => {
+ if (!itemToEnable || !currentUser || !branchCode || !branchKey) return;
+ const { displayId, name } = itemToEnable;
+ 
+ setEnableModalOpen(false);
+ setItemToEnable(null);
+ 
+ try {
+ await set(ref(rtdb, `branch/${currentUser.adminId}/${branchKey}/menu_availability/${displayId}`), null);
+ toast.success(`${name} availability restored.`);
  } catch (error) {
  toast.error("Failed to synchronize menu changes.");
  }
@@ -241,6 +262,13 @@ export default function FoodCatalog() {
  onClose={() => setModalOpen(false)} 
  onConfirm={handleConfirmDisable}
  itemName={itemToDisable?.name || ''} 
+ />
+
+ <EnableConfirmationModal 
+ isOpen={enableModalOpen} 
+ onClose={() => setEnableModalOpen(false)} 
+ onConfirm={handleConfirmEnable}
+ itemName={itemToEnable?.name || ''} 
  />
 
  {/* Top Section */}
@@ -378,9 +406,6 @@ export default function FoodCatalog() {
  {/* Availability */}
  <td className="px-6 py-5 text-left" onClick={(e) => e.stopPropagation()}>
  <div className="flex items-center justify-start gap-3">
- <Badge variant={item.isAvailable ? 'success' : 'error'} className="font-black px-2.5 py-1 shadow-sm uppercase tracking-widest text-[10px]">
- {item.isAvailable ? 'Available' : 'Unavailable'}
- </Badge>
  <AvailabilityToggle 
  isAvailable={item.isAvailable} 
  onToggle={() => handleToggle(item.id, item.isAvailable)} 

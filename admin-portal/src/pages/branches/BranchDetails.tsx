@@ -14,7 +14,7 @@ import { ref, onValue, update } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
 import toast from 'react-hot-toast';
 
-const TABS = [
+const TABS: { id: string; label: string; count?: number }[] = [
  { id: 'info', label: 'Branch Information' },
  { id: 'employees', label: 'Employees' },
 ];

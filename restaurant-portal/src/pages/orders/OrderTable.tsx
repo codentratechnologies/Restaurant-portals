@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Download, FileX, CheckCircle2, PackageCheck, User, XCircle } from 'lucide-react';
+import { Search, Download, FileX, CheckCircle2, PackageCheck, User, XCircle, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 
@@ -72,18 +72,19 @@ function ReadyForPickupButton({ order, updatingIds, onReady }: { order: OrderDat
  const secs = Math.floor((timeLeft % 60000) / 1000);
  const timeString = timeLeft > 0 ? `(${mins}:${secs.toString().padStart(2, '0')})` : '';
 
- return (
- <button
- disabled={isDisabled}
- onClick={() => onReady(order)}
- className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white rounded-lg transition-colors whitespace-nowrap shadow-sm ${
- isDisabled ? 'bg-gray-400 cursor-not-allowed opacity-80' : 'bg-green-600 hover:bg-green-700 shadow-green-600/20'
- }`}
- >
- <PackageCheck className="w-3.5 h-3.5" />
- Ready for Pickup {timeString}
- </button>
- );
+  return (
+  <button
+  title={`Ready for Pickup ${timeString}`}
+  disabled={isDisabled}
+  onClick={() => onReady(order)}
+  className={`flex items-center justify-center p-2 text-white rounded-lg transition-colors shadow-sm ${
+  isDisabled ? 'bg-gray-400 cursor-not-allowed opacity-80' : 'bg-green-600 hover:bg-green-700 shadow-green-600/20'
+  }`}
+  >
+  <PackageCheck className="w-4 h-4" />
+  {timeString && <span className="ml-1 text-[10px] font-bold">{timeString}</span>}
+  </button>
+  );
 }
 
 export default function OrderTable() {
@@ -253,6 +254,7 @@ export default function OrderTable() {
  const baseColumns: Column<OrderData>[] = [
  {
  header: 'Order ID',
+ className: 'w-[120px] min-w-[120px]',
  cell: (item) => (
  <Link
  to={`/orders/${item.id}`}
@@ -264,6 +266,7 @@ export default function OrderTable() {
  },
  {
  header: 'Items',
+ className: 'w-[25%] min-w-[200px]',
  cell: (item) => (
  <span className="text-sm font-medium text-text-secondary truncate block max-w-[200px]">
  {item.items.map(i => i.name).join(', ')}
@@ -272,6 +275,7 @@ export default function OrderTable() {
  },
  {
  header: 'Customer',
+ className: 'w-[180px] min-w-[180px]',
  cell: (item) => (
  <div>
  <div className="flex items-center gap-1.5 font-bold text-brand-navy text-sm truncate max-w-[150px]">
@@ -286,10 +290,12 @@ export default function OrderTable() {
  },
  {
  header: 'Total Value',
+ className: 'w-[120px] min-w-[120px]',
  cell: (item) => <span className="font-black text-brand-navy">₹{Number(item.billing.total || 0).toFixed(2)}</span>
  },
  {
  header: 'Status',
+ className: 'w-[150px] min-w-[150px]',
  cell: (item) => <StatusBadge status={item.status} />
  }
  ];
@@ -297,6 +303,7 @@ export default function OrderTable() {
  if (currentTab === 'accept') {
  baseColumns.splice(3, 0, {
  header: 'Payment Mode',
+ className: 'w-[140px] min-w-[140px]',
  cell: (item) => <span className="text-sm font-bold text-text-secondary">{item.payment.method}</span>
  });
  }
@@ -304,10 +311,12 @@ export default function OrderTable() {
  if (currentTab === 'reject') {
  baseColumns.splice(3, 0, {
  header: 'Rejection Reason',
+ className: 'w-[160px] min-w-[160px]',
  cell: (item) => <span className="text-sm font-bold text-red-600">{item.rejectionReason}</span>
  });
  baseColumns.push({
  header: 'Refund Status',
+ className: 'w-[140px] min-w-[140px]',
  cell: (item) => (
  <Badge variant="default" className={item.payment.status === 'Refunded' ? 'text-green-600 border-green-200 bg-green-50' : 'text-amber-600 border-amber-200 bg-amber-50'}>
  {item.payment.status === 'Refunded' ? 'Refunded' : 'Refund Pending'}
@@ -319,47 +328,51 @@ export default function OrderTable() {
  if (currentTab === 'cancel') {
  baseColumns.splice(3, 0, {
  header: 'Cancel Reason',
+ className: 'w-[160px] min-w-[160px]',
  cell: (item) => <span className="text-sm font-bold text-red-600">{item.cancellationReason}</span>
  });
  }
 
- // ─── Action Column ───────────────────────────────────────────────────────
- baseColumns.push({
- header: 'Action',
- cell: (item) => (
- <div className="flex items-center gap-2">
- {/* Ready for Pickup — only for Preparing orders */}
- {item.status === 'Preparing' && (
- <ReadyForPickupButton 
- order={item} 
- updatingIds={updatingIds} 
- onReady={handleReadyForPickup} 
- />
- )}
+  // ─── Action Column ───────────────────────────────────────────────────────
+  baseColumns.push({
+  header: 'Action',
+  className: 'w-[180px] min-w-[180px]',
+  cell: (item) => (
+  <div className="flex items-center gap-2">
+  {/* Ready for Pickup — only for Preparing orders */}
+  {item.status === 'Preparing' && (
+  <ReadyForPickupButton 
+  order={item} 
+  updatingIds={updatingIds} 
+  onReady={handleReadyForPickup} 
+  />
+  )}
 
- {['Accepted', 'Preparing', 'Ready For Pickup'].includes(item.status) && (
- <button
- onClick={() => {
- setOrderToCancel(item);
- setCancelModalOpen(true);
- }}
- disabled={updatingIds.has(item._key!)}
- className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
- >
- <XCircle className="w-3.5 h-3.5" /> Cancel
- </button>
- )}
+  {['Accepted', 'Preparing', 'Ready For Pickup'].includes(item.status) && (
+  <button
+  title="Cancel Order"
+  onClick={() => {
+  setOrderToCancel(item);
+  setCancelModalOpen(true);
+  }}
+  disabled={updatingIds.has(item._key!)}
+  className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+  >
+  <XCircle className="w-4 h-4" />
+  </button>
+  )}
 
- {/* View button — always visible */}
- <Link
- to={`/orders/${item.id}`}
- className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-brand-navy bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
- >
- <CheckCircle2 className="w-3.5 h-3.5" /> View
- </Link>
- </div>
- ),
- });
+  {/* View button — always visible */}
+  <Link
+  to={`/orders/${item.id}`}
+  title="View Order"
+  className="p-2 text-brand-navy bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+  >
+  <Eye className="w-4 h-4" />
+  </Link>
+  </div>
+  ),
+  });
 
  return baseColumns;
  };
@@ -367,7 +380,54 @@ export default function OrderTable() {
  return (
  <div className="space-y-6 max-w-[1400px] mx-auto">
 
-
+ {/* Orders Tab Bar */}
+ <div className="flex items-center gap-1 border-b border-border pb-0">
+   <NavLink
+     to="/orders"
+     end
+     className={({ isActive }) =>
+       `relative px-5 py-3 text-sm font-bold transition-colors rounded-t-lg ${
+         isActive ? 'text-brand-navy' : 'text-text-secondary hover:text-brand-navy'
+       }`
+     }
+   >
+     {({ isActive }) => (
+       <>
+         Live Order Queue
+         {isActive && (
+           <motion.div
+             layoutId="orders-tab-underline"
+             className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-brand-orange-600"
+             initial={false}
+             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+           />
+         )}
+       </>
+     )}
+   </NavLink>
+   <NavLink
+     to="/orders/list"
+     className={({ isActive }) =>
+       `relative px-5 py-3 text-sm font-bold transition-colors rounded-t-lg ${
+         isActive ? 'text-brand-navy' : 'text-text-secondary hover:text-brand-navy'
+       }`
+     }
+   >
+     {({ isActive }) => (
+       <>
+         Order List
+         {isActive && (
+           <motion.div
+             layoutId="orders-tab-underline"
+             className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-brand-orange-600"
+             initial={false}
+             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+           />
+         )}
+       </>
+     )}
+   </NavLink>
+ </div>
 
  <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
  <div>

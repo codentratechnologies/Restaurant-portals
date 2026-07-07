@@ -54,16 +54,26 @@ export default function Dashboard() {
       if (order.status === 'Cancelled') prevTotalCancellations++;
     });
 
-    const chartData = Array.from({ length: diffDays }, (_, i) => {
-      const d = new Date(start);
-      d.setDate(d.getDate() + i);
-      return {
-        date: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'),
-        name: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    let chartData: { date: string, name: string, revenue: number, orders: number }[] = [];
+    if (startDate === endDate) {
+      chartData = Array.from({ length: 24 }, (_, i) => ({
+        date: `${startDate} ${String(i).padStart(2, '0')}:00`,
+        name: `${String(i).padStart(2, '0')}:00`,
         revenue: 0,
         orders: 0
-      };
-    });
+      }));
+    } else {
+      chartData = Array.from({ length: diffDays }, (_, i) => {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        return {
+          date: d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'),
+          name: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          revenue: 0,
+          orders: 0
+        };
+      });
+    }
 
     const filteredOrders = orders.filter(o => {
       const orderDate = new Date(o.created_at || Date.now());
@@ -78,9 +88,15 @@ export default function Dashboard() {
       if (order.status === 'Cancelled') totalCancellations++;
 
       const orderDate = new Date(order.created_at || Date.now());
-      const dateStr = orderDate.getFullYear() + '-' + String(orderDate.getMonth() + 1).padStart(2, '0') + '-' + String(orderDate.getDate()).padStart(2, '0');
+      let dayIndex = -1;
 
-      const dayIndex = chartData.findIndex(d => d.date === dateStr);
+      if (startDate === endDate) {
+        const hourStr = `${startDate} ${String(orderDate.getHours()).padStart(2, '0')}:00`;
+        dayIndex = chartData.findIndex(d => d.date === hourStr);
+      } else {
+        const dateStr = orderDate.getFullYear() + '-' + String(orderDate.getMonth() + 1).padStart(2, '0') + '-' + String(orderDate.getDate()).padStart(2, '0');
+        dayIndex = chartData.findIndex(d => d.date === dateStr);
+      }
       if (dayIndex !== -1 && order.status !== 'Rejected' && order.status !== 'Cancelled') {
         chartData[dayIndex].revenue += order.billing?.total || 0;
         chartData[dayIndex].orders += 1;

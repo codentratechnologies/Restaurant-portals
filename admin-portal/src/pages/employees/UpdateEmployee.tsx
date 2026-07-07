@@ -320,7 +320,7 @@ export default function UpdateEmployee() {
  </div>
 
  {/* Editable Personal Fields */}
- <div ref={el => errorRefs.current["firstName"] = el}>
+ <div ref={el => { errorRefs.current["firstName"] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy">First Name <span className="text-brand-orange-500">*</span></label>
  <input
@@ -335,7 +335,7 @@ export default function UpdateEmployee() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current["lastName"] = el}>
+ <div ref={el => { errorRefs.current["lastName"] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy">Last Name <span className="text-brand-orange-500">*</span></label>
  <input
@@ -350,7 +350,7 @@ export default function UpdateEmployee() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current["phone"] = el}>
+ <div ref={el => { errorRefs.current["phone"] = el; }}>
  <PhoneInput
  name="phone"
  value={formData.phone}
@@ -361,7 +361,7 @@ export default function UpdateEmployee() {
  />
  </div>
 
- <div ref={el => errorRefs.current["doj"] = el}>
+ <div ref={el => { errorRefs.current["doj"] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy">Date of Joining <span className="text-brand-orange-500">*</span></label>
  <input
@@ -378,7 +378,7 @@ export default function UpdateEmployee() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current["role"] = el}>
+ <div ref={el => { errorRefs.current["role"] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy">Role <span className="text-brand-orange-500">*</span></label>
  <Select
@@ -396,7 +396,7 @@ export default function UpdateEmployee() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current["branch"] = el}>
+ <div ref={el => { errorRefs.current["branch"] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy flex items-center gap-2">
  Assign Branch <span className="text-brand-orange-500">*</span>
@@ -406,7 +406,7 @@ export default function UpdateEmployee() {
  value={formData.branch}
  onChange={(e) => handleChange(e as any)}
  disabled={branchesLoading}
- options={branches.map((b) => ({ value: b.code, label: `${b.name} ${b.city ? `(${b.city})` : ''}` }))}
+ options={branches.map((b) => ({ value: b.code || '', label: `${b.name} ${b.city ? `(${b.city})` : ''}` }))}
  placeholder={branchesLoading ? 'Loading branches...' : 'Select Branch'}
  error={errors.branch}
  />
@@ -414,7 +414,7 @@ export default function UpdateEmployee() {
  </div>
  </div>
 
- <div ref={el => errorRefs.current["status"] = el}>
+ <div ref={el => { errorRefs.current["status"] = el; }}>
  <div className="flex flex-col gap-1.5">
  <label className="text-sm font-bold text-brand-navy">Status</label>
  <Select

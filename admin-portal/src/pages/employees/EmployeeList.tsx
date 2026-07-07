@@ -218,7 +218,7 @@ export default function EmployeeList() {
                   onChange={(e) => setBranchFilter(e.target.value)}
                   options={[
                     { value: 'All', label: 'All Branches' },
-                    ...branches.map((b) => ({ value: b.code, label: b.name }))
+                    ...branches.map((b) => ({ value: b.code || '', label: b.name }))
                   ]}
                 />
               </div>

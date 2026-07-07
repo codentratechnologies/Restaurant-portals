@@ -1,32 +1,20 @@
-import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { Search, LogOut, ChevronDown, ChefHat, Bell, Menu, X } from 'lucide-react';
+import { NavLink, Link } from 'react-router-dom';
+import { Search, Menu, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 
 const navItems = [
   { name: 'Home & Analytics', path: '/dashboard' },
   { name: 'Menu', path: '/food' },
-  { 
-    name: 'Orders Management', 
-    path: '/orders',
-    subItems: [
-      { name: 'Live Orders', path: '/orders' },
-      { name: 'Order List', path: '/orders/list' }
-    ]
-  },
+  { name: 'Orders Management', path: '/orders' },
   { name: 'Order Review', path: '/reviews' },
   { name: 'Customer Support', path: '/support' },
 ];
 
 export default function TopNav() {
-  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({});
 
-  const toggleSubmenu = (name: string) => {
-    setOpenSubmenus(prev => ({ ...prev, [name]: !prev[name] }));
-  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-border shadow-sm">
@@ -52,7 +40,7 @@ export default function TopNav() {
               <div key={item.name} className="relative group h-16 flex items-center">
                 <NavLink
                   to={item.path}
-                  end={item.path === '/orders' || item.path === '/dashboard'}
+                  end={item.path === '/dashboard'}
                   className={({ isActive }) =>
                     cn(
                       "relative px-4 py-2 text-sm font-medium transition-colors flex items-center gap-1.5 rounded-lg hover:bg-gray-50",
@@ -63,7 +51,6 @@ export default function TopNav() {
                   {({ isActive }) => (
                     <>
                       {item.name}
-                      {item.subItems && <ChevronDown className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />}
                       {isActive && (
                         <motion.div
                           layoutId="active-nav-underline"
@@ -75,22 +62,6 @@ export default function TopNav() {
                     </>
                   )}
                 </NavLink>
-
-                {item.subItems && (
-                  <div className="absolute top-full left-0 w-48 bg-white rounded-xl shadow-lg border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
-                    <div className="p-2 flex flex-col gap-1">
-                      {item.subItems.map(sub => (
-                        <Link 
-                          key={sub.name}
-                          to={sub.path}
-                          className="px-3 py-2.5 text-sm font-bold text-text-secondary hover:text-brand-orange-600 hover:bg-brand-orange-50 rounded-lg transition-colors"
-                        >
-                          {sub.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
           </nav>
@@ -151,54 +122,19 @@ export default function TopNav() {
               </div>
               <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 bg-white">
                 {navItems.map((item) => (
-                  <div key={item.name}>
-                    <NavLink
-                      to={item.subItems ? '#' : item.path}
-                      onClick={(e) => {
-                        if (item.subItems) {
-                          e.preventDefault();
-                          toggleSubmenu(item.name);
-                        } else {
-                          setIsMobileMenuOpen(false);
-                        }
-                      }}
-                      className={({ isActive }) =>
-                        cn(
-                          "flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-bold transition-all",
-                          isActive && !item.subItems ? "bg-brand-orange-50 text-brand-orange-700 shadow-sm" : "text-text-secondary hover:bg-gray-50 hover:text-brand-navy"
-                        )
-                      }
-                    >
-                      <span>{item.name}</span>
-                      {item.subItems && (
-                        <ChevronDown className={`w-4 h-4 transition-transform ${openSubmenus[item.name] ? 'rotate-180' : ''}`} />
-                      )}
-                    </NavLink>
-                    
-                    <AnimatePresence>
-                      {item.subItems && openSubmenus[item.name] && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden ml-4 pl-4 border-l-2 border-border mt-1"
-                        >
-                          <div className="flex flex-col gap-1 py-2">
-                            {item.subItems.map(sub => (
-                              <Link 
-                                key={sub.name}
-                                to={sub.path}
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="px-3 py-2 text-sm font-semibold text-text-secondary hover:text-brand-orange-600 rounded-lg transition-colors"
-                              >
-                                {sub.name}
-                              </Link>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                  <NavLink
+                    key={item.name}
+                    to={item.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center px-4 py-3.5 rounded-xl text-sm font-bold transition-all",
+                        isActive ? "bg-brand-orange-50 text-brand-orange-700 shadow-sm" : "text-text-secondary hover:bg-gray-50 hover:text-brand-navy"
+                      )
+                    }
+                  >
+                    {item.name}
+                  </NavLink>
                 ))}
               </nav>
             </motion.div>

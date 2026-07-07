@@ -2,8 +2,8 @@ export type Role = 'Super Admin' | 'Admin' | 'Branch Manager' | 'Delivery Partne
 
 export function useRoleAccess() {
   // TODO: Replace with actual auth hook role
-  const MOCK_CURRENT_ROLE: Role = 'Super Admin'; // Change to 'Branch Manager' to test restrictions
-  const role = MOCK_CURRENT_ROLE;
+  let MOCK_CURRENT_ROLE: Role = 'Super Admin'; // Change to 'Branch Manager' to test restrictions
+  const role = MOCK_CURRENT_ROLE as string;
 
   const isSuperAdmin = role === 'Super Admin';
   const isAdmin = role === 'Admin' || isSuperAdmin;
