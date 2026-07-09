@@ -1,13 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  ArrowLeft, User, MapPin, Phone, CheckCircle2, Clock, Truck,
-  Store, Receipt, Circle, Loader2, CreditCard, Hash, Package,
-  ChevronRight,
+  ArrowLeft, User, MapPin, Phone, CheckCircle2, Clock,
+  Truck, Store, Receipt, Circle, Loader2, CreditCard,
+  Hash, Package,
 } from 'lucide-react';
 import Card from '../../components/common/Card';
-import Badge from '../../components/common/Badge';
-import { useRestaurantOrders } from '../../hooks/useRestaurantOrders';
+import { useOrders } from '../../hooks/useOrders';
 
 // ─── Uniform Info Field ───────────────────────────────────────────────────────
 function InfoField({
@@ -63,20 +62,20 @@ function SectionCard({
 
 // ─── Status Config ────────────────────────────────────────────────────────────
 const STATUS_CFG: Record<string, { cls: string; dot?: boolean }> = {
-  Delivered:         { cls: 'bg-green-50 text-green-700 border-green-200' },
-  Cancelled:         { cls: 'bg-red-50 text-red-700 border-red-200' },
-  Rejected:          { cls: 'bg-red-50 text-red-700 border-red-200' },
-  Preparing:         { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: true },
-  'Out for Delivery':{ cls: 'bg-purple-50 text-purple-700 border-purple-200' },
-  'Ready For Pickup':{ cls: 'bg-teal-50 text-teal-700 border-teal-200' },
-  Accepted:          { cls: 'bg-blue-50 text-blue-700 border-blue-200' },
-  Pending:           { cls: 'bg-gray-100 text-gray-600 border-gray-200' },
+  Delivered:          { cls: 'bg-green-50 text-green-700 border-green-200' },
+  Cancelled:          { cls: 'bg-red-50 text-red-700 border-red-200' },
+  Rejected:           { cls: 'bg-red-50 text-red-700 border-red-200' },
+  Preparing:          { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: true },
+  'Out for Delivery': { cls: 'bg-purple-50 text-purple-700 border-purple-200' },
+  'Ready For Pickup': { cls: 'bg-teal-50 text-teal-700 border-teal-200' },
+  Accepted:           { cls: 'bg-blue-50 text-blue-700 border-blue-200' },
+  Pending:            { cls: 'bg-gray-100 text-gray-600 border-gray-200' },
 };
 
 export default function OrderDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { orders, loading } = useRestaurantOrders();
+  const { orders, loading } = useOrders();
 
   if (loading) {
     return (
@@ -118,18 +117,18 @@ export default function OrderDetail() {
       });
     }
 
-    const getTime = (statusKeys: string[], isCompleted: boolean) => {
-      for (const k of statusKeys) if (dbTimeline[k]) return dbTimeline[k];
+    const getTime = (keys: string[], isCompleted: boolean) => {
+      for (const k of keys) if (dbTimeline[k]) return dbTimeline[k];
       return isCompleted ? defaultTimeStr : '--:--';
     };
 
-    const statusLevels: Record<string, number> = {
+    const lvl: Record<string, number> = {
       Pending: 1, Accepted: 2, Preparing: 3,
       'Ready for Pickup': 4, 'Out for Delivery': 4,
       Delivered: 5, Completed: 5, Served: 5,
       Cancelled: -1, Rejected: -1,
     };
-    const currentLevel = statusLevels[currentStatus] || 1;
+    const level = lvl[currentStatus] || 1;
 
     if (currentStatus === 'Cancelled' || currentStatus === 'Rejected') {
       return [
@@ -138,43 +137,41 @@ export default function OrderDetail() {
       ];
     }
 
-    const timeline = [
-      { status: 'Order Placed',   time: getTime(['Order Placed', 'Pending'], currentLevel >= 1), completed: currentLevel >= 1 },
-      { status: 'Order Accepted', time: getTime(['Order Accepted', 'Accepted'], currentLevel >= 2), completed: currentLevel >= 2 },
-      { status: 'Preparing',      time: getTime(['Preparing'], currentLevel >= 3), completed: currentLevel >= 3 },
+    const tl = [
+      { status: 'Order Placed',   time: getTime(['Order Placed', 'Pending'], level >= 1), completed: level >= 1 },
+      { status: 'Order Accepted', time: getTime(['Order Accepted', 'Accepted'], level >= 2), completed: level >= 2 },
+      { status: 'Preparing',      time: getTime(['Preparing'], level >= 3), completed: level >= 3 },
     ];
-
     if (type === 'Delivery') {
-      timeline.push({ status: 'Out for Delivery', time: getTime(['Out for Delivery'], currentLevel >= 4), completed: currentLevel >= 4 });
-      timeline.push({ status: 'Delivered', time: getTime(['Delivered', 'Completed'], currentLevel >= 5), completed: currentLevel >= 5 });
+      tl.push({ status: 'Out for Delivery', time: getTime(['Out for Delivery'], level >= 4), completed: level >= 4 });
+      tl.push({ status: 'Delivered', time: getTime(['Delivered', 'Completed'], level >= 5), completed: level >= 5 });
     } else if (type === 'Takeaway') {
-      timeline.push({ status: 'Ready for Pickup', time: getTime(['Ready for Pickup'], currentLevel >= 4), completed: currentLevel >= 4 });
-      timeline.push({ status: 'Picked Up', time: getTime(['Picked Up', 'Delivered', 'Completed'], currentLevel >= 5), completed: currentLevel >= 5 });
+      tl.push({ status: 'Ready for Pickup', time: getTime(['Ready for Pickup'], level >= 4), completed: level >= 4 });
+      tl.push({ status: 'Picked Up', time: getTime(['Picked Up', 'Delivered', 'Completed'], level >= 5), completed: level >= 5 });
     } else {
-      timeline.push({ status: 'Served', time: getTime(['Served', 'Delivered', 'Completed'], currentLevel >= 5), completed: currentLevel >= 5 });
+      tl.push({ status: 'Served', time: getTime(['Served', 'Delivered', 'Completed'], level >= 5), completed: level >= 5 });
     }
-
-    return timeline;
+    return tl;
   };
 
-  // ── Derived Data ────────────────────────────────────────────────────────────
+  // ── Derived ─────────────────────────────────────────────────────────────────
   const order = {
-    id: rawOrder.id,
-    status: rawOrder.status,
-    type: rawOrder.type || 'Delivery',
+    id:        rawOrder.id,
+    status:    rawOrder.status,
+    type:      rawOrder.type || 'Delivery',
     timestamp: rawOrder.created_at
       ? new Date(rawOrder.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })
       : 'N/A',
-    branch: rawOrder.branch || 'N/A',
-    payment: rawOrder.payment?.method || 'Online',
+    branch:  rawOrder.branch || 'N/A',
+    payment: (rawOrder as any).payment?.method || 'Online',
     customer: {
       name:    rawOrder.customer?.name    || 'N/A',
       phone:   rawOrder.customer?.phone   || 'N/A',
       address: rawOrder.customer?.address || 'No address provided',
     },
     agent: {
-      name:  rawOrder.deliveryAgent?.name    || rawOrder.agent?.name    || 'Not Assigned',
-      phone: rawOrder.deliveryAgent?.contact || rawOrder.agent?.phone   || 'N/A',
+      name:  rawOrder.agent?.name  || 'Not Assigned',
+      phone: rawOrder.agent?.phone || 'N/A',
     },
     items:   rawOrder.items || [],
     billing: {
@@ -193,18 +190,13 @@ export default function OrderDetail() {
     <div className="space-y-5 max-w-6xl mx-auto">
 
       {/* ── Hero Header ──────────────────────────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
+      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
         <Card className="p-0 border border-border/50 shadow-md overflow-hidden bg-white rounded-2xl relative">
-          {/* Subtle gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-brand-navy/[0.03] to-brand-orange-500/[0.04] pointer-events-none" />
           <div className="absolute top-0 right-0 w-48 h-48 bg-brand-orange-500/[0.07] blur-[60px] rounded-full pointer-events-none" />
 
           <div className="relative px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            {/* Left: back + id + meta */}
+            {/* Left */}
             <div className="flex items-center gap-4">
               <button
                 type="button"
@@ -222,7 +214,7 @@ export default function OrderDetail() {
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <h1 className="text-xl font-black text-brand-navy tracking-tight">Order #{order.id}</h1>
                   <span className={`inline-flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1 rounded-full border uppercase tracking-wider ${statusCfg.cls}`}>
-                    {statusCfg.dot && (
+                    {(statusCfg as any).dot && (
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500" />
@@ -290,7 +282,7 @@ export default function OrderDetail() {
                 </thead>
                 <tbody className="divide-y divide-border/40">
                   {order.items.map((item: any, idx: number) => (
-                    <tr key={idx} className="hover:bg-gray-50/40 transition-colors">
+                    <tr key={item.id ?? idx} className="hover:bg-gray-50/40 transition-colors">
                       <td className="px-4 py-3.5">
                         <p className="font-bold text-brand-navy text-sm">{item.name}</p>
                         {item.category && (
@@ -341,7 +333,7 @@ export default function OrderDetail() {
             </div>
           </SectionCard>
 
-          {/* Delivery Agent — left column, below items */}
+          {/* Delivery Partner — left column below items */}
           {order.type?.toLowerCase() === 'delivery' && order.agent.name !== 'Not Assigned' && (
             <SectionCard icon={Truck} title="Delivery Partner">
               <div className="grid grid-cols-2 gap-3">
@@ -359,31 +351,28 @@ export default function OrderDetail() {
           {/* Order Info */}
           <SectionCard icon={Hash} title="Order Info">
             <div className="grid grid-cols-1 gap-3">
-              <InfoField label="Order ID"     value={`#${order.id}`}  />
-              <InfoField label="Order Type"   value={order.type}      icon={Truck}      />
-              <InfoField label="Payment Mode" value={order.payment}   icon={CreditCard} />
-              <InfoField label="Branch"       value={order.branch}    icon={Store}      />
+              <InfoField label="Order ID"     value={`#${order.id}`} />
+              <InfoField label="Order Type"   value={order.type}     icon={Truck}      />
+              <InfoField label="Payment Mode" value={order.payment}  icon={CreditCard} />
+              <InfoField label="Branch"       value={order.branch}   icon={Store}      />
             </div>
           </SectionCard>
 
           {/* Timeline */}
           <SectionCard icon={Clock} title="Order Timeline">
             <div className="relative">
-              {order.timeline.map((step, i) => {
+              {order.timeline.map((step: any, i: number) => {
                 const isLast = i === order.timeline.length - 1;
                 return (
                   <div key={i} className="flex gap-3 relative">
-                    {/* Connector line */}
                     {!isLast && (
                       <div className="absolute left-[13px] top-6 bottom-0 w-0.5 bg-gray-200 z-0" />
                     )}
-                    {/* Dot */}
                     <div className="shrink-0 z-10 mt-0.5">
                       {step.completed
                         ? <CheckCircle2 className="w-6 h-6 text-brand-orange-500 bg-white" />
                         : <Circle       className="w-6 h-6 text-gray-300 bg-white" />}
                     </div>
-                    {/* Content */}
                     <div className={`pb-5 ${isLast ? 'pb-0' : ''}`}>
                       <p className={`text-sm font-black leading-tight ${step.completed ? 'text-brand-navy' : 'text-text-secondary'}`}>
                         {step.status}
