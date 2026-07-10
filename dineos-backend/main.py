@@ -1,6 +1,6 @@
 """
-main.py — Entry point for the Dineos Restaurant Backend
----------------------------------------------------------
+main.py — Entry point for the Dineos Backend
+----------------------------------------------------
 This is a pure Python backend — NO API server.
 Import services directly and call them from scripts or other modules.
 
@@ -15,13 +15,13 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from firebase import init_firebase
-from services import get_all_restaurants, get_menu, get_orders
+from services import get_all_restaurants, get_all_admin_users, get_menu, get_orders
 
 
 def main():
-    print("=" * 55)
-    print("  Dineos Restaurant Backend  |  Project: dineos-123")
-    print("=" * 55)
+    print("=" * 50)
+    print("  Dineos Backend  |  Project: dineos-123")
+    print("=" * 50)
 
     # Initialize Firebase
     db = init_firebase()
@@ -43,9 +43,17 @@ def main():
             orders = get_orders(r.id, limit=10)
             print(f"      📦 Recent orders: {len(orders)}")
     else:
-        print("   No restaurants found.")
+        print("   No restaurants found. Run: python scripts/seed_data.py")
 
-    print("\n✅ Restaurant Backend is working correctly!")
+    print("\n👥 Fetching all admin users...")
+    users = get_all_admin_users()
+    if users:
+        for u in users:
+            print(f"   [{u.role.upper()}] {u.name} — {u.email}")
+    else:
+        print("   No admin users found. Run: python scripts/seed_data.py")
+
+    print("\n✅ Backend is working correctly!")
 
 
 if __name__ == "__main__":
