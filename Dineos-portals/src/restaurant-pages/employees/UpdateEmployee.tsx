@@ -140,7 +140,7 @@ export default function UpdateEmployee() {
  };
 
  const InputWrapper = ({ name, children }: any) => (
- <div ref={el => errorRefs.current[name] = el}>
+ <div ref={el => { errorRefs.current[name] = el; }}>
  {children}
  </div>
  );

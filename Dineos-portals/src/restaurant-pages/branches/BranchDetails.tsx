@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Edit2, AlertOctagon, Phone, Mail, MapPin, Clock, Search } from 'lucide-react';
+import { ArrowLeft, Edit2, AlertOctagon, Phone, Mail, MapPin, Clock, Search, Eye } from 'lucide-react';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
@@ -10,7 +10,7 @@ import Table, { Column } from '../../components/common/Table';
 import DeactivateBranchModal from './components/DeactivateBranchModal';
 import AssignMenuStep from './components/AssignMenuStep';
 
-const TABS = [
+const TABS: { id: string; label: string; count?: number }[] = [
  { id: 'info', label: 'Branch Information' },
  { id: 'menu', label: 'Assigned Menu' },
  { id: 'employees', label: 'Employees' },

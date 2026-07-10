@@ -243,7 +243,7 @@ export default function ReviewsDashboard() {
  cell: (item) => (
  <div className="max-w-[300px]">
  {item.isFlagged ? (
- <Badge variant="destructive" className="mb-1 text-[10px] py-0 px-1.5 h-4">Flagged</Badge>
+ <Badge variant="error" className="mb-1 text-[10px] py-0 px-1.5 h-4">Flagged</Badge>
  ) : null}
  <p className="text-sm font-medium text-text-secondary truncate">
  {item.comment ? `"${item.comment}"` : <span className="italic">No comment</span>}

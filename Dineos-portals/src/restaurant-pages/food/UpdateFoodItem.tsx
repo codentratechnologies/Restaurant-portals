@@ -96,7 +96,7 @@ export default function UpdateFoodItem() {
  };
 
  const InputWrapper = ({ name, children }: any) => (
- <div ref={el => errorRefs.current[name] = el} className="flex flex-col gap-1.5">
+ <div ref={el => { errorRefs.current[name] = el; }} className="flex flex-col gap-1.5">
  {children}
  </div>
  );
@@ -277,7 +277,7 @@ export default function UpdateFoodItem() {
  <span>2. Item Image <span className="text-red-500 text-sm">*</span></span>
  <span className="text-xs text-text-secondary font-medium font-normal">Max 2MB. JPG or PNG only. Existing image retained.</span>
  </h2>
- <div ref={el => errorRefs.current['image'] = el} className="max-w-sm">
+ <div ref={el => { errorRefs.current['image'] = el; }} className="max-w-sm">
  <ImageUploadZone 
  currentImage={image} 
  onUploadSuccess={(url) => { setImage(url); setErrors(prev => ({ ...prev, image: '' })); }} 

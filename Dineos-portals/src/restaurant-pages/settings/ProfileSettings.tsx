@@ -76,7 +76,7 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
           role: role || 'Employee',
           adminId: adminId,
           id: empId,
-          branchId: branchId
+          branchId: branchId || ''
         };
         
         setProfile(data);
