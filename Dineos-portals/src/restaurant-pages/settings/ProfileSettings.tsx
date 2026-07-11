@@ -141,11 +141,6 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
         // Update employee profile
         await update(ref(rtdb, `employee/${profile.adminId}/${profile.branchId}/${profile.id}`), updates);
       }
-      
-      // Also update global user profile name
-      if (user) {
-        await update(ref(rtdb, `users/${user.uid}`), { name: profile.fullName });
-      }
 
       setOriginal({ fullName: profile.fullName, phone: profile.phone, phoneExt: profile.phoneExt });
       toast.success('Profile saved');

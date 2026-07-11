@@ -60,8 +60,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    let dbUnsubscribe: (() => void) | null = null;
-
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const loginTime = localStorage.getItem(LOGIN_TIME_KEY);
@@ -76,55 +74,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.setItem(LOGIN_TIME_KEY, Date.now().toString());
         }
 
-        // Fetch global user assignments
-        const userRef = ref(rtdb, `users/${firebaseUser.uid}`);
-        
-        dbUnsubscribe = onValue(userRef, async (snapshot) => {
-          let uData = snapshot.exists() ? snapshot.val() : null;
+        const fetchUserData = async () => {
+          // Check if they are an admin
+          const adminSnap = await get(ref(rtdb, `admin_users/${firebaseUser.uid}`));
+          if (adminSnap.exists()) {
+            const data = adminSnap.val();
+            const uData = {
+              email: firebaseUser.email || '',
+              name: data.name || '',
+              assignments: [{ adminId: firebaseUser.uid, role: data.role || 'Admin' }]
+            };
+            setUserData(uData);
+            setActiveAssignmentState(uData.assignments[0]);
+            localStorage.setItem(ACTIVE_ASSIGNMENT_KEY, JSON.stringify(uData.assignments[0]));
+            setLoading(false);
+            return;
+          }
+
+          // Not an admin, scan entire employee DB
+          const employeeRef = ref(rtdb, 'employee');
+          const snapshot = await get(employeeRef);
           
-          // If no assignments found, check if they are an admin
-          if (!uData?.assignments || uData.assignments.length === 0) {
-            const adminSnap = await get(ref(rtdb, `admin_users/${firebaseUser.uid}`));
-            if (adminSnap.exists()) {
-              const data = adminSnap.val();
-              uData = {
-                email: firebaseUser.email || '',
-                name: data.name || '',
-                assignments: [{ adminId: firebaseUser.uid, role: data.role || 'Admin' }]
-              };
+          let uData: UserData | null = null;
+
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            for (const adminUid in data) {
+              const branches = data[adminUid];
+              if (typeof branches === 'object') {
+                for (const branchCode in branches) {
+                  const employees = branches[branchCode];
+                  if (typeof employees === 'object') {
+                    for (const empUid in employees) {
+                      if (empUid === firebaseUser.uid) {
+                        const emp = employees[empUid];
+                        uData = {
+                          email: emp.email || firebaseUser.email || '',
+                          name: `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.name || 'User',
+                          assignments: [{
+                            adminId: adminUid,
+                            branchId: branchCode,
+                            role: emp.role || 'Employee'
+                          }]
+                        };
+                        break;
+                      }
+                    }
+                  }
+                  if (uData) break;
+                }
+              }
+              if (uData) break;
             }
           }
 
           if (uData) {
             setUserData(uData);
-            // Always derive assignment from fresh DB data — never trust stale localStorage
-            if (uData.assignments?.length === 1) {
-              // Single assignment: set it directly
-              setActiveAssignmentState(uData.assignments[0]);
-              localStorage.setItem(ACTIVE_ASSIGNMENT_KEY, JSON.stringify(uData.assignments[0]));
-            } else if (uData.assignments?.length > 1) {
-              // Multiple assignments: try saved, but verify it belongs to this user
-              const saved = localStorage.getItem(ACTIVE_ASSIGNMENT_KEY);
-              if (saved) {
-                const parsed = JSON.parse(saved);
-                const valid = uData.assignments.find((a: Assignment) => a.adminId === parsed.adminId && a.role === parsed.role);
-                setActiveAssignmentState(valid || uData.assignments[0]);
-              } else {
-                setActiveAssignmentState(uData.assignments[0]);
-              }
-            }
+            setActiveAssignmentState(uData.assignments[0]);
+            localStorage.setItem(ACTIVE_ASSIGNMENT_KEY, JSON.stringify(uData.assignments[0]));
           } else {
             setUserData(null);
           }
-          setLoading(false); // Only stop loading when first DB fetch completes
-        });
+          setLoading(false);
+        };
 
+        fetchUserData();
         setUser(firebaseUser);
       } else {
-        if (dbUnsubscribe) {
-          dbUnsubscribe();
-          dbUnsubscribe = null;
-        }
         setUser(null);
         setUserData(null);
         setActiveAssignment(null);
@@ -135,7 +151,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       unsubscribe();
-      if (dbUnsubscribe) dbUnsubscribe();
     };
   }, []);
 
@@ -147,11 +162,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // For backwards compatibility and core admin info
       await set(ref(rtdb, `admin_users/${uid}`), { name, email, role: 'Admin', is_active: true });
-      
-      // New structure
-      await set(ref(rtdb, `users/${uid}`), {
-        email, name, assignments: [{ adminId: uid, role: 'Admin' }]
-      });
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -195,17 +205,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (matchedUser) {
             // Auto-migrate them to Firebase Auth
             const cred = await createUserWithEmailAndPassword(auth, email, password);
-            const uid = cred.user.uid;
-            
-            await set(ref(rtdb, `users/${uid}`), {
-              email: matchedUser.email,
-              name: `${matchedUser.firstName || ''} ${matchedUser.lastName || ''}`.trim() || matchedUser.name || 'User',
-              assignments: [{
-                adminId: matchedUser.adminId,
-                branchId: matchedUser.branch,
-                role: matchedUser.role
-              }]
-            });
             // Stop throwing error, user is now authenticated!
             return;
           }
