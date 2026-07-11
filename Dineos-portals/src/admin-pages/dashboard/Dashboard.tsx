@@ -64,7 +64,7 @@ function ActionCard({ action, idx }: { action: typeof quickActions[0]; idx: numb
         transition={{ duration: 0.4, delay: (idx || 0) * 0.05 }}
         whileHover={{ y: -4, scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="group relative bg-white/60 backdrop-blur-xl rounded-3xl p-4 border border-white/40 hover:bg-white hover:-translate-y-1 hover:shadow-floating transition-all duration-300 flex items-center gap-4 cursor-pointer"
+        className="group relative bg-white/60 backdrop-blur-xl rounded-3xl p-3 sm:p-4 border border-white/40 hover:bg-white hover:-translate-y-1 hover:shadow-floating transition-all duration-300 flex items-center gap-3 sm:gap-4 cursor-pointer"
         style={{
           boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
         }}
@@ -90,7 +90,7 @@ function ActionCard({ action, idx }: { action: typeof quickActions[0]; idx: numb
         </div>
 
         {/* Arrow */}
-        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center shrink-0 group-hover:bg-white group-hover:shadow-sm transition-all duration-300">
+        <div className="hidden sm:flex w-8 h-8 rounded-full bg-gray-50 items-center justify-center shrink-0 group-hover:bg-white group-hover:shadow-sm transition-all duration-300">
           <ArrowUpRight className="w-4 h-4 text-[#8896AB] group-hover:text-brand-orange-500 transition-colors" />
         </div>
       </motion.div>
@@ -156,7 +156,7 @@ function StatCard({ title, value, icon: Icon, trend, up, color, bg, delay }: any
       
       <div className="relative z-10">
         <p className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-1">{title}</p>
-        <h3 className="text-[1.75rem] leading-none font-black text-brand-navy">{value}</h3>
+        <h3 className="text-2xl sm:text-[1.75rem] leading-none font-black text-brand-navy truncate">{value}</h3>
       </div>
     </motion.div>
   );
@@ -349,11 +349,11 @@ export default function Dashboard() {
             <motion.span
               animate={{ rotate: [0, 15, -10, 15, 0] }}
               transition={{ duration: 1.2, delay: 0.5 }}
-              className="text-3xl"
+              className="text-2xl sm:text-3xl"
             >
               🍽️
             </motion.span>
-            <h1 className="text-2xl font-black text-[#1a1f36] tracking-tight">{greeting}, Admin</h1>
+            <h1 className="text-xl sm:text-2xl font-black text-[#1a1f36] tracking-tight">{greeting}, Admin</h1>
             <motion.div
               initial={{ opacity: 0, scale: 0 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -428,7 +428,7 @@ export default function Dashboard() {
           <span className="w-1.5 h-6 bg-[#FF6B00] rounded-full"></span>
           Quick Actions
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {quickActions.map((a, i) => (
             <ActionCard key={i} action={a} idx={i} />
           ))}
@@ -441,7 +441,7 @@ export default function Dashboard() {
           <span className="w-1.5 h-6 bg-[#7C3AED] rounded-full"></span>
           Key Performance Indicators
         </h2>
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <StatCard title="Total Revenue" value={dynamicStats.totalRevenue} icon={DollarSign} trend="+12.5%" up color="#FF6B00" bg="#FFF3E8" delay={0.2} />
           <StatCard title="Total Orders" value={dynamicStats.totalOrders} icon={ShoppingBag} trend="+8.3%" up color="#7C3AED" bg="#F3EEFF" delay={0.25} />
           <StatCard title="Active Branches" value={dynamicStats.activeBranches} icon={Store} trend="Stable" up color="#0EA5E9" bg="#E6F6FD" delay={0.3} />
@@ -574,14 +574,15 @@ export default function Dashboard() {
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.56 + i * 0.06 }}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-[#F8FAFC] transition-all duration-300 group cursor-pointer border-l-[3px] border-transparent hover:border-brand-orange-500"
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 sm:px-6 py-4 hover:bg-[#F8FAFC] transition-all duration-300 group cursor-pointer border-l-[3px] border-transparent hover:border-brand-orange-500"
                   >
-                    <div
-                      style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] + '20', color: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-black shrink-0 ring-2 ring-white shadow-sm"
-                    >
-                      {order.avatar}
-                    </div>
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                      <div
+                        style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] + '20', color: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-black shrink-0 ring-2 ring-white shadow-sm"
+                      >
+                        {order.avatar}
+                      </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-[#1a1f36] text-sm group-hover:text-[#FF6B00] transition-colors">{order.customer}</span>
@@ -590,13 +591,17 @@ export default function Dashboard() {
                       <div className="flex items-center gap-1.5 mt-0.5 text-[12px] text-[#8896AB] font-medium">
                         <MapPin className="w-3 h-3" />{order.branch} · {order.time}
                       </div>
+                      </div>
                     </div>
-                    <span className="text-base font-black text-[#1a1f36] shrink-0">{order.amount}</span>
-                    <div
-                      style={{ background: s.bg, color: s.color }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shrink-0"
-                    >
-                      <CircleDot className="w-2.5 h-2.5" />{order.status}
+                    
+                    <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto mt-2 sm:mt-0">
+                      <span className="text-sm sm:text-base font-black text-[#1a1f36] shrink-0">{order.amount}</span>
+                      <div
+                        style={{ background: s.bg, color: s.color }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shrink-0"
+                      >
+                        <CircleDot className="w-2.5 h-2.5" />{order.status}
+                      </div>
                     </div>
                   </motion.div>
                 );

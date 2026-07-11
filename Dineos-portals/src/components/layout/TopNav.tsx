@@ -3,6 +3,7 @@ import { Search, LogOut, ChevronDown, ChefHat, Bell, Menu, X } from 'lucide-reac
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import GlobalSearch from '../common/GlobalSearch';
 import { useRoleAccess } from '../../hooks/useRoleAccess';
 
@@ -45,6 +46,17 @@ export default function TopNav() {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
 
   return (
     <header className={cn(
@@ -132,51 +144,54 @@ export default function TopNav() {
       </div>
 
       {/* Mobile Drawer */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/60 z-[60] md:hidden backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 bottom-0 left-0 w-[280px] bg-white z-[70] shadow-2xl flex flex-col md:hidden"
-            >
-              <div className="p-5 border-b border-border flex justify-between items-center bg-gray-50/50">
-                <img src="/logo_horizontal.png" alt="DineOS Logo" className="h-8 w-auto object-contain" />
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-text-secondary hover:text-brand-navy rounded-lg hover:bg-white transition-colors border border-transparent hover:border-border">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+      {createPortal(
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="fixed inset-0 bg-black/60 z-[60] md:hidden backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="fixed top-0 bottom-0 left-0 w-[280px] bg-white z-[70] shadow-2xl flex flex-col md:hidden"
+              >
+                <div className="p-5 border-b border-border flex justify-between items-center bg-gray-50/50">
+                  <img src="/logo_horizontal.png" alt="DineOS Logo" className="h-8 w-auto object-contain" />
+                  <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-text-secondary hover:text-brand-navy rounded-lg hover:bg-white transition-colors border border-transparent hover:border-border">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
 
-              <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 bg-white">
-                {navItems.map((item) => (
-                  <NavLink
-                    key={item.name}
-                    to={`${prefix}${item.path}`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={({ isActive }) =>
-                      cn(
-                        "block px-4 py-3.5 rounded-xl text-sm font-bold transition-all",
-                        isActive ? "bg-brand-orange-50 text-brand-orange-700 shadow-sm" : "text-text-secondary hover:bg-gray-50 hover:text-brand-navy"
-                      )
-                    }
-                  >
-                    {item.name}
-                  </NavLink>
-                ))}
-              </nav>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 bg-white">
+                  {navItems.map((item) => (
+                    <NavLink
+                      key={item.name}
+                      to={`${prefix}${item.path}`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={({ isActive }) =>
+                        cn(
+                          "block px-4 py-3.5 rounded-xl text-sm font-bold transition-all",
+                          isActive ? "bg-brand-orange-50 text-brand-orange-700 shadow-sm" : "text-text-secondary hover:bg-gray-50 hover:text-brand-navy"
+                        )
+                      }
+                    >
+                      {item.name}
+                    </NavLink>
+                  ))}
+                </nav>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </header>
   );
 }
