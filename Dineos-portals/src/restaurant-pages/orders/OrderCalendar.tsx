@@ -276,7 +276,7 @@ export default function OrderCalendar() {
  {/* Orders Tab Bar */}
  <div className="flex items-center gap-1 border-b border-border pb-0">
    <NavLink
-     to="/orders"
+     to="/restaurant/orders"
      end
      className={({ isActive }) =>
        `relative px-5 py-3 text-sm font-bold transition-colors rounded-t-lg ${
@@ -299,7 +299,7 @@ export default function OrderCalendar() {
      )}
    </NavLink>
    <NavLink
-     to="/orders/list"
+     to="/restaurant/orders/list"
      className={({ isActive }) =>
        `relative px-5 py-3 text-sm font-bold transition-colors rounded-t-lg ${
          isActive ? 'text-brand-navy' : 'text-text-secondary hover:text-brand-navy'

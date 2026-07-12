@@ -126,7 +126,7 @@ export default function CreateEmployee() {
  setIsSubmitting(false);
  
  alert('Employee created successfully!');
- navigate('/employees');
+ navigate('/restaurant/employees');
  };
 
  const InputWrapper = ({ name, children }: any) => (
@@ -349,7 +349,7 @@ export default function CreateEmployee() {
  </div>
 
    <div className="p-8 border-t border-border bg-gray-50 flex items-center justify-end gap-3 rounded-b-xl">
- <Link to="/employees">
+ <Link to="/restaurant/employees">
  <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
  Cancel
  </button>

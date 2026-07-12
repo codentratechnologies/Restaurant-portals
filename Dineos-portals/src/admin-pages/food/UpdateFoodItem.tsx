@@ -113,11 +113,11 @@ export default function UpdateFoodItem() {
  }
  } else {
  toast.error('Food item not found!');
- navigate('/food');
+ navigate('/admin/food');
  }
  } else {
  toast.error('Food item not found!');
- navigate('/food');
+ navigate('/admin/food');
  }
  } catch (err) {
  console.error('Error fetching food item:', err);
@@ -266,7 +266,7 @@ export default function UpdateFoodItem() {
 
  await Promise.all(updates);
  toast.success('Food item updated successfully!');
- navigate('/food');
+ navigate('/admin/food');
  } catch (error) {
  console.error('Failed to update food item:', error);
  toast.error('Failed to update food item. Please try again.');
@@ -459,7 +459,7 @@ export default function UpdateFoodItem() {
  </div>
 
    <div className="p-8 border-t border-border bg-gray-50 flex items-center justify-end gap-3 rounded-b-xl">
- <Link to="/food">
+ <Link to="/admin/food">
  <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
  Cancel
  </button>

@@ -189,7 +189,7 @@ export default function CreateEmployee() {
  await push(specificBranchRef, newEmployee);
  
  toast.success('Employee created successfully!');
- navigate('/employees');
+ navigate('/admin/employees');
  } catch (error) {
  console.error('Error creating employee:', error);
  toast.error('Failed to create employee. Please try again.');
@@ -408,7 +408,7 @@ export default function CreateEmployee() {
  </div>
 
    <div className="p-8 border-t border-border bg-gray-50 flex items-center justify-end gap-3 rounded-b-xl">
- <Link to="/employees">
+ <Link to="/admin/employees">
  <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
  Cancel
  </button>

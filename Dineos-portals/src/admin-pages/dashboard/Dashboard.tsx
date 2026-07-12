@@ -25,7 +25,7 @@ const quickActions = [
     name: 'Menu Catalog',
     sub: 'Browse & manage items',
     icon: Utensils,
-    path: '/food',
+    path: '/admin/food',
     color: '#FF6B00',
     bg: '#FFF3E8',
   },
@@ -33,7 +33,7 @@ const quickActions = [
     name: 'Manage Branches',
     sub: 'All restaurant locations',
     icon: Store,
-    path: '/branches',
+    path: '/admin/branches',
     color: '#7C3AED',
     bg: '#F3EEFF',
   },
@@ -41,7 +41,7 @@ const quickActions = [
     name: 'Employees',
     sub: 'Staff roster & roles',
     icon: Users,
-    path: '/employees',
+    path: '/admin/employees',
     color: '#0EA5E9',
     bg: '#E6F6FD',
   },
@@ -49,7 +49,7 @@ const quickActions = [
     name: 'Order List',
     sub: 'Track live orders',
     icon: ShoppingBag,
-    path: '/orders',
+    path: '/admin/orders',
     color: '#059669',
     bg: '#ECFDF5',
   },
@@ -559,7 +559,7 @@ export default function Dashboard() {
                 <h3 className="text-base font-black text-[#1a1f36]">Recent Orders</h3>
                 <p className="text-sm text-[#8896AB] font-medium mt-0.5">Latest transactions across all branches</p>
               </div>
-              <Link to="/orders" className="flex items-center gap-1 text-sm font-bold text-[#FF6B00] hover:text-[#e05e00] transition-colors bg-[#FFF3E8] px-3 py-1.5 rounded-xl">
+              <Link to="/admin/orders" className="flex items-center gap-1 text-sm font-bold text-[#FF6B00] hover:text-[#e05e00] transition-colors bg-[#FFF3E8] px-3 py-1.5 rounded-xl">
                 View All <ChevronRight className="w-4 h-4" />
               </Link>
             </div>

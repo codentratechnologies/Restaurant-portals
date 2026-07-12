@@ -292,7 +292,7 @@ export default function BranchDetails() {
  {
  header: 'Action',
  cell: (item) => (
- <Link to={`/employees/${item.id}`} className="p-1.5 text-text-secondary hover:text-brand-orange-500 hover:bg-orange-50 rounded-lg transition-colors flex items-center gap-1.5 text-sm font-bold inline-flex">
+ <Link to={`/restaurant/employees/${item.id}`} className="p-1.5 text-text-secondary hover:text-brand-orange-500 hover:bg-orange-50 rounded-lg transition-colors flex items-center gap-1.5 text-sm font-bold inline-flex">
  <Eye className="w-4 h-4" /> View
  </Link>
  ),

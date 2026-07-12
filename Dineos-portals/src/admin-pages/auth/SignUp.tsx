@@ -8,7 +8,8 @@ import { Eye, EyeOff } from 'lucide-react';
 export default function SignUp() {
   const { signup, error } = useAuth();
 
-  const [name, setFullName] = useState('');
+  const [restaurantName, setRestaurantName] = useState('');
+  const [name, setAuthorizedPersonName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -16,6 +17,7 @@ export default function SignUp() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [restaurantNameError, setRestaurantNameError] = useState('');
   const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -23,6 +25,7 @@ export default function SignUp() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setRestaurantNameError('');
     setNameError('');
     setEmailError('');
     setPasswordError('');
@@ -30,8 +33,13 @@ export default function SignUp() {
     setLocalError(null);
 
     let valid = true;
+    if (!restaurantName || restaurantName.trim().length < 2) {
+      setRestaurantNameError("Please enter a valid restaurant name.");
+      valid = false;
+    }
+
     if (!name || name.trim().length < 2) {
-      setNameError("Please enter a valid full name.");
+      setNameError("Please enter a valid authorized person name.");
       valid = false;
     }
 
@@ -55,7 +63,7 @@ export default function SignUp() {
 
     setLoading(true);
     try {
-      await signup(email, password, name);
+      await signup(email, password, name, restaurantName);
     } catch {
       // error is already set in useAuth context
     } finally {
@@ -98,15 +106,32 @@ export default function SignUp() {
         <form className="flex flex-col" onSubmit={handleSubmit} noValidate>
           <div className="space-y-4 pb-2">
             <div>
+              <label htmlFor="restaurantName" className="block text-sm font-semibold text-text-primary mb-1.5">
+                Restaurant Name
+              </label>
+              <input
+                id="restaurantName"
+                type="text"
+                required
+                value={restaurantName}
+                onChange={(e) => { setRestaurantName(e.target.value); setRestaurantNameError(''); }}
+                className={`input-field ${restaurantNameError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+                placeholder="DineOS Restaurant"
+                disabled={loading}
+              />
+              {restaurantNameError && <p className="mt-1.5 text-sm text-red-600 font-medium">{restaurantNameError}</p>}
+            </div>
+
+            <div>
               <label htmlFor="name" className="block text-sm font-semibold text-text-primary mb-1.5">
-                Full Name
+                Authorized Person Name
               </label>
               <input
                 id="name"
                 type="text"
                 required
                 value={name}
-                onChange={(e) => { setFullName(e.target.value); setNameError(''); }}
+                onChange={(e) => { setAuthorizedPersonName(e.target.value); setNameError(''); }}
                 className={`input-field ${nameError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                 placeholder="John Doe"
                 disabled={loading}

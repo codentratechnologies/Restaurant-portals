@@ -100,11 +100,11 @@ export default function UpdateEmployee() {
  setInitialFormData(loadedData);
  } else {
  toast.error('Employee not found.');
- navigate('/employees');
+ navigate('/admin/employees');
  }
  } else {
  toast.error('Employee not found.');
- navigate('/employees');
+ navigate('/admin/employees');
  }
  } catch (err) {
  console.error('Error fetching employee:', err);
@@ -257,7 +257,7 @@ export default function UpdateEmployee() {
 
  toast.success('Profile updated successfully!');
  
- navigate('/employees');
+ navigate('/admin/employees');
  } catch (error) {
  console.error('Error updating employee:', error);
  toast.error('Failed to update employee. Please try again.');
@@ -433,7 +433,7 @@ export default function UpdateEmployee() {
  </div>
 
    <div className="p-8 border-t border-border bg-gray-50 flex items-center justify-end gap-3 rounded-b-xl">
- <Link to="/employees" onClick={handleCancelClick}>
+ <Link to="/admin/employees" onClick={handleCancelClick}>
  <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
  Cancel
  </button>

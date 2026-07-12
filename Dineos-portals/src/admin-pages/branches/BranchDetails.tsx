@@ -49,7 +49,7 @@ export default function BranchDetails() {
  const data = snapshot.val();
  setBranchInfo(data);
  } else {
- navigate('/branches');
+ navigate('/admin/branches');
  }
  setIsLoading(false);
  });
@@ -141,13 +141,13 @@ export default function BranchDetails() {
 
  {/* Breadcrumbs & Back */}
  <div className="flex items-center gap-4 mb-4 px-2">
- <Link to="/branches" title="Back to Branches">
+ <Link to="/admin/branches" title="Back to Branches">
  <Button variant="secondary" className="p-2 bg-white shadow-sm border border-border hover:bg-gray-50 transition-colors rounded-xl flex items-center justify-center">
  <ArrowLeft className="w-5 h-5 text-text-secondary" />
  </Button>
  </Link>
  <div className="flex items-center gap-2 text-sm font-medium text-text-secondary">
- <Link to="/branches" className="hover:text-brand-orange-600 transition-colors">Branches</Link>
+ <Link to="/admin/branches" className="hover:text-brand-orange-600 transition-colors">Branches</Link>
  <ChevronRight className="w-4 h-4" />
  <span className="text-brand-navy font-bold">{branchInfo.name}</span>
  </div>
@@ -497,7 +497,7 @@ export default function BranchDetails() {
  header: '',
  cell: (item) => (
  <div className="flex justify-end pr-4">
- <Link to={`/employees/${item.id}`} className="px-4 py-2 text-sm font-bold text-brand-navy hover:text-brand-orange-600 bg-white hover:bg-orange-50 rounded-xl transition-all shadow-sm border border-border hover:border-brand-orange-200 flex items-center gap-2">
+ <Link to={`/admin/employees/${item.id}`} className="px-4 py-2 text-sm font-bold text-brand-navy hover:text-brand-orange-600 bg-white hover:bg-orange-50 rounded-xl transition-all shadow-sm border border-border hover:border-brand-orange-200 flex items-center gap-2">
  <span>View</span> <ChevronRight className="w-4 h-4" />
  </Link>
  </div>

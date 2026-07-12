@@ -35,7 +35,7 @@ export default function FoodDetails() {
         <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
         <h2 className="text-xl font-bold text-brand-navy">Oops! Something went wrong.</h2>
         <p className="text-text-secondary">{errorMsg}</p>
-        <Link to="/food" className="mt-4 inline-block px-4 py-2 bg-brand-navy text-white rounded-lg font-bold">
+        <Link to="/admin/food" className="mt-4 inline-block px-4 py-2 bg-brand-navy text-white rounded-lg font-bold">
           Back to Menu
         </Link>
       </div>
@@ -63,7 +63,7 @@ export default function FoodDetails() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link
-            to="/food"
+            to="/admin/food"
             className="p-2.5 text-text-secondary hover:text-brand-navy hover:bg-white rounded-xl transition-all shadow-sm border border-transparent hover:border-border bg-gray-50"
           >
             <ArrowLeft className="w-5 h-5" />

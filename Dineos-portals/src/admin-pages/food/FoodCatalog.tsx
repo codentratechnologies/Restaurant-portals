@@ -163,7 +163,7 @@ export default function FoodCatalog() {
                         <p className="text-text-secondary max-w-md mx-auto mb-8">
                             Your master food catalog is empty. Create your first menu item so that branches can start serving it to customers.
                         </p>
-                        <Link to="/food/new">
+                        <Link to="/admin/food/new">
                             <Button className="font-bold py-3 px-8 shadow-premium text-base">
                                 <Plus className="w-5 h-5 mr-2 inline" />
                                 Create First Item
@@ -231,8 +231,8 @@ export default function FoodCatalog() {
                                     ]}
                                 />
                             </div>
-                            <Link to="/food/new" className="hidden md:block">
-                                <Button className="gap-2 shadow-sm font-bold bg-brand-orange-500 text-white border-0 hover:bg-brand-orange-600">
+                            <Link to="/admin/food/new" className="w-full md:w-auto">
+                                <Button className="w-full justify-center md:w-auto gap-2 shadow-sm font-bold bg-brand-orange-500 text-white border-0 hover:bg-brand-orange-600">
                                     <Plus className="w-4 h-4" />
                                     Add Item
                                 </Button>
@@ -275,7 +275,7 @@ export default function FoodCatalog() {
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ duration: 0.2, delay: i * 0.05 }}
-                                                onClick={() => navigate(`/food/${item.id}`)}
+                                                onClick={() => navigate(`/admin/food/${item.id}`)}
                                                 className={`hover:bg-gray-50/50 transition-colors group cursor-pointer ${!item.is_available && 'opacity-70'}`}
                                             >
                                                 {/* Item Details */}
@@ -338,7 +338,7 @@ export default function FoodCatalog() {
                                                 <td className="px-6 py-5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                                                     <div className="flex items-center justify-end gap-2">
                                                         <Link
-                                                            to={`/food/${item.id}`}
+                                                            to={`/admin/food/${item.id}`}
                                                             className="px-3 py-1.5 text-sm font-semibold text-brand-navy bg-gray-100 hover:bg-brand-orange-50 hover:text-brand-orange-600 rounded-lg transition-all flex items-center gap-1.5"
                                                             title="View Details"
                                                         >
@@ -346,7 +346,7 @@ export default function FoodCatalog() {
                                                             <span>View</span>
                                                         </Link>
                                                         <Link
-                                                            to={`/food/${item.id}/edit`}
+                                                            to={`/admin/food/${item.id}/edit`}
                                                             className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-all"
                                                             title="Edit Item"
                                                         >

@@ -255,7 +255,7 @@ export default function OrderTable() {
  className: 'w-[120px] min-w-[120px]',
  cell: (item) => (
  <Link
- to={`/orders/${item.id}`}
+ to={`/restaurant/orders/${item.id}`}
  className="font-mono text-sm font-black text-brand-orange-600 hover:text-brand-orange-700 cursor-pointer transition-colors"
  >
  {item.id}
@@ -362,7 +362,7 @@ export default function OrderTable() {
 
   {/* View button — always visible */}
   <Link
-  to={`/orders/${item.id}`}
+  to={`/restaurant/orders/${item.id}`}
   title="View Order"
   className="p-2 text-brand-navy bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
   >
@@ -381,7 +381,7 @@ export default function OrderTable() {
  {/* Orders Tab Bar */}
  <div className="flex items-center gap-1 border-b border-border pb-0">
    <NavLink
-     to="/orders"
+     to="/restaurant/orders"
      end
      className={({ isActive }) =>
        `relative px-5 py-3 text-sm font-bold transition-colors rounded-t-lg ${
@@ -404,7 +404,7 @@ export default function OrderTable() {
      )}
    </NavLink>
    <NavLink
-     to="/orders/list"
+     to="/restaurant/orders/list"
      className={({ isActive }) =>
        `relative px-5 py-3 text-sm font-bold transition-colors rounded-t-lg ${
          isActive ? 'text-brand-navy' : 'text-text-secondary hover:text-brand-navy'

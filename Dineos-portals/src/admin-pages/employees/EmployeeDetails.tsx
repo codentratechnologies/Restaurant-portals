@@ -52,11 +52,11 @@ export default function EmployeeDetails() {
  setEmployeeInfo({ id, ...foundEmployee, role });
  } else {
  toast.error('Employee not found');
- navigate('/employees');
+ navigate('/admin/employees');
  }
  } else {
  toast.error('Employee not found');
- navigate('/employees');
+ navigate('/admin/employees');
  }
  } catch (err) {
  console.error('Error fetching employee details:', err);
@@ -110,7 +110,7 @@ export default function EmployeeDetails() {
  <ArrowLeft className="w-5 h-5 text-text-secondary" />
  </button>
  <div className="flex items-center gap-2 text-sm font-medium text-text-secondary">
- <Link to="/employees" className="hover:text-brand-orange-600 transition-colors">Employees</Link>
+ <Link to="/admin/employees" className="hover:text-brand-orange-600 transition-colors">Employees</Link>
  <ChevronRight className="w-4 h-4" />
  <span className="text-brand-navy font-bold">{employeeInfo.firstName} {employeeInfo.lastName}</span>
  </div>

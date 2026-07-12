@@ -115,7 +115,7 @@ export default function CouponsDashboard() {
     };
 
     const handleRowClick = (coupon: Coupon) => {
-        navigate(`/coupons/${coupon.id}`);
+        navigate(`/admin/coupons/${coupon.id}`);
     };
 
     if (couponsLoading) {
@@ -148,7 +148,7 @@ export default function CouponsDashboard() {
                             You haven't created any promotional coupons yet. Create your first coupon to offer discounts, drive target audiences, and restrict location campaigns.
                         </p>
                         {canCreateCoupon && (
-                            <Link to="/coupons/new">
+                            <Link to="/admin/coupons/new">
                                 <Button className="font-bold py-3 px-8 shadow-premium text-base">
                                     <Plus className="w-5 h-5 mr-2 inline" />
                                     Create First Coupon
@@ -207,8 +207,8 @@ export default function CouponsDashboard() {
                                 />
                             </div>
                             {canCreateCoupon && (
-                                <Link to="/coupons/new" className="hidden md:block">
-                                    <Button className="gap-2 shadow-sm font-bold bg-brand-orange-500 text-white border-0 hover:bg-brand-orange-600">
+                                <Link to="/admin/coupons/new" className="w-full md:w-auto">
+                                    <Button className="w-full justify-center md:w-auto gap-2 shadow-sm font-bold bg-brand-orange-500 text-white border-0 hover:bg-brand-orange-600">
                                         <Plus className="w-4 h-4" />
                                         Create Coupon
                                     </Button>
@@ -290,10 +290,10 @@ export default function CouponsDashboard() {
                                                 </td>
                                                 <td className="px-6 py-5">
                                                     <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                                                        <Link to={`/coupons/${coupon.id}`} className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-all" title="View Details">
+                                                        <Link to={`/admin/coupons/${coupon.id}`} className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-all" title="View Details">
                                                             <Eye className="w-4 h-4" />
                                                         </Link>
-                                                        <Link to={`/coupons/${coupon.id}/edit`} className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-all" title="Edit Coupon">
+                                                        <Link to={`/admin/coupons/${coupon.id}/edit`} className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-all" title="Edit Coupon">
                                                             <Edit2 className="w-4 h-4" />
                                                         </Link>
                                                         {canDeleteCoupon && (

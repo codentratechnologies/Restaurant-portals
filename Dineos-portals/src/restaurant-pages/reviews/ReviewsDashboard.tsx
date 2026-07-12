@@ -202,7 +202,7 @@ export default function ReviewsDashboard() {
  };
 
  const handleOpenLinkedOrder = (orderId: string) => {
- navigate(`/orders/${orderId}`);
+ navigate(`/restaurant/orders/${orderId}`);
  };
 
  // --- Rendering Helpers ---

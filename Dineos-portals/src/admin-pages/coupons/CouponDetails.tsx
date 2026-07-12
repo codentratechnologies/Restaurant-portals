@@ -67,7 +67,7 @@ export default function CouponDetails() {
  });
  } else {
  toast.error('Coupon not found');
- navigate('/coupons');
+ navigate('/admin/coupons');
  }
  } catch (err) {
  console.error('Error fetching coupon details:', err);
@@ -138,7 +138,7 @@ export default function CouponDetails() {
  <ArrowLeft className="w-5 h-5 text-text-secondary" />
  </button>
  <div className="flex items-center gap-2 text-sm font-medium text-text-secondary">
- <Link to="/coupons" className="hover:text-brand-orange-600 transition-colors">Coupons</Link>
+ <Link to="/admin/coupons" className="hover:text-brand-orange-600 transition-colors">Coupons</Link>
  <ChevronRight className="w-4 h-4" />
  <span className="text-brand-navy font-bold">{couponInfo.code}</span>
  </div>

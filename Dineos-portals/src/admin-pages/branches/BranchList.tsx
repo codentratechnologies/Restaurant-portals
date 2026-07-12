@@ -117,7 +117,7 @@ export default function BranchList() {
   };
 
   const handleRowClick = (branch: Branch) => {
-    navigate(`/branches/${branch.id}`);
+    navigate(`/admin/branches/${branch.id}`);
   };
 
   // ── Empty State ──────────────────────────────────────────────────
@@ -142,7 +142,7 @@ export default function BranchList() {
             <p className="text-text-secondary max-w-md mx-auto mb-8">
               You haven't added any restaurant branches to DineOS yet. Set up your first location to start managing operations, menus, and orders.
             </p>
-            <Link to="/branches/new">
+            <Link to="/admin/branches/new">
               <Button className="font-bold py-3 px-8 shadow-premium text-base">
                 <Plus className="w-5 h-5 mr-2 inline" />
                 Launch First Branch
@@ -198,8 +198,8 @@ export default function BranchList() {
                   ]}
                 />
               </div>
-              <Link to="/branches/new" className="hidden md:block">
-                <Button className="gap-2 shadow-sm font-bold bg-brand-orange-500 text-white border-0 hover:bg-brand-orange-600">
+              <Link to="/admin/branches/new" className="w-full md:w-auto">
+                <Button className="w-full justify-center md:w-auto gap-2 shadow-sm font-bold bg-brand-orange-500 text-white border-0 hover:bg-brand-orange-600">
                   <Plus className="w-4 h-4" />
                   Add Branch
                 </Button>
@@ -279,14 +279,14 @@ export default function BranchList() {
                         <td className="px-6 py-5">
                           <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                             <Link
-                              to={`/branches/${branch.id}`}
+                              to={`/admin/branches/${branch.id}`}
                               className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-all"
                               title="View Details"
                             >
                               <Eye className="w-4 h-4" />
                             </Link>
                             <Link
-                              to={`/branches/${branch.id}/edit`}
+                              to={`/admin/branches/${branch.id}/edit`}
                               className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-all"
                               title="Edit Branch"
                             >

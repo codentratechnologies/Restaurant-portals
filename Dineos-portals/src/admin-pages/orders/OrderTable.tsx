@@ -117,7 +117,7 @@ export default function OrderTable() {
               <FileText className="w-6 h-6" />
             </div>
             <div>
-              <Link to={`/orders/${item.id}`} className="font-bold text-brand-navy text-lg hover:text-brand-orange-600 transition-colors">
+              <Link to={`/admin/orders/${item.id}`} className="font-bold text-brand-navy text-lg hover:text-brand-orange-600 transition-colors">
                 #{item.id}
               </Link>
               <div className="text-xs font-medium text-text-secondary mt-0.5 flex items-center gap-1">
@@ -179,11 +179,11 @@ export default function OrderTable() {
         <Card className="overflow-hidden p-0 border border-border/50 shadow-lg flex flex-col min-h-[600px] bg-white rounded-[2rem]">
 
           <div className="flex items-center gap-4 p-4 border-b border-border bg-gray-50/50">
-            <Link to="/orders" className="p-2 bg-white border border-border shadow-sm rounded-lg hover:bg-gray-50 transition-all text-text-secondary shrink-0">
+            <Link to="/admin/orders" className="p-2 bg-white border border-border shadow-sm rounded-lg hover:bg-gray-50 transition-all text-text-secondary shrink-0">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div className="flex items-center gap-2">
-              <Link to="/orders" className="text-sm font-bold text-brand-orange-600 hover:underline flex items-center gap-1">
+              <Link to="/admin/orders" className="text-sm font-bold text-brand-orange-600 hover:underline flex items-center gap-1">
                 <Calendar className="w-4 h-4" /> Calendar View
               </Link>
               <span className="text-text-secondary">/</span>

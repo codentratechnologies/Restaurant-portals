@@ -17,7 +17,7 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
  </h3>
  <p className="text-xs font-bold text-text-secondary mt-1 uppercase tracking-widest">Real-time Command Center</p>
  </div>
- <Link to="/orders/list" className="text-brand-orange-600 text-sm font-bold hover:text-brand-orange-700 bg-brand-orange-50 px-4 py-2 rounded-xl transition-colors">
+ <Link to="/restaurant/orders/list" className="text-brand-orange-600 text-sm font-bold hover:text-brand-orange-700 bg-brand-orange-50 px-4 py-2 rounded-xl transition-colors">
  View All Orders
  </Link>
  </div>

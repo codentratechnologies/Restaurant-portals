@@ -72,7 +72,7 @@ export default function CreateBranch() {
  setIsSubmitting(false);
 
  alert('Branch created and menu assigned successfully!');
- navigate('/branches');
+ navigate('/restaurant/branches');
  };
 
  const InputField = ({ label, name, type = 'text', placeholder = '' }: any) => (
@@ -236,7 +236,7 @@ export default function CreateBranch() {
  {currentStep === 1 ? (
  <>
  {!branchCreated && (
- <Link to="/branches">
+ <Link to="/restaurant/branches">
  <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
  Cancel
  </button>

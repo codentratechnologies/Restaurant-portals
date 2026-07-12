@@ -94,7 +94,7 @@ export default function OrderCalendar() {
  }
 
  const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
- navigate(`/orders/list?date=${formattedDate}`);
+ navigate(`/admin/orders/list?date=${formattedDate}`);
  };
 
  return (

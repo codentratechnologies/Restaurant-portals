@@ -141,7 +141,7 @@ export default function EmployeeList() {
   };
 
   const handleRowClick = (employee: Employee) => {
-    navigate(`/employees/${employee.id}`);
+    navigate(`/admin/employees/${employee.id}`);
   };
 
   // ── Empty State ──────────────────────────────────────────────────
@@ -166,7 +166,7 @@ export default function EmployeeList() {
             <p className="text-text-secondary max-w-md mx-auto mb-8">
               You haven't added any staff members yet. Add your first employee to start managing your team, assigning roles, and tracking branch operations.
             </p>
-            <Link to="/employees/new">
+            <Link to="/admin/employees/new">
               <Button className="font-bold py-3 px-8 shadow-premium text-base">
                 <Plus className="w-5 h-5 mr-2 inline" />
                 Add First Employee
@@ -222,8 +222,8 @@ export default function EmployeeList() {
                   ]}
                 />
               </div>
-              <Link to="/employees/new" className="hidden md:block">
-                <Button className="gap-2 shadow-sm font-bold bg-brand-orange-500 text-white border-0 hover:bg-brand-orange-600">
+              <Link to="/admin/employees/new" className="w-full md:w-auto">
+                <Button className="w-full justify-center md:w-auto gap-2 shadow-sm font-bold bg-brand-orange-500 text-white border-0 hover:bg-brand-orange-600">
                   <Plus className="w-4 h-4" />
                   Add Employee
                 </Button>
@@ -307,14 +307,14 @@ export default function EmployeeList() {
                               {employee.status !== 'Inactive' ? (
                                 <>
                                   <Link
-                                    to={`/employees/${employee.id}`}
+                                    to={`/admin/employees/${employee.id}`}
                                     className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-all"
                                     title="View Employee"
                                   >
                                     <Eye className="w-4 h-4" />
                                   </Link>
                                   <Link
-                                    to={`/employees/${employee.id}/edit`}
+                                    to={`/admin/employees/${employee.id}/edit`}
                                     className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-all"
                                     title="Edit Employee"
                                   >

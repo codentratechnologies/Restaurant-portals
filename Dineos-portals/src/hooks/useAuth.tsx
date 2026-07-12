@@ -36,7 +36,7 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  signup: (email: string, password: string, name: string, restaurantName: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
 }
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const data = adminSnap.val();
             const uData = {
               email: firebaseUser.email || '',
-              name: data.name || '',
+              name: data.authorized_person_name || data.name || '',
               assignments: [{ adminId: firebaseUser.uid, role: data.role || 'Admin' }]
             };
             setUserData(uData);
@@ -154,14 +154,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signup = async (email: string, password: string, name: string) => {
+  const signup = async (email: string, password: string, name: string, restaurantName: string) => {
     setError(null);
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const uid = cred.user.uid;
       
       // For backwards compatibility and core admin info
-      await set(ref(rtdb, `admin_users/${uid}`), { name, email, role: 'Admin', is_active: true });
+      await set(ref(rtdb, `admin_users/${uid}`), { authorized_person_name: name, restaurant_name: restaurantName, email, role: 'Admin', is_active: true });
     } catch (err: any) {
       setError(err.message);
       throw err;

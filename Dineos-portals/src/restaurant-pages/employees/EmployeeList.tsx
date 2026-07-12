@@ -140,10 +140,10 @@ export default function EmployeeList() {
  header: 'Action',
  cell: (item) => (
  <div className="flex items-center justify-start gap-1.5" onClick={(e) => e.stopPropagation()}>
- <Link to={`/employees/${item.id}`} className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-colors" title="View Employee">
+ <Link to={`/restaurant/employees/${item.id}`} className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-colors" title="View Employee">
  <Eye className="w-4 h-4" />
  </Link>
- <Link to={`/employees/${item.id}/edit`} className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-colors">
+ <Link to={`/restaurant/employees/${item.id}/edit`} className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-colors">
  <Edit2 className="w-4 h-4" />
  </Link>
  {item.status === 'Active' && (
@@ -180,7 +180,7 @@ export default function EmployeeList() {
  </motion.div>
  
  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
- <Link to="/employees/new">
+ <Link to="/restaurant/employees/new">
  <Button className="gap-2 shadow-sm font-bold">
  <Plus className="w-5 h-5" />
  Add Employee

@@ -140,10 +140,10 @@ export default function BranchList() {
  header: 'Actions',
  cell: (item) => (
  <div className="flex items-center justify-start gap-1.5" onClick={(e) => e.stopPropagation()}>
- <Link to={`/branches/${item.id}`} className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-colors">
+ <Link to={`/restaurant/branches/${item.id}`} className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-colors">
  <Eye className="w-4 h-4" />
  </Link>
- <Link to={`/branches/${item.id}/edit`} className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-colors">
+ <Link to={`/restaurant/branches/${item.id}/edit`} className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-colors">
  <Edit2 className="w-4 h-4" />
  </Link>
  {item.status === 'Active' ? (
@@ -170,7 +170,7 @@ export default function BranchList() {
  ];
 
  const handleRowClick = (branch: Branch) => {
- navigate(`/branches/${branch.id}`);
+ navigate(`/restaurant/branches/${branch.id}`);
  };
 
  return (
@@ -183,7 +183,7 @@ export default function BranchList() {
  </motion.div>
  
  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
- <Link to="/branches/new">
+ <Link to="/restaurant/branches/new">
  <Button className="gap-2 shadow-sm font-bold">
  <Plus className="w-5 h-5" />
  Add Branch

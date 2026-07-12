@@ -98,7 +98,7 @@ export default function UpdateBranch() {
  setFormData(loadedData);
  setInitialData(loadedData);
  } else {
- navigate('/branches'); // Not found
+ navigate('/admin/branches'); // Not found
  }
  } catch (err) {
  console.error('Error fetching branch:', err);
@@ -211,7 +211,7 @@ export default function UpdateBranch() {
  
  setInitialData(formData);
  toast.success('Branch updated successfully!');
- navigate('/branches');
+ navigate('/admin/branches');
  } catch (error) {
  console.error('Failed to update branch:', error);
  toast.error('Failed to update branch. Please try again.');
@@ -331,7 +331,7 @@ export default function UpdateBranch() {
  </div>
 
         <div className="p-8 border-t border-border bg-gray-50 flex items-center justify-end gap-3 rounded-b-xl">
-          <Link to={`/branches/${id}`} onClick={handleCancelClick}>
+          <Link to={`/admin/branches/${id}`} onClick={handleCancelClick}>
             <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
               Cancel
             </button>
