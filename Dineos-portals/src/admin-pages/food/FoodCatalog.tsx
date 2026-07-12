@@ -177,7 +177,14 @@ export default function FoodCatalog() {
 
     // ── Normal List View ─────────────────────────────────────────────
     return (
-        <div className="space-y-0">
+        <div className="space-y-6">
+            {/* Page Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+                    <h1 className="text-3xl font-black text-brand-navy tracking-tight">Menu Catalog</h1>
+                    <p className="text-text-secondary mt-1 text-sm font-medium">Manage master food items and availability.</p>
+                </motion.div>
+            </div>
 
             <DisableConfirmationModal
                 isOpen={modalOpen}
@@ -185,8 +192,6 @@ export default function FoodCatalog() {
                 onConfirm={handleConfirmDisable}
                 itemName={itemToDisable?.name || ''}
             />
-
-
 
             {/* Main Content Area */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>

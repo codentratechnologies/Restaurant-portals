@@ -252,7 +252,7 @@ export default function OrderTable() {
  const baseColumns: Column<OrderData>[] = [
  {
  header: 'Order ID',
- className: 'w-[120px] min-w-[120px]',
+ className: '',
  cell: (item) => (
  <Link
  to={`/restaurant/orders/${item.id}`}
@@ -264,7 +264,7 @@ export default function OrderTable() {
  },
  {
  header: 'Items',
- className: 'w-[25%] min-w-[200px]',
+ className: '',
  cell: (item) => (
  <span className="text-sm font-medium text-text-secondary truncate block max-w-[200px]">
  {item.items.map(i => i.name).join(', ')}
@@ -273,7 +273,7 @@ export default function OrderTable() {
  },
  {
  header: 'Customer',
- className: 'w-[180px] min-w-[180px]',
+ className: '',
  cell: (item) => (
  <div>
  <div className="flex items-center gap-1.5 font-bold text-brand-navy text-sm truncate max-w-[150px]">
@@ -288,12 +288,12 @@ export default function OrderTable() {
  },
  {
  header: 'Total Value',
- className: 'w-[120px] min-w-[120px]',
+ className: '',
  cell: (item) => <span className="font-black text-brand-navy">₹{Number(item.billing.total || 0).toFixed(2)}</span>
  },
  {
  header: 'Status',
- className: 'w-[150px] min-w-[150px]',
+ className: '',
  cell: (item) => <StatusBadge status={item.status} />
  }
  ];
@@ -301,7 +301,7 @@ export default function OrderTable() {
  if (currentTab === 'accept') {
  baseColumns.splice(3, 0, {
  header: 'Payment Mode',
- className: 'w-[140px] min-w-[140px]',
+ className: '',
  cell: (item) => <span className="text-sm font-bold text-text-secondary">{item.payment.method}</span>
  });
  }
@@ -309,12 +309,12 @@ export default function OrderTable() {
  if (currentTab === 'reject') {
  baseColumns.splice(3, 0, {
  header: 'Rejection Reason',
- className: 'w-[160px] min-w-[160px]',
+ className: '',
  cell: (item) => <span className="text-sm font-bold text-red-600">{item.rejectionReason}</span>
  });
  baseColumns.push({
  header: 'Refund Status',
- className: 'w-[140px] min-w-[140px]',
+ className: '',
  cell: (item) => (
  <Badge variant="default" className={item.payment.status === 'Refunded' ? 'text-green-600 border-green-200 bg-green-50' : 'text-amber-600 border-amber-200 bg-amber-50'}>
  {item.payment.status === 'Refunded' ? 'Refunded' : 'Refund Pending'}
@@ -326,15 +326,14 @@ export default function OrderTable() {
  if (currentTab === 'cancel') {
  baseColumns.splice(3, 0, {
  header: 'Cancel Reason',
- className: 'w-[160px] min-w-[160px]',
+ className: '',
  cell: (item) => <span className="text-sm font-bold text-red-600">{item.cancellationReason}</span>
  });
  }
 
-  // ─── Action Column ───────────────────────────────────────────────────────
   baseColumns.push({
   header: 'Action',
-  className: 'w-[180px] min-w-[180px]',
+  className: '',
   cell: (item) => (
   <div className="flex items-center gap-2">
   {/* Ready for Pickup — only for Preparing orders */}

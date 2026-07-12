@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Edit2, Phone, Mail, MapPin, Clock, Search, Eye, Loader2, Copy, CheckCircle, Store, Users, MenuSquare, ChevronRight, Globe, Calendar, Building2, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Edit2, Phone, Mail, MapPin, Clock, Search, Eye, Loader2, Copy, CheckCircle, Store, Users, MenuSquare, ChevronRight, Globe, Calendar, Building2, ExternalLink, Filter } from 'lucide-react';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
@@ -95,6 +95,7 @@ export default function BranchDetails() {
 
  // Employee Tab State
  const [empSearchQuery, setEmpSearchQuery] = useState('');
+ const [isMobileEmpFilterOpen, setIsMobileEmpFilterOpen] = useState(false);
  const [empRoleFilter, setEmpRoleFilter] = useState('All');
  const [empStatusFilter, setEmpStatusFilter] = useState('All');
  const [empCurrentPage, setEmpCurrentPage] = useState(1);
@@ -146,11 +147,7 @@ export default function BranchDetails() {
  <ArrowLeft className="w-5 h-5 text-text-secondary" />
  </Button>
  </Link>
- <div className="flex items-center gap-2 text-sm font-medium text-text-secondary">
- <Link to="/admin/branches" className="hover:text-brand-orange-600 transition-colors">Branches</Link>
- <ChevronRight className="w-4 h-4" />
- <span className="text-brand-navy font-bold">{branchInfo.name}</span>
- </div>
+ 
  </div>
 
  {/* ZONE 1: Premium Hero Header */}
@@ -202,7 +199,7 @@ export default function BranchDetails() {
  <div>
  <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Email</p>
  <div className="group relative">
- <p className="text-sm font-bold text-brand-navy truncate max-w-[150px] sm:max-w-[200px] cursor-default">{branchInfo.email}</p>
+ <p className="text-sm font-bold text-brand-navy md:truncate md:max-w-[200px] break-all md:break-normal cursor-default">{branchInfo.email}</p>
  <div className="absolute top-full left-0 mt-2 px-3 py-2 bg-white text-brand-navy text-sm font-bold rounded-lg shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-border/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-[100] whitespace-nowrap">
  {branchInfo.email}
  <div className="absolute -top-1.5 left-4 w-3 h-3 bg-white border-t border-l border-border/50 rotate-45"></div>
@@ -217,7 +214,7 @@ export default function BranchDetails() {
  <div>
  <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Address</p>
  <div className="group relative">
- <p className="text-sm font-bold text-brand-navy truncate max-w-[150px] sm:max-w-[200px] cursor-default">{branchInfo.address}</p>
+ <p className="text-sm font-bold text-brand-navy md:truncate md:max-w-[200px] cursor-default">{branchInfo.address}</p>
  <div className="absolute top-full right-0 sm:right-auto sm:left-0 mt-2 px-3 py-2 bg-white text-brand-navy text-sm font-bold rounded-lg shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-border/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-[100] w-max max-w-[250px] sm:max-w-[300px] whitespace-normal">
  {branchInfo.address}
  <div className="absolute -top-1.5 right-4 sm:left-4 sm:right-auto w-3 h-3 bg-white border-t border-l border-border/50 rotate-45"></div>
@@ -231,12 +228,12 @@ export default function BranchDetails() {
 
  {/* ZONE 2: Tab Navigation */}
  <div className="px-2">
- <div className="flex gap-6 border-b border-border">
+ <div className="flex gap-6 border-b border-border overflow-x-auto whitespace-nowrap scrollbar-hide pb-1">
  {TABS.map((tab) => (
  <button
  key={tab.id}
  onClick={() => handleTabChange(tab.id)}
- className={`relative pb-3 text-sm font-bold transition-colors ${activeTab === tab.id ? 'text-brand-orange-600' : 'text-text-secondary hover:text-brand-navy'
+ className={`relative pb-3 text-sm font-bold transition-colors shrink-0 ${activeTab === tab.id ? 'text-brand-orange-600' : 'text-text-secondary hover:text-brand-navy'
  }`}
  >
  <div className="flex items-center gap-2">
@@ -297,7 +294,7 @@ export default function BranchDetails() {
  <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Full Address</p>
  <p className="font-semibold text-brand-navy bg-gray-50 p-3 rounded-xl border border-border/50">{branchInfo.address}</p>
  </div>
- <div className="grid grid-cols-2 gap-4">
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
  <div>
  <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">City</p>
  <p className="font-bold text-brand-navy">{branchInfo.city}</p>
@@ -325,7 +322,7 @@ export default function BranchDetails() {
  <div className="p-2.5 bg-gray-100 rounded-xl shadow-inner border border-gray-200"><Building2 className="w-5 h-5 text-gray-600" /></div>
  <h3 className="text-lg font-black text-brand-navy">Branch Identity</h3>
  </div>
- <div className="grid grid-cols-2 gap-6 relative z-10">
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10">
  <div>
  <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Branch Code</p>
  <p className="font-mono font-bold text-brand-navy bg-gray-50 px-2 py-1 rounded-lg border border-border/50 inline-block">{branchInfo.code}</p>
@@ -347,28 +344,6 @@ export default function BranchDetails() {
 
  {/* Right Column */}
  <div className="space-y-6">
- {/* Contact Card */}
- <Card className="p-6 border border-border/40 shadow-sm bg-white hover:shadow-premium transition-shadow rounded-2xl relative overflow-hidden">
- <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full pointer-events-none opacity-50"></div>
- <div className="flex items-center gap-3 mb-6 relative z-10">
- <div className="p-2.5 bg-blue-50 rounded-xl shadow-inner border border-blue-100"><Phone className="w-5 h-5 text-blue-600" /></div>
- <h3 className="text-lg font-black text-brand-navy">Contact Information</h3>
- </div>
- <div className="space-y-5 relative z-10">
- <div>
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Primary Phone</p>
- <a href={`tel:${branchInfo.phone}`} className="font-bold text-brand-navy hover:text-brand-orange-600 transition-colors flex items-center gap-2 bg-gray-50 p-3 rounded-xl border border-border/50">
- <Phone className="w-4 h-4 text-brand-orange-500" /> {branchInfo.phone}
- </a>
- </div>
- <div>
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Email Address</p>
- <a href={`mailto:${branchInfo.email}`} className="font-bold text-brand-navy hover:text-brand-orange-600 transition-colors flex items-center gap-2 break-all bg-gray-50 p-3 rounded-xl border border-border/50">
- <Mail className="w-4 h-4 text-brand-orange-500" /> {branchInfo.email}
- </a>
- </div>
- </div>
- </Card>
 
  {/* Operations Card */}
  <Card className="p-6 border border-border/40 shadow-sm bg-white hover:shadow-premium transition-shadow rounded-2xl relative overflow-hidden">
@@ -413,8 +388,9 @@ export default function BranchDetails() {
  </div>
  </div>
 
- <div className="flex flex-col sm:flex-row gap-4 w-full xl:w-auto bg-white p-2 rounded-2xl border border-border shadow-sm">
- <div className="relative w-full sm:w-64 shrink-0">
+ <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 w-full xl:w-auto bg-transparent sm:bg-white sm:p-2 sm:rounded-2xl sm:border sm:border-border sm:shadow-sm">
+ <div className="flex items-center gap-2 w-full sm:w-auto bg-white p-2 sm:p-0 rounded-2xl sm:rounded-none border border-border sm:border-none shadow-sm sm:shadow-none">
+ <div className="relative flex-1 sm:w-64 shrink-0">
  <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary" />
  <input
  type="text"
@@ -424,7 +400,17 @@ export default function BranchDetails() {
  className="w-full pl-10 pr-4 py-2 bg-transparent border-none rounded-xl text-sm font-medium focus:outline-none focus:ring-0 transition-all placeholder:text-text-secondary/60"
  />
  </div>
- <div className="hidden sm:block w-px bg-border/50 my-2"></div>
+ {/* Mobile Filter Button */}
+ <button
+ onClick={() => setIsMobileEmpFilterOpen(!isMobileEmpFilterOpen)}
+ className={`sm:hidden p-2 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileEmpFilterOpen ? 'bg-brand-orange-50 border-brand-orange-200 text-brand-orange-600' : 'bg-gray-50 border-border text-text-secondary hover:text-brand-orange-600 hover:border-brand-orange-500'}`}
+ >
+ <Filter className="w-5 h-5" />
+ </button>
+ </div>
+ 
+ <div className={`sm:flex ${isMobileEmpFilterOpen ? 'flex' : 'hidden'} flex-col sm:flex-row gap-2 sm:gap-0 w-full sm:w-auto bg-white sm:bg-transparent p-4 sm:p-0 rounded-2xl sm:rounded-none border border-border sm:border-none shadow-sm sm:shadow-none mt-2 sm:mt-0`}>
+ <div className="hidden sm:block w-px bg-border/50 my-2 mx-4"></div>
  <div className="w-full sm:w-[150px] shrink-0">
  <Select
  value={empRoleFilter}
@@ -434,11 +420,11 @@ export default function BranchDetails() {
  { value: 'Branch Manager', label: 'Manager' },
  { value: 'Delivery Partner', label: 'Delivery' }
  ]}
- className="bg-transparent border-none shadow-none focus:ring-0 text-sm font-bold"
+ className="bg-transparent border-none shadow-none focus:ring-0 text-sm font-bold w-full"
  />
  </div>
- <div className="hidden sm:block w-px bg-border/50 my-2"></div>
- <div className="w-full sm:w-[140px] shrink-0">
+ <div className="hidden sm:block w-px bg-border/50 my-2 mx-4"></div>
+ <div className="w-full sm:w-[140px] shrink-0 mt-2 sm:mt-0">
  <Select
  value={empStatusFilter}
  onChange={e => setEmpStatusFilter(e.target.value)}
@@ -447,8 +433,9 @@ export default function BranchDetails() {
  { value: 'Active', label: 'Active' },
  { value: 'Inactive', label: 'Inactive' }
  ]}
- className="bg-transparent border-none shadow-none focus:ring-0 text-sm font-bold"
+ className="bg-transparent border-none shadow-none focus:ring-0 text-sm font-bold w-full"
  />
+ </div>
  </div>
  </div>
  </div>

@@ -1,12 +1,13 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit2, AlertOctagon, CheckCircle, User, Store, Eye } from 'lucide-react';
+import { Plus, Search, Edit2, AlertOctagon, CheckCircle, User, Store, Eye, Filter } from 'lucide-react';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import Table, { Column } from '../../components/common/Table';
 import DeactivateEmployeeModal from './components/DeactivateEmployeeModal';
+import ActivateEmployeeModal from './components/ActivateEmployeeModal';
 
 interface Employee {
  id: string;
@@ -28,8 +29,8 @@ export default function EmployeeList() {
  const navigate = useNavigate();
  const [employees, setEmployees] = useState<Employee[]>(initialMockEmployees);
  
- const [searchInput, setSearchInput] = useState('');
  const [searchQuery, setSearchQuery] = useState('');
+ const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
  
  const [roleFilter, setRoleFilter] = useState('All');
  const [branchFilter, setBranchFilter] = useState('All');
@@ -38,6 +39,7 @@ export default function EmployeeList() {
  
  // Modal states
  const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);
+ const [activateModalOpen, setActivateModalOpen] = useState(false);
  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
  // Debounce search query
@@ -86,9 +88,17 @@ export default function EmployeeList() {
  }
  };
 
- const handleActivate = async (employee: Employee) => {
+ const handleActivateClick = (employee: Employee) => {
+ setSelectedEmployee(employee);
+ setActivateModalOpen(true);
+ };
+
+ const handleConfirmActivate = async () => {
+ if (selectedEmployee) {
  // Optimistic UI update
- setEmployees(prev => prev.map(e => e.id === employee.id ? { ...e, status: 'Active' } : e));
+ setEmployees(prev => prev.map(e => e.id === selectedEmployee.id ? { ...e, status: 'Active' } : e));
+ setActivateModalOpen(false);
+ }
  };
 
  const columns: Column<Employee>[] = [
@@ -157,7 +167,7 @@ export default function EmployeeList() {
  )}
  {item.status === 'Inactive' && (
  <button 
- onClick={() => handleActivate(item)}
+ onClick={() => handleActivateClick(item)}
  className="p-2 text-text-secondary hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
  title="Activate Employee"
  >
@@ -194,40 +204,53 @@ export default function EmployeeList() {
  <Card className="p-0 overflow-hidden border border-border/50 shadow-soft bg-white flex flex-col min-h-[600px]">
  
  {/* Filter Bar (Sticky) */}
- <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-border p-4 flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
- <div className="relative w-full md:w-80 group">
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
- <input
- type="text"
- placeholder="Search by Name/Email..."
- value={searchInput}
- onChange={(e) => setSearchInput(e.target.value)}
- className="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 transition-all shadow-sm hover:bg-white focus:bg-white placeholder:text-text-secondary/60"
- />
- </div>
+ <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-border p-4 flex flex-col md:flex-row md:items-center justify-between shadow-sm gap-2">
  
- <div className="flex items-center gap-3 w-full md:w-auto">
- <select 
- value={roleFilter}
- onChange={(e) => setRoleFilter(e.target.value)}
- className="flex-1 md:flex-none appearance-none bg-gray-50/50 hover:bg-white border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 cursor-pointer shadow-sm transition-all"
- >
- <option value="All">All Roles</option>
- <option value="Branch Manager">Branch Manager</option>
- <option value="Delivery Partner">Delivery Partner</option>
- </select>
+   {/* Top Row: Search & Mobile Filter Toggle */}
+   <div className="flex items-center justify-between gap-2 sm:gap-3 w-full md:w-auto flex-1">
+     <div className="relative flex-1 md:w-80 group">
+       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
+       <input
+         type="text"
+         placeholder="Search by Name/Email..."
+         value={searchInput}
+         onChange={(e) => setSearchInput(e.target.value)}
+         className="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 transition-all shadow-sm hover:bg-white focus:bg-white placeholder:text-text-secondary/60"
+       />
+     </div>
 
- <select 
- value={branchFilter}
- onChange={(e) => setBranchFilter(e.target.value)}
- className="flex-1 md:flex-none appearance-none bg-gray-50/50 hover:bg-white border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 cursor-pointer shadow-sm transition-all"
- >
- <option value="All">All Branches</option>
- <option value="Downtown">Downtown Main</option>
- <option value="Westside">Westside Plaza</option>
- <option value="North Mall">North Mall Kiosk</option>
- </select>
- </div>
+     {/* Mobile Filter Button */}
+     <button
+       onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+       className={`md:hidden p-2.5 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileFilterOpen ? 'bg-brand-orange-50 border-brand-orange-200 text-brand-orange-600' : 'bg-gray-50 border-border text-text-secondary hover:text-brand-orange-600 hover:border-brand-orange-500'}`}
+     >
+       <Filter className="w-5 h-5" />
+     </button>
+   </div>
+
+   {/* Filters Card */}
+   <div className={`md:flex ${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full md:w-auto bg-gray-50 md:bg-transparent p-4 md:p-0 rounded-xl border border-border md:border-none shadow-sm md:shadow-none mt-2 md:mt-0`}>
+     <select 
+       value={roleFilter}
+       onChange={(e) => setRoleFilter(e.target.value)}
+       className="w-full md:w-auto flex-1 md:flex-none appearance-none bg-gray-50/50 hover:bg-white border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 cursor-pointer shadow-sm transition-all"
+     >
+       <option value="All">All Roles</option>
+       <option value="Branch Manager">Branch Manager</option>
+       <option value="Delivery Partner">Delivery Partner</option>
+     </select>
+
+     <select 
+       value={branchFilter}
+       onChange={(e) => setBranchFilter(e.target.value)}
+       className="w-full md:w-auto flex-1 md:flex-none appearance-none bg-gray-50/50 hover:bg-white border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 cursor-pointer shadow-sm transition-all"
+     >
+       <option value="All">All Branches</option>
+       <option value="Downtown">Downtown Main</option>
+       <option value="Westside">Westside Plaza</option>
+       <option value="North Mall">North Mall Kiosk</option>
+     </select>
+   </div>
  </div>
 
  {/* Table Area */}
@@ -254,6 +277,12 @@ export default function EmployeeList() {
  isOpen={deactivateModalOpen} 
  onClose={() => setDeactivateModalOpen(false)} 
  onConfirm={handleConfirmDeactivate}
+ employeeName={selectedEmployee?.name || ''} 
+ />
+ <ActivateEmployeeModal 
+ isOpen={activateModalOpen} 
+ onClose={() => setActivateModalOpen(false)} 
+ onConfirm={handleConfirmActivate}
  employeeName={selectedEmployee?.name || ''} 
  />
  </div>

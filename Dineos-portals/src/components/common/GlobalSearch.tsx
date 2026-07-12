@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRoleAccess } from '../../hooks/useRoleAccess';
 
 const searchRoutes = [
   { name: 'Dashboard', path: '/dashboard', type: 'Page' },
@@ -11,19 +12,24 @@ const searchRoutes = [
   { name: 'Create Employee', path: '/employees/new', type: 'Action' },
   { name: 'Menu Catalog', path: '/food', type: 'Page' },
   { name: 'Create Menu Item', path: '/food/new', type: 'Action' },
-  { name: 'Coupons & Promotions', path: '/coupons', type: 'Page' },
-  { name: 'Create Coupon', path: '/coupons/new', type: 'Action' },
+  { name: 'Coupons & Promotions', path: '/coupons', type: 'Page', adminOnly: true },
+  { name: 'Create Coupon', path: '/coupons/new', type: 'Action', adminOnly: true },
   { name: 'Orders Calendar', path: '/orders', type: 'Page' },
   { name: 'Orders List', path: '/orders/list', type: 'Page' },
+  { name: 'Reviews', path: '/reviews', type: 'Page', restaurantOnly: true },
+  { name: 'Support', path: '/support', type: 'Page', restaurantOnly: true },
   { name: 'Profile Settings', path: '/settings/profile', type: 'Settings' },
 ];
 
 export default function GlobalSearch({ variant = 'nav' }: { variant?: 'nav' | 'dashboard' | 'mobile' }) {
   const navigate = useNavigate();
+  const { isAdmin } = useRoleAccess();
   const [searchQuery, setSearchQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  const prefix = isAdmin ? '/admin' : '/restaurant';
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -50,12 +56,14 @@ export default function GlobalSearch({ variant = 'nav' }: { variant?: 'nav' | 'd
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredResults = searchRoutes.filter(route => 
-    route.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredResults = searchRoutes.filter(route => {
+    if (route.adminOnly && !isAdmin) return false;
+    if (route.restaurantOnly && isAdmin) return false;
+    return route.name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   const handleResultClick = (path: string) => {
-    navigate(path);
+    navigate(`${prefix}${path}`);
     setIsDropdownOpen(false);
     setSearchQuery('');
   };

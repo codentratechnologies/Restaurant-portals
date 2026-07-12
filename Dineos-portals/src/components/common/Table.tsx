@@ -94,7 +94,7 @@ export default function Table<T extends { id: string | number }>({
   return (
     <div className="w-full flex flex-col h-full flex-1">
       <div className="overflow-x-auto bg-white rounded-2xl border border-border/50 shadow-sm">
-        <table className="w-full text-left border-collapse min-w-[800px]">
+        <table className="w-full text-left border-collapse min-w-[800px] whitespace-nowrap">
           <thead>
             <tr className="bg-gray-50/50 border-b border-border/50">
               {columns.map((col, i) => (
@@ -133,32 +133,32 @@ export default function Table<T extends { id: string | number }>({
 
       {/* Pagination Footer */}
       {!isLoading && totalPages !== undefined && currentPage !== undefined && onPageChange && (
-        <div className="mt-auto px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50 rounded-b-xl">
-          <p className="text-sm text-text-secondary font-medium">
+        <div className="mt-auto px-4 sm:px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50 rounded-b-xl">
+          <p className="hidden sm:block text-sm text-text-secondary font-medium">
             Showing page <span className="font-bold text-brand-navy">{currentPage}</span> of <span className="font-bold text-brand-navy">{totalPages}</span>
           </p>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center w-full sm:w-auto gap-2 sm:gap-3 mx-auto sm:mx-0">
             <button
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg border border-border hover:bg-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 bg-transparent"
             >
-              <ChevronLeft className="w-4 h-4" />
-              <span>Prev</span>
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-brand-orange-500" />
             </button>
 
-            <div className="hidden sm:flex items-center gap-1 px-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               {getPageNumbers().map((page, idx) => (
                 <button
                   key={idx}
                   onClick={() => typeof page === 'number' ? onPageChange(page) : undefined}
                   disabled={page === '...'}
-                  className={`min-w-[32px] h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${page === currentPage
-                      ? 'bg-brand-navy text-white shadow-sm'
+                  className={`min-w-[32px] sm:min-w-[40px] h-8 sm:h-10 flex items-center justify-center rounded-lg text-sm sm:text-base font-bold transition-all ${
+                    page === currentPage
+                      ? 'bg-gradient-to-br from-brand-orange-400 to-brand-orange-600 text-white shadow-md border-none shadow-brand-orange-500/20'
                       : page === '...'
-                        ? 'text-text-secondary cursor-default'
-                        : 'text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm'
+                        ? 'text-text-secondary cursor-default border-none bg-transparent'
+                        : 'bg-transparent border border-border text-text-secondary hover:text-brand-navy hover:bg-white shadow-sm'
                     }`}
                 >
                   {page}
@@ -169,10 +169,9 @@ export default function Table<T extends { id: string | number }>({
             <button
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg border border-border hover:bg-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 bg-transparent"
             >
-              <span>Next</span>
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-brand-orange-500" />
             </button>
           </div>
         </div>

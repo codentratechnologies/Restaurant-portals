@@ -42,16 +42,16 @@ export default function DeleteCouponModal({ isOpen, onClose, onConfirm, couponCo
  </div>
  
  <h3 className="text-xl font-black text-brand-navy mb-2 tracking-tight">
- Delete Coupon - {couponCode}?
+ Delete Coupon
  </h3>
  
  <p className="text-text-secondary font-medium">
- Deleting this coupon will permanently remove it from the system and immediately prevent customers from redeeming it at checkout. Are you sure you want to continue?
+ Are you sure you want to delete <span className="font-bold text-brand-navy">{couponCode}</span>? This will permanently remove it from the system and immediately prevent customers from redeeming it at checkout.
  </p>
  </div>
  
- <div className="p-6 pt-0 flex items-center justify-end gap-3">
- <Button variant="outline" onClick={onClose} className="font-bold">
+ <div className="p-6 pt-0 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
+ <Button variant="outline" onClick={onClose} className="w-full sm:w-auto font-bold justify-center">
  Cancel
  </Button>
  <Button 
@@ -60,7 +60,7 @@ export default function DeleteCouponModal({ isOpen, onClose, onConfirm, couponCo
  onConfirm();
  onClose();
  }}
- className="bg-red-500 hover:bg-red-600 border-transparent shadow-sm font-bold text-white"
+ className="w-full sm:w-auto justify-center bg-red-500 hover:bg-red-600 border-transparent shadow-sm font-bold text-white"
  >
  Confirm Deletion
  </Button>

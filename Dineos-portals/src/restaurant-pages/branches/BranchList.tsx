@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, MapPin, Store, Eye, Edit2, AlertOctagon, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, MapPin, Store, Eye, Edit2, AlertOctagon, CheckCircle2, Filter } from 'lucide-react';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
@@ -36,6 +36,7 @@ export default function BranchList() {
  const navigate = useNavigate();
  const [branches, setBranches] = useState<Branch[]>(initialMockBranches);
  const [searchQuery, setSearchQuery] = useState('');
+ const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
  const [statusFilter, setStatusFilter] = useState('All');
  const [cityFilter, setCityFilter] = useState('All');
  const [currentPage, setCurrentPage] = useState(1);
@@ -197,8 +198,10 @@ export default function BranchList() {
  <Card className="p-0 overflow-hidden border border-border/50 shadow-soft bg-white flex flex-col min-h-[600px]">
  
  {/* Filter Bar (Sticky) */}
- <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-border p-4 flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
- <div className="relative w-full md:w-80 group">
+ <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-border p-4 flex flex-col md:flex-row md:items-center justify-between shadow-sm gap-2">
+ {/* Top Row: Search & Mobile Filter Toggle */}
+ <div className="flex items-center justify-between gap-2 sm:gap-3 w-full md:w-auto flex-1">
+ <div className="relative flex-1 md:w-80 group">
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
  <input
  type="text"
@@ -209,11 +212,29 @@ export default function BranchList() {
  />
  </div>
  
- <div className="flex items-center gap-3 w-full md:w-auto">
+ {/* Mobile Filter Button */}
+ <button
+ onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+ className={`md:hidden p-2.5 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileFilterOpen ? 'bg-brand-orange-50 border-brand-orange-200 text-brand-orange-600' : 'bg-gray-50 border-border text-text-secondary hover:text-brand-orange-600 hover:border-brand-orange-500'}`}
+ >
+ <Filter className="w-5 h-5" />
+ </button>
+
+ {/* Add Branch Button (Icon on mobile, text on desktop) */}
+ <Link to="/restaurant/branches/new" className="shrink-0 md:hidden">
+ <Button className="px-2.5 gap-2 shadow-sm font-bold bg-brand-orange-500 text-white border-0 hover:bg-brand-orange-600">
+ <Plus className="w-5 h-5" />
+ <span className="hidden sm:inline">Add Branch</span>
+ </Button>
+ </Link>
+ </div>
+ 
+ {/* Filters Card */}
+ <div className={`md:flex ${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full md:w-auto bg-gray-50 md:bg-transparent p-4 md:p-0 rounded-xl border border-border md:border-none shadow-sm md:shadow-none mt-2 md:mt-0`}>
  <select 
  value={statusFilter}
  onChange={(e) => setStatusFilter(e.target.value)}
- className="flex-1 md:flex-none appearance-none bg-gray-50/50 hover:bg-white border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 cursor-pointer shadow-sm transition-all"
+ className="w-full md:w-[160px] appearance-none bg-gray-50/50 hover:bg-white border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 cursor-pointer shadow-sm transition-all"
  >
  <option value="All">All Status</option>
  <option value="Active">Active</option>
@@ -223,7 +244,7 @@ export default function BranchList() {
  <select 
  value={cityFilter}
  onChange={(e) => setCityFilter(e.target.value)}
- className="flex-1 md:flex-none appearance-none bg-gray-50/50 hover:bg-white border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 cursor-pointer shadow-sm transition-all"
+ className="w-full md:w-[160px] appearance-none bg-gray-50/50 hover:bg-white border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 cursor-pointer shadow-sm transition-all"
  >
  <option value="All">All Cities</option>
  <option value="New York">New York</option>

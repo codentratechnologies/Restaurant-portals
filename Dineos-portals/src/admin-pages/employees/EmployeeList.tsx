@@ -1,13 +1,14 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit2, AlertOctagon, CheckCircle, User as UserIcon, Store, Eye, UsersRound, Mail, ChevronLeft, ChevronRight, FileX } from 'lucide-react';
+import { Plus, Search, Edit2, AlertOctagon, CheckCircle, User as UserIcon, Store, Eye, UsersRound, Mail, ChevronLeft, ChevronRight, FileX, Filter } from 'lucide-react';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import Select from '../../components/common/Select';
 import Tooltip from '../../components/common/Tooltip';
 import DeactivateEmployeeModal from './components/DeactivateEmployeeModal';
+import ActivateEmployeeModal from './components/ActivateEmployeeModal';
 
 import { useEmployees, Employee } from '../../hooks/useEmployees';
 import { useAuth } from '../../hooks/useAuth';
@@ -24,6 +25,7 @@ export default function EmployeeList() {
 
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const [roleFilter, setRoleFilter] = useState('All');
   const [branchFilter, setBranchFilter] = useState('All');
@@ -32,6 +34,7 @@ export default function EmployeeList() {
 
   // Modal states
   const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);
+  const [activateModalOpen, setActivateModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
   // Debounce search query
@@ -103,16 +106,20 @@ export default function EmployeeList() {
     }
   };
 
-  const handleActivate = async (employee: Employee) => {
-    if (user) {
+  const handleActivateClick = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setActivateModalOpen(true);
+  };
+
+  const handleConfirmActivate = async () => {
+    if (selectedEmployee && user) {
       try {
-
-
-        const employeeRef = ref(rtdb, `employee/${user.uid}/${employee.branchCode}/${employee.id}`);
+        const employeeRef = ref(rtdb, `employee/${user.uid}/${selectedEmployee.branchCode}/${selectedEmployee.id}`);
         await update(employeeRef, {
           status: 'Active',
           updated_at: new Date().toISOString()
         });
+        setActivateModalOpen(false);
         toast.success('Employee activated successfully.');
       } catch (error) {
         console.error('Error activating employee:', error);
@@ -180,26 +187,54 @@ export default function EmployeeList() {
 
   // ── Normal List View ─────────────────────────────────────────────
   return (
-    <div className="space-y-0">
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+          <h1 className="text-3xl font-black text-brand-navy tracking-tight">Employees</h1>
+          <p className="text-text-secondary mt-1 text-sm font-medium">Manage your restaurant staff, roles, and access.</p>
+        </motion.div>
+      </div>
 
       {/* Main Content Area */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
         <Card className="p-0 overflow-hidden border border-border/50 shadow-soft bg-white flex flex-col min-h-[600px]">
 
           {/* Filter Bar (Sticky) */}
-          <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-border p-4 flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
-            <div className="relative w-full md:w-80 group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
-              <input
-                type="text"
-                placeholder="Search by Name/Email..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 transition-all shadow-sm hover:bg-white focus:bg-white placeholder:text-text-secondary/60"
-              />
+          <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-border p-4 flex flex-col md:flex-row md:items-center justify-between shadow-sm gap-2">
+            
+            {/* Top Row: Search & Mobile Filter Toggle & Add Button */}
+            <div className="flex items-center justify-between gap-2 sm:gap-3 w-full md:w-auto flex-1">
+              <div className="relative flex-1 md:w-80 group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Search by Name/Email..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 transition-all shadow-sm hover:bg-white focus:bg-white placeholder:text-text-secondary/60"
+                />
+              </div>
+
+              {/* Mobile Filter Button */}
+              <button
+                onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+                className={`md:hidden p-2.5 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileFilterOpen ? 'bg-brand-orange-50 border-brand-orange-200 text-brand-orange-600' : 'bg-gray-50 border-border text-text-secondary hover:text-brand-orange-600 hover:border-brand-orange-500'}`}
+              >
+                <Filter className="w-5 h-5" />
+              </button>
+
+              {/* Add Employee Button (Icon on mobile, text on desktop) */}
+              <Link to="/admin/employees/new" className="shrink-0">
+                <Button className="md:px-4 px-2.5 gap-2 shadow-sm font-bold bg-brand-orange-500 text-white border-0 hover:bg-brand-orange-600">
+                  <Plus className="w-5 h-5 md:w-4 md:h-4" />
+                  <span className="hidden sm:inline">Add Employee</span>
+                </Button>
+              </Link>
             </div>
 
-            <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+            {/* Filters Card */}
+            <div className={`md:flex ${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full md:w-auto bg-gray-50 md:bg-transparent p-4 md:p-0 rounded-xl border border-border md:border-none shadow-sm md:shadow-none mt-2 md:mt-0`}>
               <div className="w-full md:w-[180px]">
                 <Select
                   value={roleFilter}
@@ -222,12 +257,6 @@ export default function EmployeeList() {
                   ]}
                 />
               </div>
-              <Link to="/admin/employees/new" className="w-full md:w-auto">
-                <Button className="w-full justify-center md:w-auto gap-2 shadow-sm font-bold bg-brand-orange-500 text-white border-0 hover:bg-brand-orange-600">
-                  <Plus className="w-4 h-4" />
-                  Add Employee
-                </Button>
-              </Link>
             </div>
           </div>
 
@@ -246,14 +275,14 @@ export default function EmployeeList() {
               </div>
             ) : (
               <div className="overflow-x-auto bg-white rounded-2xl border border-border/50 shadow-sm">
-                <table className="w-full text-left border-collapse min-w-[800px]">
+                <table className="w-full text-left border-collapse min-w-[800px] whitespace-nowrap">
                   <thead>
                     <tr className="bg-gray-50/50 border-b border-border/50">
-                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[30%]">Employee</th>
-                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[20%]">Role</th>
-                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[20%]">Branch</th>
-                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Status</th>
-                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%] text-right">Actions</th>
+                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Employee</th>
+                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Role</th>
+                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Branch</th>
+                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
@@ -342,7 +371,7 @@ export default function EmployeeList() {
                                 </button>
                               ) : (
                                 <button
-                                  onClick={() => handleActivate(employee)}
+                                  onClick={() => handleActivateClick(employee)}
                                   className="p-2 text-text-secondary hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
                                   title="Activate Employee"
                                 >
@@ -362,32 +391,32 @@ export default function EmployeeList() {
 
           {/* Pagination Footer */}
           {!isLoading && totalPages > 0 && (
-            <div className="mt-auto px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50 rounded-b-xl">
-              <p className="text-sm text-text-secondary font-medium">
+            <div className="mt-auto px-4 sm:px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50 rounded-b-xl">
+              <p className="hidden sm:block text-sm text-text-secondary font-medium">
                 Showing page <span className="font-bold text-brand-navy">{currentPage}</span> of <span className="font-bold text-brand-navy">{totalPages}</span>
               </p>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-full sm:w-auto gap-2 sm:gap-3 mx-auto sm:mx-0">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg border border-border hover:bg-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 bg-transparent"
                 >
-                  <ChevronLeft className="w-4 h-4" />
-                  <span>Prev</span>
+                  <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-brand-orange-500" />
                 </button>
 
-                <div className="hidden sm:flex items-center gap-1 px-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   {getPageNumbers().map((page, idx) => (
                     <button
                       key={idx}
                       onClick={() => typeof page === 'number' ? setCurrentPage(page) : undefined}
                       disabled={page === '...'}
-                      className={`min-w-[32px] h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${page === currentPage
-                        ? 'bg-brand-navy text-white shadow-sm'
-                        : page === '...'
-                          ? 'text-text-secondary cursor-default'
-                          : 'text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm'
+                      className={`min-w-[32px] sm:min-w-[40px] h-8 sm:h-10 flex items-center justify-center rounded-lg text-sm sm:text-base font-bold transition-all ${
+                        page === currentPage
+                          ? 'bg-gradient-to-br from-brand-orange-400 to-brand-orange-600 text-white shadow-md border-none shadow-brand-orange-500/20'
+                          : page === '...'
+                            ? 'text-text-secondary cursor-default border-none bg-transparent'
+                            : 'bg-transparent border border-border text-text-secondary hover:text-brand-navy hover:bg-white shadow-sm'
                         }`}
                     >
                       {page}
@@ -398,10 +427,9 @@ export default function EmployeeList() {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg border border-border hover:bg-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 bg-transparent"
                 >
-                  <span>Next</span>
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-brand-orange-500" />
                 </button>
               </div>
             </div>
@@ -414,6 +442,12 @@ export default function EmployeeList() {
         isOpen={deactivateModalOpen}
         onClose={() => setDeactivateModalOpen(false)}
         onConfirm={handleConfirmDeactivate}
+        employeeName={selectedEmployee ? `${selectedEmployee.firstName} ${selectedEmployee.lastName}` : ''}
+      />
+      <ActivateEmployeeModal
+        isOpen={activateModalOpen}
+        onClose={() => setActivateModalOpen(false)}
+        onConfirm={handleConfirmActivate}
         employeeName={selectedEmployee ? `${selectedEmployee.firstName} ${selectedEmployee.lastName}` : ''}
       />
     </div>

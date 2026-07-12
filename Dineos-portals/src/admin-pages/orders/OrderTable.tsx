@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Download, ArrowLeft, User, Store, Loader2, Calendar, FileText } from 'lucide-react';
+import { Search, Download, ArrowLeft, User, Store, Loader2, Calendar, FileText, Filter, Eye } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
@@ -24,6 +24,7 @@ export default function OrderTable() {
 
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchInput), 300);
@@ -108,7 +109,7 @@ export default function OrderTable() {
   const columns: Column<Order>[] = [
     {
       header: 'Order Details',
-      className: 'w-[25%]',
+      className: '',
       cell: (item) => {
         const timeStr = item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
         return (
@@ -130,7 +131,7 @@ export default function OrderTable() {
     },
     {
       header: 'Branch',
-      className: 'w-[25%]',
+      className: '',
       cell: (item) => (
         <Tooltip content={item.branch} position="top">
           <span 
@@ -144,7 +145,7 @@ export default function OrderTable() {
     },
     {
       header: 'Customer',
-      className: 'w-[20%]',
+      className: '',
       cell: (item) => (
         <div>
           <Tooltip content={item.customer?.name} position="top">
@@ -163,18 +164,39 @@ export default function OrderTable() {
     },
     {
       header: 'Amount',
-      className: 'w-[15%]',
+      className: '',
       cell: (item) => <span className="font-black text-brand-navy text-base">₹{(item.billing?.total || 0).toLocaleString()}</span>,
     },
     {
       header: 'Status',
-      className: 'w-[15%]',
+      className: '',
       cell: (item) => getStatusBadge(item.status),
+    },
+    {
+      header: 'Action',
+      className: '',
+      cell: (item) => (
+        <Link
+          to={`/admin/orders/${item.id}`}
+          title="View Order"
+          className="p-2 inline-flex items-center justify-center text-brand-navy bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors shadow-sm"
+        >
+          <Eye className="w-4 h-4" />
+        </Link>
+      ),
     }
   ];
 
   return (
-    <div className="space-y-0 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+              <h1 className="text-3xl font-black text-brand-navy tracking-tight">Orders List</h1>
+              <p className="text-text-secondary mt-1 text-sm font-medium">Detailed view of all past orders.</p>
+          </motion.div>
+      </div>
+
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
         <Card className="overflow-hidden p-0 border border-border/50 shadow-lg flex flex-col min-h-[600px] bg-white rounded-[2rem]">
 
@@ -192,21 +214,38 @@ export default function OrderTable() {
           </div>
 
           {/* Sticky Filter Bar */}
-          <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-border p-5 flex flex-col lg:flex-row gap-4 items-center justify-between shadow-sm">
+          <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-border p-4 flex flex-col md:flex-row md:items-center justify-between shadow-sm gap-2">
             
-            <div className="relative w-full lg:w-96 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
-              <input
-                type="text"
-                placeholder="Search Order ID or Phone..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-gray-50/50 border border-border rounded-2xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 transition-all shadow-sm hover:bg-white focus:bg-white placeholder:text-text-secondary/60 placeholder:font-medium"
-              />
+            {/* Top Row: Search & Mobile Filter Toggle */}
+            <div className="flex items-center justify-between gap-2 sm:gap-3 w-full md:w-auto flex-1">
+              <div className="relative flex-1 md:w-80 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Search Order ID or Phone..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="w-full pl-11 pr-4 py-2.5 bg-gray-50/50 border border-border rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 transition-all shadow-sm hover:bg-white focus:bg-white placeholder:text-text-secondary/60 placeholder:font-medium"
+                />
+              </div>
+
+              {/* Mobile Filter Button */}
+              <button
+                onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+                className={`md:hidden p-2.5 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileFilterOpen ? 'bg-brand-orange-50 border-brand-orange-200 text-brand-orange-600' : 'bg-gray-50 border-border text-text-secondary hover:text-brand-orange-600 hover:border-brand-orange-500'}`}
+              >
+                <Filter className="w-5 h-5" />
+              </button>
+
+              <Button onClick={handleExportCSV} disabled={isExporting} className="hidden md:flex gap-2 shadow-sm font-bold bg-brand-navy hover:bg-brand-navy/90 text-white rounded-xl">
+                {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                Export
+              </Button>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
-              <div className="w-full sm:w-[200px]">
+            {/* Filters Card */}
+            <div className={`md:flex ${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full md:w-auto bg-gray-50 md:bg-transparent p-4 md:p-0 rounded-xl border border-border md:border-none shadow-sm md:shadow-none mt-2 md:mt-0`}>
+              <div className="w-full md:w-[200px]">
                 <Select
                   value={branchFilter}
                   onChange={(e) => setBranchFilter(e.target.value)}
@@ -219,7 +258,7 @@ export default function OrderTable() {
                 />
               </div>
 
-              <div className="w-full sm:w-[200px]">
+              <div className="w-full md:w-[200px]">
                 <Select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -233,7 +272,7 @@ export default function OrderTable() {
                   ]}
                 />
               </div>
-              <Button onClick={handleExportCSV} disabled={isExporting} className="hidden md:flex gap-2 shadow-sm font-bold bg-brand-navy hover:bg-brand-navy/90 text-white rounded-xl">
+              <Button onClick={handleExportCSV} disabled={isExporting} className="w-full md:hidden flex justify-center gap-2 shadow-sm font-bold bg-brand-navy hover:bg-brand-navy/90 text-white rounded-xl">
                 {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                 Export
               </Button>

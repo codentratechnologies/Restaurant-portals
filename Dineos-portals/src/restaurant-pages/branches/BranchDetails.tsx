@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Edit2, AlertOctagon, Phone, Mail, MapPin, Clock, Search, Eye } from 'lucide-react';
+import { ArrowLeft, Edit2, AlertOctagon, Phone, Mail, MapPin, Clock, Search, Eye, Filter } from 'lucide-react';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
@@ -60,6 +60,7 @@ export default function BranchDetails() {
 
  // Employee Tab State
  const [empSearchQuery, setEmpSearchQuery] = useState('');
+ const [isMobileEmpFilterOpen, setIsMobileEmpFilterOpen] = useState(false);
  const [empRoleFilter, setEmpRoleFilter] = useState('All');
  const [empStatusFilter, setEmpStatusFilter] = useState('All');
  const [empCurrentPage, setEmpCurrentPage] = useState(1);
@@ -124,12 +125,12 @@ export default function BranchDetails() {
 
  {/* ZONE 2: Tab Navigation */}
  <div className="px-2">
- <div className="flex gap-6 border-b border-border">
+ <div className="flex gap-6 border-b border-border overflow-x-auto whitespace-nowrap scrollbar-hide pb-1">
  {TABS.map((tab) => (
  <button
  key={tab.id}
  onClick={() => handleTabChange(tab.id)}
- className={`relative pb-3 text-sm font-bold transition-colors ${activeTab === tab.id ? 'text-brand-orange-600' : 'text-text-secondary hover:text-brand-navy'
+ className={`relative pb-3 text-sm font-bold transition-colors shrink-0 ${activeTab === tab.id ? 'text-brand-orange-600' : 'text-text-secondary hover:text-brand-navy'
  }`}
  >
  <div className="flex items-center gap-2">
@@ -172,14 +173,7 @@ export default function BranchDetails() {
  <p className="text-sm font-bold text-text-secondary">Branch Code</p>
  <p className="font-mono font-bold text-brand-navy">{branchInfo.code}</p>
  </div>
- <div className="space-y-1">
- <p className="text-sm font-bold text-text-secondary">Contact Phone</p>
- <p className="font-medium text-brand-navy flex items-center gap-2"><Phone className="w-4 h-4 text-brand-orange-500" /> {branchInfo.phone}</p>
- </div>
- <div className="space-y-1">
- <p className="text-sm font-bold text-text-secondary">Email Address</p>
- <p className="font-medium text-brand-navy flex items-center gap-2"><Mail className="w-4 h-4 text-brand-orange-500" /> {branchInfo.email}</p>
- </div>
+
  <div className="space-y-1 lg:col-span-2">
  <p className="text-sm font-bold text-text-secondary">Full Address</p>
  <p className="font-medium text-brand-navy flex items-start gap-2"><MapPin className="w-4 h-4 text-brand-orange-500 mt-0.5 shrink-0" /> {branchInfo.address}</p>
@@ -243,8 +237,9 @@ export default function BranchDetails() {
  <h3 className="text-lg font-black text-brand-navy">Branch Employees</h3>
  </div>
 
- <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
- <div className="relative w-full sm:w-64">
+ <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 w-full sm:w-auto">
+ <div className="flex items-center gap-2 w-full sm:w-auto">
+ <div className="relative flex-1 sm:w-64">
  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
  <input
  type="text"
@@ -254,10 +249,20 @@ export default function BranchDetails() {
  className="w-full pl-9 pr-4 py-2 border border-border rounded-lg text-sm font-medium focus:outline-none focus:border-brand-orange-500 focus:ring-1 focus:ring-brand-orange-500 shadow-sm"
  />
  </div>
+ {/* Mobile Filter Button */}
+ <button
+ onClick={() => setIsMobileEmpFilterOpen(!isMobileEmpFilterOpen)}
+ className={`sm:hidden p-2 border rounded-lg transition-all shadow-sm shrink-0 ${isMobileEmpFilterOpen ? 'bg-brand-orange-50 border-brand-orange-200 text-brand-orange-600' : 'bg-white border-border text-text-secondary hover:text-brand-orange-600 hover:border-brand-orange-500'}`}
+ >
+ <Filter className="w-5 h-5" />
+ </button>
+ </div>
+ 
+ <div className={`sm:flex ${isMobileEmpFilterOpen ? 'flex' : 'hidden'} flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto mt-2 sm:mt-0`}>
  <select
  value={empRoleFilter}
  onChange={e => setEmpRoleFilter(e.target.value)}
- className="border border-border rounded-lg px-3 py-2 text-sm font-medium bg-white focus:outline-none focus:border-brand-orange-500 focus:ring-1 focus:ring-brand-orange-500 shadow-sm"
+ className="w-full sm:w-auto border border-border rounded-lg px-3 py-2 text-sm font-medium bg-white focus:outline-none focus:border-brand-orange-500 focus:ring-1 focus:ring-brand-orange-500 shadow-sm"
  >
  <option value="All">All Roles</option>
  <option value="Branch Manager">Branch Manager</option>
@@ -267,12 +272,13 @@ export default function BranchDetails() {
  <select
  value={empStatusFilter}
  onChange={e => setEmpStatusFilter(e.target.value)}
- className="border border-border rounded-lg px-3 py-2 text-sm font-medium bg-white focus:outline-none focus:border-brand-orange-500 focus:ring-1 focus:ring-brand-orange-500 shadow-sm"
+ className="w-full sm:w-auto border border-border rounded-lg px-3 py-2 text-sm font-medium bg-white focus:outline-none focus:border-brand-orange-500 focus:ring-1 focus:ring-brand-orange-500 shadow-sm"
  >
  <option value="All">All Statuses</option>
  <option value="Active">Active</option>
  <option value="Inactive">Inactive</option>
  </select>
+ </div>
  </div>
  </div>
  <div className="flex-1 bg-white flex flex-col">

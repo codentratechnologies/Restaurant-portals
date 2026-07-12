@@ -98,7 +98,15 @@ export default function OrderCalendar() {
  };
 
  return (
- <div className="space-y-0 max-w-7xl mx-auto">
+ <div className="space-y-6 max-w-7xl mx-auto">
+
+ {/* Page Header */}
+ <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+ <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+ <h1 className="text-3xl font-black text-brand-navy tracking-tight">Orders</h1>
+ <p className="text-text-secondary mt-1 text-sm font-medium">View and manage daily order metrics.</p>
+ </motion.div>
+ </div>
 
  {/* Calendar Grid */}
  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
@@ -148,7 +156,7 @@ export default function OrderCalendar() {
  >
  {/* Empty cells for start of month */}
  {Array.from({ length: firstDayOfMonth }).map((_, i) => (
- <div key={`empty-${i}`} className="min-h-[140px] p-2 border-b border-r border-border/50 bg-gray-50/50" />
+ <div key={`empty-${i}`} className="min-h-[80px] sm:min-h-[140px] p-1 sm:p-2 border-b border-r border-border/50 bg-gray-50/50" />
  ))}
 
  {/* Day cells */}
@@ -163,12 +171,12 @@ export default function OrderCalendar() {
  key={day}
  onClick={() => handleDayClick(day)}
  disabled={isFuture}
- className={`min-h-[140px] p-3 border-b border-r border-border/50 flex flex-col items-start transition-all duration-300 relative group overflow-hidden ${isFuture
+ className={`min-h-[80px] sm:min-h-[140px] p-1 sm:p-3 border-b border-r border-border/50 flex flex-col items-start transition-all duration-300 relative group overflow-hidden ${isFuture
  ? 'bg-gray-50/80 cursor-not-allowed'
  : `cursor-pointer hover:bg-white hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:z-20 hover:scale-[1.02] hover:rounded-xl hover:border-transparent ${heatClass}`
  }`}
  >
- <span className={`text-sm font-bold w-8 h-8 flex items-center justify-center rounded-full mb-2 transition-colors ${isFuture
+ <span className={`text-xs sm:text-sm font-bold w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center rounded-full mb-1 sm:mb-2 transition-colors shrink-0 ${isFuture
  ? 'text-gray-400'
  : 'text-brand-navy group-hover:bg-brand-orange-500 group-hover:text-white group-hover:shadow-md'
  }`}>
@@ -176,13 +184,18 @@ export default function OrderCalendar() {
  </span>
 
  {dayMetrics && dayMetrics.count > 0 && !isFuture && (
- <div className="mt-auto space-y-2 w-full">
- <div className="flex items-center justify-between text-xs font-bold text-text-secondary group-hover:text-brand-navy transition-colors">
- <span>Ord: {dayMetrics.count}</span>
+ <div className="mt-auto space-y-1 sm:space-y-2 w-full overflow-hidden">
+ <div className="flex items-center justify-center sm:justify-start text-[9px] sm:text-xs font-bold text-text-secondary group-hover:text-brand-navy transition-colors whitespace-nowrap">
+ <span className="hidden sm:inline">Ord: {dayMetrics.count}</span>
+ <span className="sm:hidden">{dayMetrics.count}</span>
  </div>
- <div className="flex items-center gap-1 text-sm font-black text-brand-navy bg-white/50 group-hover:bg-gray-50 p-1.5 rounded-lg border border-border/50 transition-colors">
- <TrendingUp className="w-3.5 h-3.5 text-brand-orange-500" />
- ₹{dayMetrics.revenue.toLocaleString()}
+ <div className="flex items-center justify-center sm:justify-start gap-0.5 sm:gap-1 text-[9px] sm:text-sm font-black text-brand-navy bg-white/50 group-hover:bg-gray-50 p-1 sm:p-1.5 rounded sm:rounded-lg border border-border/50 transition-colors overflow-hidden">
+ <TrendingUp className="hidden sm:block w-3.5 h-3.5 text-brand-orange-500 shrink-0" />
+ <span className="truncate whitespace-nowrap">
+   ₹{dayMetrics.revenue > 999 && window.innerWidth < 640 
+       ? (dayMetrics.revenue / 1000).toFixed(1) + 'k' 
+       : dayMetrics.revenue.toLocaleString()}
+ </span>
  </div>
  </div>
  )}
@@ -192,7 +205,7 @@ export default function OrderCalendar() {
 
  {/* Empty cells for end of month */}
  {Array.from({ length: (42 - (daysInMonth + firstDayOfMonth)) % 7 }).map((_, i) => (
- <div key={`empty-end-${i}`} className="min-h-[140px] p-2 border-b border-r border-border/50 bg-gray-50/50" />
+ <div key={`empty-end-${i}`} className="min-h-[80px] sm:min-h-[140px] p-1 sm:p-2 border-b border-r border-border/50 bg-gray-50/50" />
  ))}
  </motion.div>
  </AnimatePresence>

@@ -20,6 +20,7 @@ const baseNavItems = [
 
 export default function TopNav() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const { isAdmin } = useRoleAccess();
@@ -123,7 +124,7 @@ export default function TopNav() {
             </div>
             <button
               className="md:hidden p-2 text-text-secondary hover:text-brand-navy rounded-lg hover:bg-gray-50 transition-colors mr-2"
-              onClick={() => setIsMobileMenuOpen(true)}
+              onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
               aria-label="Search"
             >
               <Search className="w-5 h-5" />
@@ -192,6 +193,22 @@ export default function TopNav() {
         </AnimatePresence>,
         document.body
       )}
+
+      {/* Mobile Search Overlay */}
+      <AnimatePresence>
+        {isMobileSearchOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden overflow-hidden border-b border-border/50 bg-gray-50/50"
+          >
+            <div className="p-4">
+              <GlobalSearch variant="mobile" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

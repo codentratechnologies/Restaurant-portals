@@ -109,11 +109,7 @@ export default function EmployeeDetails() {
  <button onClick={() => navigate(-1)} title="Back" className="p-2 bg-white shadow-sm border border-border hover:bg-gray-50 transition-colors rounded-xl flex items-center justify-center">
  <ArrowLeft className="w-5 h-5 text-text-secondary" />
  </button>
- <div className="flex items-center gap-2 text-sm font-medium text-text-secondary">
- <Link to="/admin/employees" className="hover:text-brand-orange-600 transition-colors">Employees</Link>
- <ChevronRight className="w-4 h-4" />
- <span className="text-brand-navy font-bold">{employeeInfo.firstName} {employeeInfo.lastName}</span>
- </div>
+ 
  </div>
 
  {/* ZONE 1: Premium Hero Header */}
