@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation }
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import AppLayout from './components/layout/AppLayout';
+import AdminLayout from './components/layout/AdminLayout';
 import AuthLayout from './components/layout/AuthLayout';
 import RoleRouteGuard from './components/layout/RoleRouteGuard';
 import { auth } from './lib/firebase';
@@ -87,7 +88,7 @@ function AppRoutes() {
 
       {/* Admin Routes */}
       <Route element={<RoleRouteGuard allowedRoles={['Super Admin', 'Admin']} />}>
-        <Route element={<AppLayout />}>
+        <Route element={<AdminLayout />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/branches" element={<AdminBranchList />} />
           <Route path="/admin/branches/new" element={<AdminCreateBranch />} />

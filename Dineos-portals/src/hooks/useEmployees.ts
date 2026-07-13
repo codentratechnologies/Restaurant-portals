@@ -16,6 +16,8 @@ export interface Employee {
   created_at: string;
   updated_at: string;
   branchCode: string;
+  employeeCode?: string;
+  empId?: string;
 }
 
 export function useEmployees() {

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit2, AlertOctagon, CheckCircle, User as UserIcon, Store, Eye, UsersRound, Mail, ChevronLeft, ChevronRight, FileX, Filter } from 'lucide-react';
+import { Plus, Search, Edit2, AlertOctagon, CheckCircle, User as UserIcon, Store, Eye, UsersRound, Mail, ChevronLeft, ChevronRight, FileX, Filter, Phone, LayoutGrid, UserCheck, UserX, Shield, MoreVertical } from 'lucide-react';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
@@ -29,8 +29,9 @@ export default function EmployeeList() {
 
   const [roleFilter, setRoleFilter] = useState('All');
   const [branchFilter, setBranchFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [itemsPerPage, setItemsPerPage] = useState(6);
 
   // Modal states
   const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);
@@ -69,13 +70,37 @@ export default function EmployeeList() {
       });
     }
 
+    if (statusFilter !== 'All') {
+      result = result.filter((e) => e.status === statusFilter);
+    }
+
     return result;
-  }, [employees, searchQuery, roleFilter, branchFilter]);
+  }, [employees, searchQuery, roleFilter, branchFilter, statusFilter]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, roleFilter, branchFilter]);
+  }, [searchQuery, roleFilter, branchFilter, statusFilter]);
+
+  // Derived Stats
+  const totalEmployees = employees.length;
+  const activeEmployees = employees.filter(e => e.status === 'Active').length;
+  const inactiveEmployees = employees.filter(e => e.status === 'Inactive').length;
+  const rolesCount = new Set(employees.map(e => e.role)).size;
+  
+  const activePercent = totalEmployees ? ((activeEmployees / totalEmployees) * 100).toFixed(2) : 0;
+  const inactivePercent = totalEmployees ? ((inactiveEmployees / totalEmployees) * 100).toFixed(2) : 0;
+
+  const getRoleBadgeStyle = (role: string) => {
+    const r = role.toLowerCase();
+    if (r.includes('manager')) return 'bg-orange-100 text-orange-600';
+    if (r.includes('cashier')) return 'bg-purple-100 text-purple-600';
+    if (r.includes('chef') || r.includes('cook')) return 'bg-yellow-100 text-yellow-600';
+    if (r.includes('waiter') || r.includes('service')) return 'bg-blue-100 text-blue-600';
+    if (r.includes('delivery')) return 'bg-green-100 text-green-600';
+    if (r.includes('supervisor')) return 'bg-pink-100 text-pink-600';
+    return 'bg-gray-100 text-gray-600';
+  };
 
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -191,63 +216,114 @@ export default function EmployeeList() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <h1 className="text-3xl font-black text-brand-navy tracking-tight">Employees</h1>
-          <p className="text-text-secondary mt-1 text-sm font-medium">Manage your restaurant staff, roles, and access.</p>
+          <h1 className="text-2xl font-black text-[#1a1f36] tracking-tight">Employees</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-sm font-semibold text-[#8896AB]">Dashboard</span>
+            <ChevronRight className="w-3 h-3 text-[#8896AB]" />
+            <span className="text-sm font-bold text-[#FF6B00]">Employees</span>
+          </div>
+        </motion.div>
+        
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
+          <Link to="/admin/employees/new">
+            <Button className="px-5 py-2.5 font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] shadow-sm rounded-xl flex items-center gap-2 text-sm">
+              <Plus className="w-4 h-4" />
+              Add New Employee
+            </Button>
+          </Link>
         </motion.div>
       </div>
+
+      {/* Stats Section */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Employees */}
+        <Card className="p-5 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-[#FFF3E8] flex items-center justify-center shrink-0">
+            <UsersRound className="w-6 h-6 text-[#FF6B00]" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-[#1a1f36] mb-1">Total Employees</p>
+            <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-1">{totalEmployees}</h3>
+            <p className="text-[10px] font-semibold text-[#8896AB]">Across all branches</p>
+          </div>
+        </Card>
+
+        {/* Active Employees */}
+        <Card className="p-5 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center shrink-0">
+            <UserCheck className="w-6 h-6 text-green-500" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-[#1a1f36] mb-1">Active Employees</p>
+            <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-1">{activeEmployees}</h3>
+            <p className="text-[10px] font-bold text-green-600">{activePercent}% <span className="text-[#8896AB] font-semibold">of total</span></p>
+          </div>
+        </Card>
+
+        {/* Inactive Employees */}
+        <Card className="p-5 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+            <UserX className="w-6 h-6 text-red-500" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-[#1a1f36] mb-1">Inactive Employees</p>
+            <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-1">{inactiveEmployees}</h3>
+            <p className="text-[10px] font-semibold text-[#8896AB]">{inactivePercent}% of total</p>
+          </div>
+        </Card>
+
+        {/* Roles */}
+        <Card className="p-5 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
+            <Shield className="w-6 h-6 text-purple-500" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-[#1a1f36] mb-1">Roles</p>
+            <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-1">{rolesCount}</h3>
+            <p className="text-[10px] font-semibold text-[#8896AB]">Across all employees</p>
+          </div>
+        </Card>
+      </motion.div>
 
       {/* Main Content Area */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
         <Card className="p-0 overflow-hidden border border-border/50 shadow-soft bg-white flex flex-col min-h-[600px]">
 
-          {/* Filter Bar (Sticky) */}
-          <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-border p-4 flex flex-col md:flex-row md:items-center justify-between shadow-sm gap-2">
+          {/* Filter Bar */}
+          <div className="bg-white border-b border-[#E8ECF4] p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
             
-            {/* Top Row: Search & Mobile Filter Toggle & Add Button */}
-            <div className="flex items-center justify-between gap-2 sm:gap-3 w-full md:w-auto flex-1">
-              <div className="relative flex-1 md:w-80 group">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
-                <input
-                  type="text"
-                  placeholder="Search by Name/Email..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 transition-all shadow-sm hover:bg-white focus:bg-white placeholder:text-text-secondary/60"
-                />
-              </div>
-
-              {/* Mobile Filter Button */}
-              <button
-                onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
-                className={`md:hidden p-2.5 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileFilterOpen ? 'bg-brand-orange-50 border-brand-orange-200 text-brand-orange-600' : 'bg-gray-50 border-border text-text-secondary hover:text-brand-orange-600 hover:border-brand-orange-500'}`}
-              >
-                <Filter className="w-5 h-5" />
-              </button>
-
-              {/* Add Employee Button (Icon on mobile, text on desktop) */}
-              <Link to="/admin/employees/new" className="shrink-0">
-                <Button className="md:px-4 px-2.5 gap-2 shadow-sm font-bold bg-brand-orange-500 text-white border-0 hover:bg-brand-orange-600">
-                  <Plus className="w-5 h-5 md:w-4 md:h-4" />
-                  <span className="hidden sm:inline">Add Employee</span>
-                </Button>
-              </Link>
+            {/* Left: Search */}
+            <div className="relative w-full md:w-[400px] group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8896AB] group-focus-within:text-[#FF6B00] transition-colors" />
+              <input
+                type="text"
+                placeholder="Search employees by name, email or phone..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] border border-[#E8ECF4] rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] transition-all hover:bg-white focus:bg-white placeholder:text-[#8896AB]"
+              />
             </div>
 
-            {/* Filters Card */}
-            <div className={`md:flex ${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full md:w-auto bg-gray-50 md:bg-transparent p-4 md:p-0 rounded-xl border border-border md:border-none shadow-sm md:shadow-none mt-2 md:mt-0`}>
-              <div className="w-full md:w-[180px]">
+            {/* Right: Actions */}
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+              <div className="min-w-[140px]">
                 <Select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
                   options={[
                     { value: 'All', label: 'All Roles' },
                     { value: 'Branch Manager', label: 'Branch Manager' },
-                    { value: 'Delivery Partner', label: 'Delivery Partner' }
+                    { value: 'Delivery Partner', label: 'Delivery Partner' },
+                    { value: 'Cashier', label: 'Cashier' },
+                    { value: 'Chef', label: 'Chef' },
+                    { value: 'Waiter', label: 'Waiter' },
+                    { value: 'Supervisor', label: 'Supervisor' }
                   ]}
+                  className="bg-[#F8FAFC] border-[#E8ECF4] h-[38px] text-sm font-bold"
                 />
               </div>
 
-              <div className="w-full md:w-[220px]">
+              <div className="min-w-[160px]">
                 <Select
                   value={branchFilter}
                   onChange={(e) => setBranchFilter(e.target.value)}
@@ -255,129 +331,134 @@ export default function EmployeeList() {
                     { value: 'All', label: 'All Branches' },
                     ...branches.map((b) => ({ value: b.code || '', label: b.name }))
                   ]}
+                  className="bg-[#F8FAFC] border-[#E8ECF4] h-[38px] text-sm font-bold"
                 />
               </div>
+
+              <div className="min-w-[140px]">
+                <Select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  options={[
+                    { value: 'All', label: 'All Status' },
+                    { value: 'Active', label: 'Active' },
+                    { value: 'Inactive', label: 'Inactive' }
+                  ]}
+                  className="bg-[#F8FAFC] border-[#E8ECF4] h-[38px] text-sm font-bold"
+                />
+              </div>
+
+
             </div>
           </div>
 
           {/* Employee Records List */}
-          <div className="flex-1 flex flex-col relative bg-gray-50/30 p-4 sm:p-6 space-y-4">
+          <div className="flex-1 flex flex-col relative bg-white space-y-4 rounded-b-2xl">
             {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse border border-border/50"></div>
-              ))
+              <div className="p-6 space-y-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="h-16 bg-gray-50 rounded-xl animate-pulse border border-[#E8ECF4]"></div>
+                ))}
+              </div>
             ) : paginatedData.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-text-secondary py-12">
-                <FileX className="w-12 h-12 mb-4 opacity-50" />
-                <p className="font-medium text-lg">
-                  {searchQuery.length > 0 ? `No employees found matching"${searchQuery}"` : 'No employees found.'}
+                <FileX className="w-12 h-12 mb-4 opacity-50 text-[#8896AB]" />
+                <p className="font-semibold text-[#1a1f36]">
+                  {searchQuery.length > 0 ? `No employees found matching "${searchQuery}"` : 'No employees found.'}
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto bg-white rounded-2xl border border-border/50 shadow-sm">
-                <table className="w-full text-left border-collapse min-w-[800px] whitespace-nowrap">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[1000px] whitespace-nowrap">
                   <thead>
-                    <tr className="bg-gray-50/50 border-b border-border/50">
-                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Employee</th>
-                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Role</th>
-                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Branch</th>
-                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Actions</th>
+                    <tr className="border-b border-[#E8ECF4]">
+                      <th className="px-6 py-4 text-[11px] font-black text-[#8896AB] uppercase tracking-wider">EmpID</th>
+                      <th className="px-6 py-4 text-[11px] font-black text-[#8896AB] uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-4 text-[11px] font-black text-[#8896AB] uppercase tracking-wider">Role</th>
+                      <th className="px-6 py-4 text-[11px] font-black text-[#8896AB] uppercase tracking-wider">Branch Name</th>
+                      <th className="px-6 py-4 text-[11px] font-black text-[#8896AB] uppercase tracking-wider">Contact</th>
+                      <th className="px-6 py-4 text-[11px] font-black text-[#8896AB] uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-4 text-[11px] font-black text-[#8896AB] uppercase tracking-wider">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border/50">
+                  <tbody className="divide-y divide-[#E8ECF4]">
                     {paginatedData.map((employee, i) => {
-                      const branchName = branches.find(b => b.code === employee.branch)?.name || employee.branch;
+                      const branchName = branches.find(b => b.code === employee.branchCode || b.code === employee.branch)?.name || employee.branch;
+                      const empCode = employee.empId || employee.employeeCode || employee.id.substring(1, 8).toUpperCase();
                       return (
                         <motion.tr
                           key={employee.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.2, delay: i * 0.05 }}
-                          className="hover:bg-gray-50/50 transition-colors group"
+                          className="hover:bg-[#F8FAFC] transition-colors group cursor-pointer"
+                          onClick={() => handleRowClick(employee)}
                         >
-                          <td className="px-6 py-5">
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-xl bg-brand-orange-50 text-brand-orange-500 flex items-center justify-center shrink-0 border border-brand-orange-100/50">
-                                <UserIcon className="w-6 h-6" />
-                              </div>
-                              <Tooltip content={`${employee.firstName} ${employee.lastName}`} position="top">
-                                <span
-                                  className="font-bold text-brand-navy text-lg truncate max-w-[200px]"
-                                >
-                                  {employee.firstName} {employee.lastName}
-                                </span>
-                              </Tooltip>
-                            </div>
+                          <td className="px-6 py-4">
+                            <span className="text-[#8896AB] text-sm font-bold">{empCode}</span>
                           </td>
 
-                          <td className="px-6 py-5">
-                            <span className="text-sm font-semibold text-text-secondary flex items-center gap-1.5">
-                              <UsersRound className="w-4 h-4" />
+                          <td className="px-6 py-4">
+                            <p className="font-bold text-[#1a1f36] text-sm">{employee.firstName} {employee.lastName}</p>
+                          </td>
+
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-2.5 py-1 rounded-md text-[11px] font-black ${getRoleBadgeStyle(employee.role)}`}>
                               {employee.role}
                             </span>
                           </td>
 
-                          <td className="px-6 py-5">
-                            <span className="text-sm font-semibold text-text-secondary flex items-center gap-1.5">
-                              <Store className="w-4 h-4" />
-                              {branchName}
+                          <td className="px-6 py-4">
+                            <p className="font-bold text-[#1a1f36] text-sm">{branchName}</p>
+                          </td>
+
+                          <td className="px-6 py-4">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#8896AB]">
+                                <Phone className="w-3.5 h-3.5" />
+                                {employee.phone || '+91 98765 43210'}
+                              </div>
+                              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#8896AB]">
+                                <Mail className="w-3.5 h-3.5" />
+                                {employee.email}
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${
+                              employee.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                            }`}>
+                              {employee.status}
                             </span>
                           </td>
 
-                          <td className="px-6 py-5">
-                            <Badge variant={employee.status === 'Active' ? 'success' : 'error'} className="font-black px-2.5 py-1 shadow-sm uppercase tracking-widest text-[10px]">
-                              {employee.status}
-                            </Badge>
-                          </td>
-
-                          <td className="px-6 py-5">
-                            <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                              {employee.status !== 'Inactive' ? (
-                                <>
-                                  <Link
-                                    to={`/admin/employees/${employee.id}`}
-                                    className="p-2 text-text-secondary hover:text-brand-navy hover:bg-gray-100 rounded-lg transition-all"
-                                    title="View Employee"
-                                  >
-                                    <Eye className="w-4 h-4" />
-                                  </Link>
-                                  <Link
-                                    to={`/admin/employees/${employee.id}/edit`}
-                                    className="p-2 text-text-secondary hover:text-brand-orange-600 hover:bg-orange-50 rounded-lg transition-all"
-                                    title="Edit Employee"
-                                  >
-                                    <Edit2 className="w-4 h-4" />
-                                  </Link>
-                                </>
-                              ) : (
-                                <>
-                                  <span className="p-2 text-gray-300 cursor-not-allowed rounded-lg" title="View Blocked (Inactive)">
-                                    <Eye className="w-4 h-4" />
-                                  </span>
-                                  <span className="p-2 text-gray-300 cursor-not-allowed rounded-lg" title="Edit Blocked (Inactive)">
-                                    <Edit2 className="w-4 h-4" />
-                                  </span>
-                                </>
-                              )}
-
-                              {employee.status === 'Active' ? (
-                                <button
-                                  onClick={() => handleDeactivateClick(employee)}
-                                  className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                  title="Deactivate Employee"
-                                >
-                                  <AlertOctagon className="w-4 h-4" />
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => handleActivateClick(employee)}
-                                  className="p-2 text-text-secondary hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
-                                  title="Activate Employee"
-                                >
-                                  <CheckCircle className="w-4 h-4" />
-                                </button>
-                              )}
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                              <Link
+                                to={`/admin/employees/${employee.id}`}
+                                className="p-2 border border-[#E8ECF4] rounded-lg hover:bg-gray-50 transition-colors text-[#8896AB]"
+                                title="View Employee"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Link>
+                              <Link
+                                to={`/admin/employees/${employee.id}/edit`}
+                                className="p-2 border border-[#E8ECF4] rounded-lg hover:bg-orange-50 hover:border-orange-200 hover:text-[#FF6B00] transition-colors text-[#8896AB]"
+                                title="Edit Employee"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </Link>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  employee.status === 'Active' ? handleDeactivateClick(employee) : handleActivateClick(employee);
+                                }}
+                                className={`p-2 border border-[#E8ECF4] rounded-lg transition-colors text-[#8896AB] ${employee.status === 'Active' ? 'hover:bg-red-50 hover:border-red-200 hover:text-red-500' : 'hover:bg-green-50 hover:border-green-200 hover:text-green-500'}`}
+                                title={employee.status === 'Active' ? 'Deactivate Employee' : 'Activate Employee'}
+                              >
+                                {employee.status === 'Active' ? <AlertOctagon className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                              </button>
                             </div>
                           </td>
                         </motion.tr>
@@ -390,33 +471,30 @@ export default function EmployeeList() {
           </div>
 
           {/* Pagination Footer */}
+          {/* Pagination Footer */}
           {!isLoading && totalPages > 0 && (
-            <div className="mt-auto px-4 sm:px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50 rounded-b-xl">
-              <p className="hidden sm:block text-sm text-text-secondary font-medium">
-                Showing page <span className="font-bold text-brand-navy">{currentPage}</span> of <span className="font-bold text-brand-navy">{totalPages}</span>
-              </p>
-
-              <div className="flex items-center justify-center w-full sm:w-auto gap-2 sm:gap-3 mx-auto sm:mx-0">
+            <div className="mt-auto px-4 sm:px-6 py-4 border-t border-[#E8ECF4] flex flex-col items-center justify-center gap-4 bg-white rounded-b-2xl">
+              <div className="flex items-center justify-center w-full gap-2 sm:gap-3">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg border border-border hover:bg-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 bg-transparent"
+                  className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg border border-[#E8ECF4] hover:bg-[#F4F6FA] text-[#8896AB] hover:text-[#1a1f36] transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white"
                 >
-                  <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-brand-orange-500" />
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
 
-                <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="flex items-center gap-1.5">
                   {getPageNumbers().map((page, idx) => (
                     <button
                       key={idx}
                       onClick={() => typeof page === 'number' ? setCurrentPage(page) : undefined}
                       disabled={page === '...'}
-                      className={`min-w-[32px] sm:min-w-[40px] h-8 sm:h-10 flex items-center justify-center rounded-lg text-sm sm:text-base font-bold transition-all ${
+                      className={`min-w-[32px] sm:min-w-[36px] h-8 sm:h-9 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${
                         page === currentPage
-                          ? 'bg-gradient-to-br from-brand-orange-400 to-brand-orange-600 text-white shadow-md border-none shadow-brand-orange-500/20'
+                          ? 'border border-[#FF6B00] text-[#FF6B00] bg-white'
                           : page === '...'
-                            ? 'text-text-secondary cursor-default border-none bg-transparent'
-                            : 'bg-transparent border border-border text-text-secondary hover:text-brand-navy hover:bg-white shadow-sm'
+                            ? 'text-[#8896AB] cursor-default border-none bg-transparent'
+                            : 'border border-[#E8ECF4] text-[#1a1f36] bg-white hover:bg-[#F4F6FA]'
                         }`}
                     >
                       {page}
@@ -427,11 +505,14 @@ export default function EmployeeList() {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg border border-border hover:bg-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 bg-transparent"
+                  className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg border border-[#E8ECF4] hover:bg-[#F4F6FA] text-[#8896AB] hover:text-[#1a1f36] transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white"
                 >
-                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-brand-orange-500" />
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
+              <p className="text-sm text-[#8896AB] font-semibold">
+                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length} employees
+              </p>
             </div>
           )}
         </Card>

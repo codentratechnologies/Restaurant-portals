@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Plus, Search, Edit2, AlertOctagon, CheckCircle, User, Store, Eye, Filter } from 'lucide-react';
 import Button from '../../components/common/Button';
@@ -26,16 +26,15 @@ const initialMockEmployees: Employee[] = [
 ];
 
 export default function EmployeeList() {
- const navigate = useNavigate();
- const [employees, setEmployees] = useState<Employee[]>(initialMockEmployees);
- 
- const [searchQuery, setSearchQuery] = useState('');
+  const [employees, setEmployees] = useState<Employee[]>(initialMockEmployees);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
  
  const [roleFilter, setRoleFilter] = useState('All');
  const [branchFilter, setBranchFilter] = useState('All');
- const [currentPage, setCurrentPage] = useState(1);
- const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const isLoading = false;
  
  // Modal states
  const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);

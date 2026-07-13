@@ -104,7 +104,7 @@ export default function GlobalSearch({ variant = 'nav' }: { variant?: 'nav' | 'd
   const isDashboard = variant === 'dashboard';
 
   return (
-    <div ref={searchContainerRef} className={isDashboard ? "flex-1 w-full relative" : "hidden md:flex items-center relative group w-48 lg:w-72"}>
+    <div ref={searchContainerRef} className={isDashboard ? "flex-1 w-full relative" : "hidden sm:flex items-center relative group w-64 md:w-80 lg:w-[450px]"}>
       <Search className={`w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 ${isDashboard ? 'text-gray-400' : 'text-text-secondary group-focus-within:text-brand-orange-600 transition-colors'}`} />
       <input
         ref={searchInputRef}

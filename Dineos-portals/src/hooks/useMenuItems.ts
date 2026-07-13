@@ -39,7 +39,7 @@ export function useMenuItems() {
       (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.val();
-          
+
           let maxId = 0;
           let itemsList: MenuItem[] = [];
           const seenFoodIds = new Set<string>();
@@ -50,14 +50,14 @@ export function useMenuItems() {
             if (typeof node === 'object' && node !== null) {
               // Check if this node is an old flat food item
               if (node.name !== undefined && node.price !== undefined) {
-                 // Ignore old flat structure
-                 return;
+                // Ignore old flat structure
+                return;
               }
 
               // Otherwise it's a category folder
               Object.keys(node).forEach((foodIdKey) => {
                 const item = node[foodIdKey];
-                
+
                 // Ensure it's a valid object
                 if (typeof item === 'object' && item !== null && item.name) {
                   // Track maxId for later use in CreateFoodItem if needed
@@ -80,7 +80,7 @@ export function useMenuItems() {
 
           // Sort by created_at descending (newest first)
           itemsList.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-          
+
           setMenuItems(itemsList);
         } else {
           setMenuItems([]); // Database node doesn't exist or is empty
