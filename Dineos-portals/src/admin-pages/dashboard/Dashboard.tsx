@@ -42,22 +42,23 @@ function StatCard({ title, value, icon: Icon, trend, delay }: any) {
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
-      className="bg-white border border-[#E8ECF4] p-5 rounded-2xl flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
+      className="bg-white border border-[#E8ECF4] p-5 lg:p-6 rounded-2xl flex flex-col shadow-sm hover:shadow-md transition-shadow relative overflow-hidden h-full"
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="w-12 h-12 rounded-xl bg-[#FFF3E8] text-[#FF6B00] flex items-center justify-center shrink-0">
-          <Icon className="w-6 h-6" />
-        </div>
-        <div className="text-right">
-           <p className="text-xs font-bold text-[#8896AB]">{title}</p>
-           <h3 className="text-2xl font-black text-[#1a1f36] mt-1">{value}</h3>
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <p className="text-xs xl:text-[13px] font-bold text-[#8896AB] leading-tight">{title}</p>
+        <div className="w-10 h-10 rounded-xl bg-[#FFF3E8] text-[#FF6B00] flex items-center justify-center shrink-0">
+          <Icon className="w-5 h-5" />
         </div>
       </div>
       
-      <div className="flex items-center gap-1.5 text-xs font-bold mt-2">
-        <TrendingUp className="w-4 h-4 text-[#059669]" />
+      <div className="mb-4">
+         <h3 className="text-2xl xl:text-[26px] font-black text-[#1a1f36] leading-none break-words">{value}</h3>
+      </div>
+      
+      <div className="flex items-center gap-1.5 text-[11px] xl:text-xs font-bold mt-auto pt-4 border-t border-[#F4F6FA]">
+        <TrendingUp className="w-3.5 h-3.5 text-[#059669]" />
         <span className="text-[#059669]">{trend}</span>
-        <span className="text-[#8896AB] font-medium ml-1">vs last week</span>
+        <span className="text-[#8896AB] font-medium ml-0.5">vs last week</span>
       </div>
     </motion.div>
   );
@@ -172,11 +173,18 @@ export default function Dashboard() {
       .sort((a, b) => b.rawQty - a.rawQty)
       .slice(0, 5);
 
+    const formatCompactNumber = (num: number) => {
+      return new Intl.NumberFormat('en-IN', {
+        notation: 'compact',
+        maximumFractionDigits: 2
+      }).format(num);
+    };
+
     return {
-      totalRevenue: `₹ ${totalRevenue.toLocaleString()}`,
-      totalOrders: totalOrders.toLocaleString(),
+      totalRevenue: `₹ ${formatCompactNumber(totalRevenue)}`,
+      totalOrders: formatCompactNumber(totalOrders),
       activeBranches: activeBranchesCount.toString(),
-      avgOrderValue: `₹ ${avgOrderValue.toLocaleString()}`,
+      avgOrderValue: `₹ ${formatCompactNumber(avgOrderValue)}`,
       revenueData,
       pieData,
       recentOrders,
@@ -194,7 +202,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
+    <div className="space-y-6 w-full px-4 sm:px-6 lg:px-8 pb-10 pt-4">
       
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">

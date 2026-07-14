@@ -23,7 +23,13 @@ export default function RoleRouteGuard({ allowedRoles }: RoleRouteGuardProps) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!allowedRoles.includes(role)) {
+  // If role is somehow null (e.g. activeAssignment not set yet), they need to go to selection screen
+  if (!role) {
+    return <Navigate to="/select-workplace" replace />;
+  }
+
+  // @ts-ignore - TS might complain about role being null but we checked above
+  if (!allowedRoles.includes(role as Role)) {
     // If not allowed, redirect to a safe place based on their role
     if (role === 'Super Admin' || role === 'Admin') {
       return <Navigate to="/admin/dashboard" replace />;

@@ -29,7 +29,7 @@ export default function Sidebar() {
         {!isCollapsed ? (
           <>
             <Link to="/admin/dashboard" className="flex items-center overflow-hidden">
-              <img src="/logo.png" alt="DineOS Logo" className="h-14 w-auto object-contain origin-left" />
+              <img src="/logo.png" alt="DineOS Logo" className="h-9 w-auto object-contain origin-left" />
             </Link>
             <button 
               onClick={() => setIsCollapsed(true)} 

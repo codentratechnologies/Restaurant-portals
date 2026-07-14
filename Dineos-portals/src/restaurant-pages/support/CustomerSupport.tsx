@@ -4,6 +4,7 @@ import { Ticket, Search, Filter, MessageSquare, Clock, CheckCircle2, AlertCircle
 import { ref, onValue, update } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../hooks/useAuth';
 
 import Table, { Column } from '../../components/common/Table';
 import Badge from '../../components/common/Badge';
@@ -40,12 +41,15 @@ export default function CustomerSupport() {
  const itemsPerPage = 8;
 
  // Load User
+ const { activeAssignment } = useAuth();
  useEffect(() => {
- const userStr = localStorage.getItem('restaurant_user');
- if (userStr) {
- setCurrentUser(JSON.parse(userStr));
+ if (activeAssignment) {
+ setCurrentUser({
+ adminId: activeAssignment.adminId,
+ branch: activeAssignment.branchId
+ });
  }
- }, []);
+ }, [activeAssignment]);
 
  // 1. Fetch branch push ID
  useEffect(() => {

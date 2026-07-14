@@ -9,8 +9,8 @@ import { useRoleAccess } from '../../hooks/useRoleAccess';
 
 const baseNavItems = [
   { name: 'Dashboard', path: '/dashboard' },
-  { name: 'Branches', path: '/branches' },
-  { name: 'Employees', path: '/employees' },
+  { name: 'Branches', path: '/branches', adminOnly: true },
+  { name: 'Employees', path: '/employees', adminOnly: true },
   { name: 'Menu', path: '/food' },
   { name: 'Coupons & Promotions', path: '/coupons', adminOnly: true },
   { name: 'Orders', path: '/orders' },
@@ -77,7 +77,7 @@ export default function TopNav() {
           </button>
 
           <Link to="/" className="flex items-center shrink-0">
-            <img src="/logo.png" alt="DineOS Logo" className="h-12 sm:h-16 w-auto object-contain sm:scale-125 origin-left" />
+            <img src="/logo.png" alt="DineOS Logo" className="h-9 sm:h-10 w-auto object-contain origin-left" />
           </Link>
 
           <nav className="hidden lg:flex items-center gap-2 xl:gap-4 overflow-visible">

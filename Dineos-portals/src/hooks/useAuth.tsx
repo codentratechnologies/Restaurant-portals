@@ -106,8 +106,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   const employees = branches[branchCode];
                   if (typeof employees === 'object') {
                     for (const empUid in employees) {
-                      if (empUid === firebaseUser.uid) {
-                        const emp = employees[empUid];
+                      const emp = employees[empUid];
+                      // Match by UID or fallback to Email since auto-migration changes UID
+                      if (empUid === firebaseUser.uid || (emp.email && firebaseUser.email && emp.email.toLowerCase() === firebaseUser.email.toLowerCase())) {
                         uData = {
                           email: emp.email || firebaseUser.email || '',
                           name: `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.name || 'User',

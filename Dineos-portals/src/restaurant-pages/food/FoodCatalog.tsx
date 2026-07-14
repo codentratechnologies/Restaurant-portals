@@ -11,6 +11,7 @@ import EnableConfirmationModal from './components/EnableConfirmationModal';
 import { ref, onValue, set, query, orderByChild, equalTo } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function FoodCatalog() {
  const navigate = useNavigate();
@@ -24,17 +25,17 @@ export default function FoodCatalog() {
  const [branchKey, setBranchKey] = useState<string>('');
  
  // Real-time Database Sync
+ const { activeAssignment } = useAuth();
  useEffect(() => {
- const userStr = localStorage.getItem('restaurant_user');
- if (!userStr) {
- navigate('/login');
- return;
- }
- const user = JSON.parse(userStr);
- setCurrentUser(user);
+ if (!activeAssignment) return;
+ 
+ setCurrentUser({
+ adminId: activeAssignment.adminId,
+ branch: activeAssignment.branchId
+ });
 
- const adminId = user.adminId;
- const branchId = user.branch;
+ const adminId = activeAssignment.adminId;
+ const branchId = activeAssignment.branchId;
 
  // Listen to branch assignments by code
  const branchQuery = query(ref(rtdb, `branch/${adminId}`), orderByChild('code'), equalTo(branchId));
@@ -93,7 +94,7 @@ export default function FoodCatalog() {
  branchUnsub();
  menuUnsub();
  };
- }, [navigate]);
+ }, [activeAssignment]);
 
  const items = useMemo(() => {
  if (!currentUser) return [];

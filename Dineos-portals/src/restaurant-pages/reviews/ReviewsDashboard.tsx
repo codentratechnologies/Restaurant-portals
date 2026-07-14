@@ -12,6 +12,7 @@ import Select from '../../components/common/Select';
 
 import ReviewDrawer, { ReviewData } from './components/ReviewDrawer';
 import { OrderData } from '../../hooks/useRestaurantOrders';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function ReviewsDashboard() {
  const navigate = useNavigate();
@@ -32,12 +33,15 @@ export default function ReviewsDashboard() {
  const [reviewDrawerOpen, setReviewDrawerOpen] = useState(false);
  const [selectedReview, setSelectedReview] = useState<ReviewData | null>(null);
 
+ const { activeAssignment } = useAuth();
  useEffect(() => {
- const userStr = localStorage.getItem('restaurant_user');
- if (userStr) {
- setCurrentUser(JSON.parse(userStr));
+ if (activeAssignment) {
+ setCurrentUser({
+ adminId: activeAssignment.adminId,
+ branch: activeAssignment.branchId
+ });
  }
- }, []);
+ }, [activeAssignment]);
 
  // 1. Fetch branch push ID
  useEffect(() => {

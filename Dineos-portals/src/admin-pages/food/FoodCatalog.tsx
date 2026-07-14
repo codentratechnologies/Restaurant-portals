@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Edit2, Eye, Plus, ChevronLeft, ChevronRight, FileX, Upload, Filter, LayoutGrid, LayoutTemplate, CheckCircle, PauseCircle, Tag } from 'lucide-react';
+import { Search, Edit2, Eye, Plus, ChevronLeft, ChevronRight, FileX, Upload, Filter, LayoutGrid, LayoutTemplate, CheckCircle, PauseCircle, Tag, AlertOctagon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';
 import Select from '../../components/common/Select';
-import AvailabilityToggle from './components/AvailabilityToggle';
-import DisableConfirmationModal from './components/DisableConfirmationModal';
+import Button from '../../components/common/Button';
+import StatusConfirmationModal from './components/StatusConfirmationModal';
 import { useMenuItems, MenuItem } from '../../hooks/useMenuItems';
 import { ref, update } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
@@ -30,14 +30,14 @@ export default function FoodCatalog() {
     const [searchInput, setSearchInput] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All Categories');
-    const [restaurantFilter, setRestaurantFilter] = useState('All Restaurants');
     const [statusFilter, setStatusFilter] = useState('All Status');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
 
     // Modals
     const [modalOpen, setModalOpen] = useState(false);
-    const [itemToDisable, setItemToDisable] = useState<MenuItem | null>(null);
+    const [itemToToggle, setItemToToggle] = useState<MenuItem | null>(null);
+    const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
     // Debounce search input
     useEffect(() => {
@@ -51,7 +51,7 @@ export default function FoodCatalog() {
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setCurrentPage(1);
-    }, [debouncedSearch, categoryFilter, restaurantFilter, statusFilter, itemsPerPage]);
+    }, [debouncedSearch, categoryFilter, statusFilter, itemsPerPage]);
 
     // Derived filtered items
     const filteredItems = useMemo(() => {
@@ -110,19 +110,15 @@ export default function FoodCatalog() {
     };
 
     const handleToggleClick = (item: MenuItem) => {
-        if (item.is_available) {
-            setItemToDisable(item);
-            setModalOpen(true);
-        } else {
-            handleToggleStatus(item, true);
-        }
+        setItemToToggle(item);
+        setModalOpen(true);
     };
 
-    const handleConfirmDisable = async () => {
-        if (!itemToDisable) return;
-        await handleToggleStatus(itemToDisable, false);
+    const handleConfirmToggle = async () => {
+        if (!itemToToggle) return;
+        await handleToggleStatus(itemToToggle, !itemToToggle.is_available);
         setModalOpen(false);
-        setItemToDisable(null);
+        setItemToToggle(null);
     };
 
     const getDietaryBadge = (types: string[] = []) => {
@@ -205,10 +201,10 @@ export default function FoodCatalog() {
                             Your master food catalog is empty. Create your first menu item so that branches can start serving it to customers.
                         </p>
                         <Link to="/admin/food/new">
-                            <button className="flex items-center gap-2 px-6 py-3 bg-[#FF6B00] text-white rounded-xl font-bold hover:bg-[#E66000] transition-colors shadow-sm text-base">
+                            <Button size="lg" className="gap-2 shadow-sm font-bold mt-4">
                                 <Plus className="w-5 h-5" />
                                 Create First Item
-                            </button>
+                            </Button>
                         </Link>
                     </Card>
                 </motion.div>
@@ -217,7 +213,7 @@ export default function FoodCatalog() {
     }
 
     return (
-        <div className="space-y-6 pb-10">
+        <div className="space-y-6 w-full px-4 sm:px-6 lg:px-8 pb-10 pt-4">
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
@@ -229,25 +225,22 @@ export default function FoodCatalog() {
                     </div>
                 </motion.div>
 
-                <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-5 py-2.5 bg-white border border-[#E8ECF4] text-[#1a1f36] text-sm font-bold rounded-xl hover:bg-[#F8FAFC] transition-colors shadow-sm">
-                        <Upload className="w-4 h-4 text-[#1a1f36]" />
-                        Import Items
-                    </button>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
                     <Link to="/admin/food/new">
-                        <button className="flex items-center gap-2 px-5 py-2.5 bg-[#FF6B00] text-white text-sm font-bold rounded-xl hover:bg-[#E66000] transition-colors shadow-sm border border-[#FF6B00]">
-                            <Plus className="w-4 h-4" />
+                        <Button className="gap-2 shadow-sm font-bold">
+                            <Plus className="w-5 h-5" />
                             Add New Item
-                        </button>
+                        </Button>
                     </Link>
-                </div>
+                </motion.div>
             </div>
 
-            <DisableConfirmationModal
+            <StatusConfirmationModal
                 isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                onConfirm={handleConfirmDisable}
-                itemName={itemToDisable?.name || ''}
+                onClose={() => { setModalOpen(false); setItemToToggle(null); }}
+                onConfirm={handleConfirmToggle}
+                itemName={itemToToggle?.name || ''}
+                action={itemToToggle?.is_available ? 'deactivate' : 'activate'}
             />
 
             {/* Stats Grid */}
@@ -301,43 +294,41 @@ export default function FoodCatalog() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
                 <Card className="p-0 overflow-visible bg-white shadow-sm border border-[#E8ECF4]">
 
-                    {/* Filter Bar */}
-                    <div className="p-4 flex flex-col xl:flex-row gap-4 items-center justify-between border-b border-[#E8ECF4]">
-                        <div className="relative w-full xl:max-w-md group">
-                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8896AB] group-focus-within:text-[#FF6B00] transition-colors" />
-                            <input
-                                type="text"
-                                placeholder="Search by item name or category..."
-                                value={searchInput}
-                                onChange={(e) => setSearchInput(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E8ECF4] rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] transition-all placeholder:text-[#8896AB]/70 placeholder:font-medium text-[#1a1f36]"
-                            />
+                    {/* Filter Bar (Sticky) */}
+                    <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-[#E8ECF4] p-4 flex flex-col xl:flex-row xl:items-center justify-between shadow-sm gap-2">
+                        {/* Top Row: Search & Mobile Filter Toggle */}
+                        <div className="flex items-center justify-between gap-2 sm:gap-3 w-full xl:w-auto">
+                            <div className="relative w-full md:w-80 group">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8896AB] group-focus-within:text-[#FF6B00] transition-colors" />
+                                <input
+                                    type="text"
+                                    placeholder="Search by item name or category..."
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
+                                    className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-[#E8ECF4] rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] transition-all shadow-sm hover:bg-white focus:bg-white placeholder:text-[#8896AB]/60 text-[#1a1f36]"
+                                />
+                            </div>
+
+                            {/* Mobile Filter Button */}
+                            <button
+                                onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+                                className={`xl:hidden p-2.5 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileFilterOpen ? 'bg-[#FFF3E8] border-[#FFD0B5] text-[#FF6B00]' : 'bg-gray-50 border-[#E8ECF4] text-[#8896AB] hover:text-[#FF6B00] hover:border-[#FF6B00]'}`}
+                            >
+                                <Filter className="w-5 h-5" />
+                            </button>
                         </div>
 
-                        <div className="flex flex-wrap md:flex-nowrap items-center gap-3 w-full xl:w-auto">
+                        {/* Filters Card */}
+                        <div className={`xl:flex ${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full xl:w-auto bg-gray-50 xl:bg-transparent p-4 xl:p-0 rounded-xl border border-[#E8ECF4] xl:border-none shadow-sm xl:shadow-none mt-2 xl:mt-0`}>
                             <div className="w-full md:w-[160px]">
                                 <Select
                                     value={categoryFilter}
                                     onChange={(e) => setCategoryFilter(e.target.value)}
                                     options={categories.map(cat => ({ value: cat, label: cat }))}
-                                    className="py-2.5 h-auto text-sm font-bold border-[#E8ECF4]"
+                                    className="py-2 h-auto text-sm font-bold border-[#E8ECF4] shadow-sm bg-gray-50/50 hover:bg-white"
                                 />
                             </div>
-                            <div className="w-full md:w-[160px]">
-                                <Select
-                                    value={restaurantFilter}
-                                    onChange={(e) => setRestaurantFilter(e.target.value)}
-                                    options={[
-                                        { value: 'All Restaurants', label: 'All Restaurants' },
-                                        { value: 'DineOS Koramangala', label: 'DineOS Koramangala' },
-                                        { value: 'DineOS Indiranagar', label: 'DineOS Indiranagar' },
-                                        { value: 'DineOS HSR Layout', label: 'DineOS HSR Layout' },
-                                        { value: 'DineOS Whitefield', label: 'DineOS Whitefield' },
-                                        { value: 'DineOS Marathahalli', label: 'DineOS Marathahalli' },
-                                    ]}
-                                    className="py-2.5 h-auto text-sm font-bold border-[#E8ECF4]"
-                                />
-                            </div>
+
                             <div className="w-full md:w-[150px]">
                                 <Select
                                     value={statusFilter}
@@ -347,18 +338,8 @@ export default function FoodCatalog() {
                                         { value: 'Active', label: 'Active' },
                                         { value: 'Inactive', label: 'Inactive' }
                                     ]}
-                                    className="py-2.5 h-auto text-sm font-bold border-[#E8ECF4]"
+                                    className="py-2 h-auto text-sm font-bold border-[#E8ECF4] shadow-sm bg-gray-50/50 hover:bg-white"
                                 />
-                            </div>
-
-                            <div className="flex items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
-                                <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-[#FF6B00] text-[#FF6B00] text-sm font-bold rounded-xl hover:bg-[#FFF3E8] transition-colors shadow-sm">
-                                    <Filter className="w-4 h-4" />
-                                    Filter
-                                </button>
-                                <button className="w-[42px] h-[42px] flex items-center justify-center bg-white border border-[#E8ECF4] text-[#8896AB] rounded-xl hover:bg-[#F8FAFC] transition-colors shadow-sm shrink-0">
-                                    <LayoutGrid className="w-4 h-4" />
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -373,8 +354,8 @@ export default function FoodCatalog() {
                                     <th className="px-6 py-4 text-[11px] font-bold text-[#8896AB] uppercase tracking-wider w-[15%]">Category</th>
                                     <th className="px-6 py-4 text-[11px] font-bold text-[#8896AB] uppercase tracking-wider w-[15%]">Dietary</th>
                                     <th className="px-6 py-4 text-[11px] font-bold text-[#8896AB] uppercase tracking-wider w-[10%]">Price</th>
-                                    <th className="px-6 py-4 text-[11px] font-bold text-[#8896AB] uppercase tracking-wider w-[15%]">Availability</th>
-                                    <th className="px-6 py-4 text-[11px] font-bold text-[#8896AB] uppercase tracking-wider text-right">Action</th>
+                                    <th className="px-6 py-4 text-[11px] font-bold text-[#8896AB] uppercase tracking-wider w-[15%]">Status</th>
+                                    <th className="px-6 py-4 text-[11px] font-bold text-[#8896AB] uppercase tracking-wider text-left">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#E8ECF4]">
@@ -451,28 +432,48 @@ export default function FoodCatalog() {
                                                     <span className="text-[13px] font-black text-[#1a1f36]">₹ {item.price.toFixed(2)}</span>
                                                 </td>
 
-                                                {/* Availability */}
-                                                <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                                                    <AvailabilityToggle isAvailable={item.is_available} onToggle={() => handleToggleClick(item)} />
+                                                {/* Status */}
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider ${item.is_available ? 'bg-[#E5F5ED] text-[#00A254]' : 'bg-[#FFF0F2] text-[#FF3B5C]'}`}>
+                                                        <span className={`w-1.5 h-1.5 rounded-full ${item.is_available ? 'bg-[#00A254]' : 'bg-[#FF3B5C]'}`}></span>
+                                                        {item.is_available ? 'Active' : 'Inactive'}
+                                                    </span>
                                                 </td>
 
                                                 {/* Actions */}
                                                 <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                                                    <div className="flex items-center justify-end gap-1.5">
+                                                    <div className="flex items-center justify-start gap-1.5 -ml-2">
                                                         <Link
                                                             to={`/admin/food/${item.id}`}
-                                                            className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E8ECF4] text-[#8896AB] hover:text-[#1a1f36] hover:bg-[#F8FAFC] transition-colors"
+                                                            className="p-2 text-[#8896AB] hover:text-[#FF6B00] hover:bg-[#FFF3E8] rounded-lg transition-colors"
                                                             title="View Details"
                                                         >
                                                             <Eye className="w-4 h-4" />
                                                         </Link>
                                                         <Link
                                                             to={`/admin/food/${item.id}/edit`}
-                                                            className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E8ECF4] text-[#FF6B00] hover:bg-[#FFF3E8] transition-colors"
+                                                            className="p-2 text-[#8896AB] hover:text-[#FF6B00] hover:bg-[#FFF3E8] rounded-lg transition-colors"
                                                             title="Edit Item"
                                                         >
                                                             <Edit2 className="w-4 h-4" />
                                                         </Link>
+                                                        {item.is_available ? (
+                                                            <button
+                                                                onClick={() => handleToggleClick(item)}
+                                                                className="p-2 text-[#8896AB] hover:text-[#FF3B5C] hover:bg-[#FFF0F2] rounded-lg transition-colors"
+                                                                title="Deactivate Item"
+                                                            >
+                                                                <AlertOctagon className="w-4 h-4" />
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => handleToggleClick(item)}
+                                                                className="p-2 text-[#8896AB] hover:text-[#00A254] hover:bg-[#E5F5ED] rounded-lg transition-colors"
+                                                                title="Activate Item"
+                                                            >
+                                                                <CheckCircle className="w-4 h-4" />
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </motion.tr>
@@ -485,59 +486,46 @@ export default function FoodCatalog() {
 
                     {/* Pagination Footer */}
                     {!isLoading && totalPages > 0 && (
-                        <div className="px-4 sm:px-6 py-4 border-t border-[#E8ECF4] flex flex-col md:flex-row items-center justify-between gap-4 bg-white rounded-b-xl">
-                            <p className="text-sm text-[#8896AB] font-semibold">
-                                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredItems.length)} of {filteredItems.length} items
+                        <div className="mt-auto px-4 sm:px-6 py-4 border-t border-[#E8ECF4] flex flex-col sm:flex-row items-center gap-4 bg-gray-50/50 rounded-b-xl relative">
+                            <p className="hidden sm:block text-sm text-[#8896AB] font-medium sm:absolute sm:left-6">
+                                Showing page <span className="font-bold text-[#1a1f36]">{currentPage}</span> of <span className="font-bold text-[#1a1f36]">{totalPages}</span>
                             </p>
 
-                            <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-                                <div className="flex items-center justify-center gap-1.5">
-                                    <button
-                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                        disabled={currentPage === 1}
-                                        className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E8ECF4] hover:bg-[#F4F6FA] text-[#8896AB] hover:text-[#1a1f36] transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white"
-                                    >
-                                        <ChevronLeft className="w-4 h-4" />
-                                    </button>
+                            <div className="flex items-center justify-center w-full gap-2 sm:gap-3">
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg border border-[#E8ECF4] hover:bg-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 bg-transparent"
+                                >
+                                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF6B00]" />
+                                </button>
 
+                                <div className="flex items-center gap-1.5 sm:gap-2">
                                     {getPageNumbers().map((page, idx) => (
                                         <button
                                             key={idx}
                                             onClick={() => typeof page === 'number' ? setCurrentPage(page) : undefined}
                                             disabled={page === '...'}
-                                            className={`min-w-[32px] h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${page === currentPage
-                                                    ? 'border border-[#FF6B00] text-[#FF6B00] bg-white'
+                                            className={`min-w-[32px] sm:min-w-[40px] h-8 sm:h-10 flex items-center justify-center rounded-lg text-sm sm:text-base font-bold transition-all ${
+                                                page === currentPage
+                                                    ? 'bg-gradient-to-br from-[#FF8B3D] to-[#FF6B00] text-white shadow-md border-none shadow-[#FF6B00]/20'
                                                     : page === '...'
                                                         ? 'text-[#8896AB] cursor-default border-none bg-transparent'
-                                                        : 'border border-[#E8ECF4] text-[#1a1f36] bg-white hover:bg-[#F4F6FA]'
-                                                }`}
+                                                        : 'bg-transparent border border-[#E8ECF4] text-[#8896AB] hover:text-[#1a1f36] hover:bg-white shadow-sm'
+                                            }`}
                                         >
                                             {page}
                                         </button>
                                     ))}
-
-                                    <button
-                                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                        disabled={currentPage === totalPages}
-                                        className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E8ECF4] hover:bg-[#F4F6FA] text-[#8896AB] hover:text-[#1a1f36] transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white"
-                                    >
-                                        <ChevronRight className="w-4 h-4" />
-                                    </button>
                                 </div>
 
-                                <Select
-                                    value={itemsPerPage.toString()}
-                                    onChange={(e) => {
-                                        setItemsPerPage(Number(e.target.value));
-                                        setCurrentPage(1);
-                                    }}
-                                    options={[
-                                        { value: '5', label: '5 / page' },
-                                        { value: '10', label: '10 / page' },
-                                        { value: '20', label: '20 / page' },
-                                    ]}
-                                    className="w-[110px] h-8 min-h-[32px] text-[13px] font-bold py-0 border-[#E8ECF4] shadow-sm"
-                                />
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg border border-[#E8ECF4] hover:bg-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0 bg-transparent"
+                                >
+                                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF6B00]" />
+                                </button>
                             </div>
                         </div>
                     )}

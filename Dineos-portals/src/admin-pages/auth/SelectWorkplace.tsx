@@ -5,12 +5,12 @@ import { useAuth } from '../../hooks/useAuth';
 import { Store, ChevronRight } from 'lucide-react';
 
 export default function SelectWorkplace() {
-  const { user, userData, activeAssignment, setActiveAssignment } = useAuth();
+  const { user, userData, activeAssignment, setActiveAssignment, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If not logged in, go to login
-    if (!user) {
+    // If not logged in and not loading, go to login
+    if (!user && !loading) {
       navigate('/login', { replace: true });
       return;
     }
@@ -19,17 +19,25 @@ export default function SelectWorkplace() {
     if (userData?.assignments) {
       if (userData.assignments.length === 1) {
         setActiveAssignment(userData.assignments[0]);
-        const role = userData.assignments[0].role;
-        if (role === 'Super Admin' || role === 'Admin') {
+        const rawRole = (userData.assignments[0].role || '').toLowerCase();
+        if (rawRole === 'super admin' || rawRole === 'admin' || rawRole === 'super_admin' || rawRole === 'root_admin') {
           navigate('/admin/dashboard', { replace: true });
         } else {
           navigate('/restaurant/dashboard', { replace: true });
         }
       }
     }
-  }, [user, userData, navigate, setActiveAssignment]);
+  }, [user, userData, loading, navigate, setActiveAssignment]);
 
-  if (!userData?.assignments || userData.assignments.length === 0) {
+  if (loading || !userData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-brand-orange-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!userData.assignments || userData.assignments.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <p>No assignments found. Please contact an admin.</p>
@@ -37,10 +45,19 @@ export default function SelectWorkplace() {
     );
   }
 
+  // Prevent UI flash before auto-redirect completes
+  if (userData.assignments.length === 1) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-brand-orange-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   const handleSelect = (assignment: any) => {
     setActiveAssignment(assignment);
-    const role = assignment.role;
-    if (role === 'Super Admin' || role === 'Admin') {
+    const rawRole = (assignment.role || '').toLowerCase();
+    if (rawRole === 'super admin' || rawRole === 'admin' || rawRole === 'super_admin' || rawRole === 'root_admin') {
       navigate('/admin/dashboard', { replace: true });
     } else {
       navigate('/restaurant/dashboard', { replace: true });
