@@ -218,11 +218,8 @@ export default function FoodCatalog() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
                     <h1 className="text-[28px] font-black text-[#1a1f36] tracking-tight">Food Items</h1>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-[#8896AB] mt-1">
-                        <span>Dashboard</span>
-                        <ChevronRight className="w-4 h-4" />
-                        <span className="text-[#FF6B00]">Food Items</span>
-                    </div>
+                    <p className="text-sm font-medium text-[#8896AB] mt-1">Manage your central food catalog and menu items.</p>
+
                 </motion.div>
 
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>

@@ -90,12 +90,7 @@ export default function FoodDetails() {
 
   return (
     <div className="space-y-5 pb-10 w-full px-4 sm:px-6 lg:px-8 pt-4">
-      {/* Top Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm font-semibold text-[#8896AB] mb-4">
-        <span>Food Items</span>
-        <span className="text-lg leading-none">›</span>
-        <span className="text-[#1a1f36]">Food Item Details</span>
-      </div>
+
 
       {/* Back Button & Actions Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2 mb-6">

@@ -83,7 +83,7 @@ export default function AdminLayout() {
                   </button>
                 </div>
                 {/* We can re-use Sidebar component here, it works perfectly as it has h-screen and is scrollable */}
-                <Sidebar />
+                <Sidebar onMobileClose={() => setIsMobileMenuOpen(false)} />
               </motion.div>
             </>
           )}

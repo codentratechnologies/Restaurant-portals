@@ -123,7 +123,7 @@ export default function UpdateBranch() {
  setInitialSelectedMenuIds(new Set(selectedMenuIds));
  
  alert('Branch updated successfully!');
- navigate(`/restaurant/branches/${id}`);
+ navigate(`/restaurant/branches`);
  };
 
  const handleCancelClick = (e: React.MouseEvent) => {
@@ -165,7 +165,7 @@ export default function UpdateBranch() {
  <div className="max-w-4xl mx-auto space-y-6">
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
  <div className="flex items-center gap-4">
- <Link to={`/restaurant/branches/${id}`} onClick={handleCancelClick} className="p-2 hover:bg-white rounded-full transition-colors shadow-sm bg-gray-50 border border-border">
+ <Link to={`/restaurant/branches`} onClick={handleCancelClick} className="p-2 hover:bg-white rounded-full transition-colors shadow-sm bg-gray-50 border border-border">
  <ArrowLeft className="w-5 h-5 text-text-secondary" />
  </Link>
  <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
@@ -290,7 +290,7 @@ export default function UpdateBranch() {
           <div className="p-8 border-t border-border bg-gray-50 flex items-center justify-end gap-3 rounded-b-xl">
             {currentStep === 1 ? (
               <>
-                <Link to={`/restaurant/branches/${id}`} onClick={handleCancelClick}>
+                <Link to={`/restaurant/branches`} onClick={handleCancelClick}>
                   <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
                     Cancel
                   </button>

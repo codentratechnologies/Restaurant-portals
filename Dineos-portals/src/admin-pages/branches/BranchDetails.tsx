@@ -117,32 +117,32 @@ export default function BranchDetails() {
       </div>
 
       {/* Header Section */}
-      <Card className="p-6 border border-[#FF6B00]/20 shadow-sm bg-gradient-to-r from-[#FF6B00]/10 via-[#FF6B00]/5 to-white rounded-2xl flex flex-col md:flex-row gap-6 items-start md:items-center justify-between relative overflow-hidden">
+      <Card className="p-6 sm:p-8 border border-[#FF6B00]/20 shadow-sm bg-gradient-to-br from-[#FF6B00]/10 via-[#FF6B00]/5 to-white rounded-3xl flex flex-col md:flex-row gap-6 items-center md:items-center justify-between relative overflow-hidden text-center md:text-left mt-2">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.05] pointer-events-none"></div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 relative z-10 w-full">
-          <div className="w-20 h-20 bg-white border-4 border-white rounded-2xl shadow-md flex items-center justify-center shrink-0 relative overflow-hidden">
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-6 relative z-10 w-full">
+          <div className="w-24 h-24 sm:w-20 sm:h-20 bg-white border-4 border-white rounded-full sm:rounded-2xl shadow-md flex items-center justify-center shrink-0 relative overflow-hidden mx-auto md:mx-0">
             <div className="absolute inset-0 bg-[#FF6B00]/10"></div>
-            <Building2 className="w-10 h-10 text-[#FF6B00] relative z-10" />
+            <Building2 className="w-10 h-10 sm:w-10 sm:h-10 text-[#FF6B00] relative z-10" />
           </div>
-          <div className="space-y-2 flex-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-black text-[#1a1f36] tracking-tight">{branchInfo.name}</h1>
-              <Badge variant={branchInfo.is_active ? 'success' : 'error'} className="font-bold uppercase tracking-wider text-[10px] px-2.5 py-1 shadow-sm">
+          <div className="space-y-4 flex-1 flex flex-col items-center md:items-start w-full">
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <h1 className="text-3xl sm:text-2xl font-black text-[#1a1f36] tracking-tight">{branchInfo.name}</h1>
+              <Badge variant={branchInfo.is_active ? 'success' : 'error'} className="font-bold uppercase tracking-wider text-[11px] px-3 py-1 sm:text-[10px] sm:px-2.5 sm:py-1 shadow-sm shrink-0">
                 {branchInfo.is_active ? 'Active' : 'Inactive'}
               </Badge>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-sm font-bold text-[#8896AB]">
-              <div className="flex items-center gap-1.5"><Building2 className="w-4 h-4" /> {branchInfo.code}</div>
-              <span>•</span>
-              <div className="flex items-center gap-1.5"><Phone className="w-4 h-4 text-[#FF6B00]" /> {branchInfo.phone}</div>
-              <span>•</span>
-              <div className="flex items-center gap-1.5"><Mail className="w-4 h-4 text-[#FF6B00]" /> {branchInfo.email}</div>
+            <div className="flex flex-col sm:flex-row items-center gap-3 text-[15px] sm:text-sm font-bold text-[#8896AB] w-full sm:w-auto bg-white/50 sm:bg-transparent p-4 sm:p-0 rounded-2xl sm:rounded-none border border-white/40 sm:border-0 shadow-sm sm:shadow-none">
+              <div className="flex items-center gap-2"><Building2 className="w-4 h-4 sm:w-4 sm:h-4 text-[#8896AB]" /> {branchInfo.code}</div>
+              <span className="hidden sm:inline">•</span>
+              <div className="flex items-center gap-2"><Phone className="w-4 h-4 sm:w-4 sm:h-4 text-[#FF6B00]" /> {branchInfo.phone}</div>
+              <span className="hidden sm:inline">•</span>
+              <div className="flex items-center gap-2 break-all"><Mail className="w-4 h-4 sm:w-4 sm:h-4 text-[#FF6B00] shrink-0" /> {branchInfo.email}</div>
             </div>
           </div>
         
-          <div className="flex items-center gap-3 w-full md:w-auto shrink-0 mt-4 md:mt-0">
-            <Link to={`/admin/branches/${id}/edit`} className="w-full md:w-auto">
-              <Button variant="secondary" className="w-full px-5 py-2.5 bg-white border border-[#E8ECF4] hover:bg-[#F8FAFC] rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-[#1a1f36] shadow-sm">
+          <div className="flex flex-col w-full md:w-auto shrink-0 mt-4 md:mt-0">
+            <Link to={`/admin/branches/${id}/edit`} className="w-full">
+              <Button variant="secondary" className="w-full px-6 py-3.5 sm:py-2.5 bg-white border border-[#FF6B00]/20 hover:border-[#FF6B00]/50 hover:bg-[#FFF3E8] rounded-xl flex items-center justify-center gap-2 text-sm font-black text-[#FF6B00] shadow-sm transition-all">
                 <Edit2 className="w-4 h-4" /> Edit Branch
               </Button>
             </Link>
@@ -179,41 +179,41 @@ export default function BranchDetails() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
               {/* Branch Information */}
-              <Card className="p-6 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#FFF3E8] flex items-center justify-center shrink-0">
-                    <Building2 className="w-4 h-4 text-[#FF6B00]" />
+              <Card className="p-6 border border-[#E8ECF4] shadow-sm bg-white rounded-3xl space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-[#FFF3E8] flex items-center justify-center shrink-0">
+                    <Building2 className="w-5 h-5 text-[#FF6B00]" />
                   </div>
-                  <h3 className="text-base font-black text-[#1a1f36]">Branch Information</h3>
+                  <h3 className="text-lg font-black text-[#1a1f36]">Branch Info</h3>
                 </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-[#8896AB]">Branch Code</span>
-                    <span className="text-sm font-black text-[#1a1f36]">{branchInfo.code}</span>
+                <div className="space-y-5 sm:space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-3 border-b border-gray-50 sm:border-0 sm:pb-0">
+                    <span className="text-[13px] sm:text-sm font-bold text-[#8896AB] uppercase tracking-wider sm:tracking-normal sm:normal-case">Branch Code</span>
+                    <span className="text-[15px] sm:text-sm font-black text-[#1a1f36]">{branchInfo.code}</span>
                   </div>
                   {branchInfo.restaurant && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-[#8896AB]">Restaurant</span>
-                      <span className="text-sm font-black text-[#1a1f36]">{branchInfo.restaurant}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-3 border-b border-gray-50 sm:border-0 sm:pb-0">
+                      <span className="text-[13px] sm:text-sm font-bold text-[#8896AB] uppercase tracking-wider sm:tracking-normal sm:normal-case">Restaurant</span>
+                      <span className="text-[15px] sm:text-sm font-black text-[#1a1f36]">{branchInfo.restaurant}</span>
                     </div>
                   )}
                   {branchInfo.branchType && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-[#8896AB]">Branch Type</span>
-                      <span className="text-sm font-black text-[#1a1f36]">{branchInfo.branchType}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-3 border-b border-gray-50 sm:border-0 sm:pb-0">
+                      <span className="text-[13px] sm:text-sm font-bold text-[#8896AB] uppercase tracking-wider sm:tracking-normal sm:normal-case">Branch Type</span>
+                      <span className="text-[15px] sm:text-sm font-black text-[#1a1f36]">{branchInfo.branchType}</span>
                     </div>
                   )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-[#8896AB]">Email</span>
-                    <span className="text-sm font-black text-[#1a1f36]">{branchInfo.email}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-3 border-b border-gray-50 sm:border-0 sm:pb-0">
+                    <span className="text-[13px] sm:text-sm font-bold text-[#8896AB] uppercase tracking-wider sm:tracking-normal sm:normal-case">Email</span>
+                    <span className="text-[15px] sm:text-sm font-black text-[#1a1f36] break-all">{branchInfo.email}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-[#8896AB]">Phone Number</span>
-                    <span className="text-sm font-black text-[#1a1f36]">{branchInfo.phone}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-3 border-b border-gray-50 sm:border-0 sm:pb-0">
+                    <span className="text-[13px] sm:text-sm font-bold text-[#8896AB] uppercase tracking-wider sm:tracking-normal sm:normal-case">Phone Number</span>
+                    <span className="text-[15px] sm:text-sm font-black text-[#1a1f36]">{branchInfo.phone}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-[#8896AB]">Status</span>
-                    <Badge variant={branchInfo.is_active ? 'success' : 'error'} className="font-bold px-2.5 py-1 text-[10px] uppercase">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <span className="text-[13px] sm:text-sm font-bold text-[#8896AB] uppercase tracking-wider sm:tracking-normal sm:normal-case">Status</span>
+                    <Badge variant={branchInfo.is_active ? 'success' : 'error'} className="font-bold px-3 py-1 text-[11px] uppercase w-fit">
                       {branchInfo.is_active ? 'Active' : 'Inactive'}
                     </Badge>
                   </div>
@@ -221,14 +221,14 @@ export default function BranchDetails() {
               </Card>
 
               {/* Address */}
-              <Card className="p-6 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#FFF3E8] flex items-center justify-center shrink-0">
-                    <MapPin className="w-4 h-4 text-[#FF6B00]" />
+              <Card className="p-6 border border-[#E8ECF4] shadow-sm bg-white rounded-3xl flex flex-col">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-[#FFF3E8] flex items-center justify-center shrink-0">
+                    <MapPin className="w-5 h-5 text-[#FF6B00]" />
                   </div>
-                  <h3 className="text-base font-black text-[#1a1f36]">Address</h3>
+                  <h3 className="text-lg font-black text-[#1a1f36]">Location</h3>
                 </div>
-                <div className="text-sm font-bold text-[#1a1f36] leading-relaxed">
+                <div className="text-[15px] sm:text-sm font-bold text-[#1a1f36] leading-relaxed bg-[#F8FAFC] p-4 rounded-xl border border-[#E8ECF4]/50 mb-6 flex-1">
                   {branchInfo.address}<br />
                   {branchInfo.city}, {branchInfo.state} - {branchInfo.pincode}<br />
                   {branchInfo.country || 'India'}
@@ -237,46 +237,47 @@ export default function BranchDetails() {
                   href={branchInfo.googleMapUrl || `https://maps.google.com/?q=${encodeURIComponent(`${branchInfo.address}, ${branchInfo.city}, ${branchInfo.state} ${branchInfo.pincode}`)}`} 
                   target="_blank" 
                   rel="noreferrer" 
+                  className="block w-full mt-auto"
                 >
-                  <Button variant="secondary" className="w-max px-4 py-2 mt-2 bg-white border border-[#E8ECF4] hover:bg-[#F8FAFC] rounded-xl flex items-center justify-center gap-2 text-sm font-bold text-[#FF6B00]">
+                  <Button variant="secondary" className="w-full px-4 py-3.5 sm:py-2.5 bg-[#1a1f36] border-0 hover:bg-[#1a1f36]/90 rounded-xl flex items-center justify-center gap-2 text-[15px] sm:text-sm font-black text-white shadow-premium">
                     <MapPin className="w-4 h-4" /> View on Map
                   </Button>
                 </a>
               </Card>
 
               {/* Branch Timings */}
-              <Card className="p-6 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#FFF3E8] flex items-center justify-center shrink-0">
-                    <Clock className="w-4 h-4 text-[#FF6B00]" />
+              <Card className="p-6 border border-[#E8ECF4] shadow-sm bg-white rounded-3xl space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-[#FFF3E8] flex items-center justify-center shrink-0">
+                    <Clock className="w-5 h-5 text-[#FF6B00]" />
                   </div>
-                  <h3 className="text-base font-black text-[#1a1f36]">Branch Timings</h3>
+                  <h3 className="text-lg font-black text-[#1a1f36]">Timings</h3>
                 </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-[#8896AB]">Opening Time</span>
-                    <span className="text-sm font-black text-[#1a1f36]">{branchInfo.openTime}</span>
+                <div className="space-y-5 sm:space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-3 border-b border-gray-50 sm:border-0 sm:pb-0">
+                    <span className="text-[13px] sm:text-sm font-bold text-[#8896AB] uppercase tracking-wider sm:tracking-normal sm:normal-case">Opening Time</span>
+                    <span className="text-[15px] sm:text-sm font-black text-[#1a1f36]">{branchInfo.openTime}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-[#8896AB]">Closing Time</span>
-                    <span className="text-sm font-black text-[#1a1f36]">{branchInfo.closeTime}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-3 border-b border-gray-50 sm:border-0 sm:pb-0">
+                    <span className="text-[13px] sm:text-sm font-bold text-[#8896AB] uppercase tracking-wider sm:tracking-normal sm:normal-case">Closing Time</span>
+                    <span className="text-[15px] sm:text-sm font-black text-[#1a1f36]">{branchInfo.closeTime}</span>
                   </div>
                   {branchInfo.timeZone && (
-                    <div className="flex items-center justify-between pb-4 border-b border-[#E8ECF4]">
-                      <span className="text-sm font-bold text-[#8896AB]">Time Zone</span>
-                      <span className="text-sm font-black text-[#1a1f36]">{branchInfo.timeZone}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-3 border-b border-[#E8ECF4] sm:border-b sm:pb-4">
+                      <span className="text-[13px] sm:text-sm font-bold text-[#8896AB] uppercase tracking-wider sm:tracking-normal sm:normal-case">Time Zone</span>
+                      <span className="text-[15px] sm:text-sm font-black text-[#1a1f36]">{branchInfo.timeZone}</span>
                     </div>
                   )}
                   {branchInfo.deliveryAvailable !== undefined && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-[#1a1f36]">Delivery Available</span>
-                      <span className="text-sm font-black text-green-600 flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" /> Yes</span>
+                    <div className="flex items-center justify-between pt-2">
+                      <span className="text-[14px] sm:text-sm font-black text-[#1a1f36]">Delivery Available</span>
+                      <span className="text-[14px] sm:text-sm font-black text-[#00A254] bg-[#E5F5ED] px-3 py-1 rounded-md flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" /> Yes</span>
                     </div>
                   )}
                   {branchInfo.takeawayAvailable !== undefined && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-[#1a1f36]">Takeaway Available</span>
-                      <span className="text-sm font-black text-green-600 flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" /> Yes</span>
+                    <div className="flex items-center justify-between pt-2">
+                      <span className="text-[14px] sm:text-sm font-black text-[#1a1f36]">Takeaway Available</span>
+                      <span className="text-[14px] sm:text-sm font-black text-[#00A254] bg-[#E5F5ED] px-3 py-1 rounded-md flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" /> Yes</span>
                     </div>
                   )}
                 </div>
@@ -345,11 +346,6 @@ export default function BranchDetails() {
                       className="w-full pl-10 pr-4 py-2 border border-[#E8ECF4] rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] transition-all"
                     />
                   </div>
-                  <Link to="/admin/employees/new" className="shrink-0">
-                    <Button className="bg-[#FF6B00] text-white hover:bg-[#e66000] border-0 px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-bold">
-                      <Plus className="w-4 h-4" /> Add Employee
-                    </Button>
-                  </Link>
                 </div>
               </div>
 
@@ -417,11 +413,6 @@ export default function BranchDetails() {
                     header: 'ACTIONS',
                     cell: (item) => (
                       <div className="flex items-center gap-2 justify-end pr-4">
-                        <Link to={`/admin/employees/${item.id}/edit`}>
-                          <button className="p-2 border border-[#E8ECF4] rounded-lg hover:bg-orange-50 hover:border-orange-200 hover:text-[#FF6B00] transition-colors text-[#8896AB]">
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                        </Link>
                         <button className="p-2 border border-[#E8ECF4] rounded-lg hover:bg-gray-50 transition-colors text-[#8896AB]">
                           <MoreVertical className="w-4 h-4" />
                         </button>
@@ -434,6 +425,58 @@ export default function BranchDetails() {
                 currentPage={empCurrentPage}
                 totalPages={empTotalPages}
                 onPageChange={setEmpCurrentPage}
+                renderMobileItem={(item) => (
+                  <div className="p-4 flex flex-col gap-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-gray-200 border border-[#E8ECF4] flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
+                          {item.profileImage ? (
+                            <img src={item.profileImage} alt={item.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="font-black text-[#8896AB] text-lg">
+                              {item.name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-black text-[#1a1f36] text-base">{item.name}</span>
+                          <span className="text-[12px] font-bold text-[#8896AB]">{item.empId}</span>
+                        </div>
+                      </div>
+                      <Badge variant={item.status === 'Active' ? 'success' : 'error'} className="font-bold px-2 py-0.5 text-[10px] uppercase shrink-0">
+                        {item.status}
+                      </Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 bg-gray-50/50 p-3 rounded-xl border border-border/50">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[11px] font-bold text-[#8896AB] uppercase tracking-wider">Role</span>
+                        <span className="text-sm font-black text-[#1a1f36]">{item.role}</span>
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[11px] font-bold text-[#8896AB] uppercase tracking-wider">Joined On</span>
+                        <span className="text-sm font-black text-[#1a1f36]">{new Date(item.joinedOn).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col gap-1.5 px-1">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="w-4 h-4 text-[#FF6B00]" />
+                        <span className="font-bold text-[#1a1f36]">{item.phone}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Mail className="w-4 h-4 text-[#FF6B00]" />
+                        <span className="font-bold text-[#1a1f36] truncate">{item.email}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-3 border-t border-border mt-1 justify-end">
+                      <button className="p-2 border border-[#E8ECF4] rounded-xl hover:bg-gray-50 transition-colors text-[#8896AB]">
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               />
             </Card>
           </motion.div>

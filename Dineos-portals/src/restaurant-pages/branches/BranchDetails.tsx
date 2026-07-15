@@ -99,21 +99,34 @@ export default function BranchDetails() {
  <div className="sticky top-0 z-20 -mx-4 px-4 sm:mx-0 sm:px-0">
  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
  <Card className="p-4 sm:p-6 bg-white/80 backdrop-blur-xl border border-border shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
- <div className="flex items-center gap-4">
- <button onClick={() => navigate(-1)} type="button" className="p-2 hover:bg-white rounded-full transition-colors shrink-0 shadow-sm border border-border bg-gray-50">
+ <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full">
+ <button onClick={() => navigate(-1)} type="button" className="hidden md:block p-2 hover:bg-white rounded-full transition-colors shrink-0 shadow-sm border border-border bg-gray-50">
  <ArrowLeft className="w-5 h-5 text-text-secondary" />
  </button>
- <div>
- <div className="flex items-center gap-3 mb-1">
- <h1 className="text-xl sm:text-2xl font-black text-brand-navy tracking-tight">{branchInfo.name}</h1>
- <Badge variant={branchInfo.status === 'Active' ? 'success' : 'error'} className="font-bold">
+ <div className="w-full">
+ <div className="flex items-center gap-3 mb-2">
+ <button onClick={() => navigate(-1)} type="button" className="md:hidden p-1.5 hover:bg-white rounded-full transition-colors shrink-0 shadow-sm border border-border bg-gray-50 mr-1">
+ <ArrowLeft className="w-4 h-4 text-text-secondary" />
+ </button>
+ <h1 className="text-xl sm:text-2xl font-black text-brand-navy tracking-tight truncate">{branchInfo.name}</h1>
+ <Badge variant={branchInfo.status === 'Active' ? 'success' : 'error'} className="font-bold shrink-0 text-[10px] px-2 py-0.5">
  {branchInfo.status}
  </Badge>
  </div>
- <div className="flex items-center gap-3 text-sm text-text-secondary font-medium">
- <span className="font-mono bg-gray-100 border border-border px-1.5 py-0.5 rounded text-brand-navy font-bold">{branchInfo.code}</span>
- <span>•</span>
- <span>{branchInfo.email}</span>
+ <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-sm text-text-secondary font-medium bg-gray-50 p-3 sm:p-0 sm:bg-transparent rounded-lg border border-border sm:border-0">
+ <div className="flex items-center gap-2">
+ <span className="font-mono bg-white sm:bg-gray-100 border border-border px-2 py-1 sm:px-1.5 sm:py-0.5 rounded text-brand-navy font-bold">{branchInfo.code}</span>
+ </div>
+ <span className="hidden sm:inline">•</span>
+ <div className="flex items-center gap-2">
+ <Mail className="w-4 h-4 text-brand-orange-500 sm:hidden" />
+ <span className="truncate">{branchInfo.email}</span>
+ </div>
+ <span className="hidden sm:inline">•</span>
+ <div className="flex items-center gap-2">
+ <Phone className="w-4 h-4 text-brand-orange-500 sm:hidden" />
+ <span className="truncate">{branchInfo.phone}</span>
+ </div>
  </div>
  </div>
  </div>
@@ -166,35 +179,40 @@ export default function BranchDetails() {
  transition={{ duration: 0.3 }}
  className="space-y-6"
  >
- <Card className="p-8 border border-border/50 shadow-soft">
- <h3 className="text-lg font-black text-brand-navy mb-6">General Details</h3>
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
- <div className="space-y-1">
- <p className="text-sm font-bold text-text-secondary">Branch Code</p>
- <p className="font-mono font-bold text-brand-navy">{branchInfo.code}</p>
+ <Card className="p-6 sm:p-8 border border-border/50 shadow-soft rounded-3xl">
+ <div className="flex items-center gap-3 mb-6">
+ <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center shrink-0">
+ <Store className="w-5 h-5 text-brand-orange-500" />
+ </div>
+ <h3 className="text-lg font-black text-brand-navy">General Details</h3>
+ </div>
+ <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+ <div className="space-y-1.5 border-b border-gray-50 pb-4 sm:border-0 sm:pb-0">
+ <p className="text-[13px] sm:text-sm font-bold text-text-secondary uppercase tracking-wider sm:tracking-normal sm:normal-case">Branch Code</p>
+ <p className="font-mono font-bold text-brand-navy text-[15px] sm:text-base">{branchInfo.code}</p>
  </div>
 
- <div className="space-y-1 lg:col-span-2">
- <p className="text-sm font-bold text-text-secondary">Full Address</p>
- <p className="font-medium text-brand-navy flex items-start gap-2"><MapPin className="w-4 h-4 text-brand-orange-500 mt-0.5 shrink-0" /> {branchInfo.address}</p>
+ <div className="space-y-1.5 border-b border-gray-50 pb-4 sm:border-0 sm:pb-0 lg:col-span-2">
+ <p className="text-[13px] sm:text-sm font-bold text-text-secondary uppercase tracking-wider sm:tracking-normal sm:normal-case">Full Address</p>
+ <p className="font-medium text-brand-navy text-[15px] sm:text-base flex items-start gap-2"><MapPin className="w-4 h-4 text-brand-orange-500 mt-1 shrink-0" /> {branchInfo.address}</p>
  </div>
- <div className="space-y-1">
- <p className="text-sm font-bold text-text-secondary">Operating Hours</p>
- <p className="font-medium text-brand-navy flex items-center gap-2"><Clock className="w-4 h-4 text-brand-orange-500" /> {branchInfo.openTime} - {branchInfo.closeTime}</p>
+ <div className="space-y-1.5">
+ <p className="text-[13px] sm:text-sm font-bold text-text-secondary uppercase tracking-wider sm:tracking-normal sm:normal-case">Operating Hours</p>
+ <p className="font-medium text-brand-navy text-[15px] sm:text-base flex items-center gap-2"><Clock className="w-4 h-4 text-brand-orange-500" /> {branchInfo.openTime} - {branchInfo.closeTime}</p>
  </div>
  </div>
  </Card>
 
- <Card className="p-8 border border-border/50 shadow-soft bg-gray-50/50">
- <h3 className="text-sm font-black text-text-secondary uppercase tracking-widest mb-6">Audit Trail</h3>
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
- <div className="space-y-1">
- <p className="text-sm font-bold text-text-secondary">Created By</p>
- <p className="font-medium text-brand-navy">{branchInfo.createdBy} <span className="text-text-secondary text-sm ml-2">({branchInfo.createdAt})</span></p>
+ <Card className="p-6 sm:p-8 border border-border/50 shadow-soft bg-gray-50/50 rounded-3xl">
+ <h3 className="text-[13px] sm:text-sm font-black text-text-secondary uppercase tracking-widest mb-6">Audit Trail</h3>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+ <div className="space-y-1.5 border-b border-gray-200 pb-4 sm:border-0 sm:pb-0">
+ <p className="text-[13px] sm:text-sm font-bold text-text-secondary uppercase tracking-wider sm:tracking-normal sm:normal-case">Created By</p>
+ <p className="font-medium text-brand-navy text-[15px] sm:text-base">{branchInfo.createdBy} <span className="text-text-secondary text-[13px] sm:text-sm block sm:inline mt-1 sm:mt-0 sm:ml-2">({branchInfo.createdAt})</span></p>
  </div>
- <div className="space-y-1">
- <p className="text-sm font-bold text-text-secondary">Last Edited By</p>
- <p className="font-medium text-brand-navy">{branchInfo.editedBy} <span className="text-text-secondary text-sm ml-2">({branchInfo.editedAt})</span></p>
+ <div className="space-y-1.5">
+ <p className="text-[13px] sm:text-sm font-bold text-text-secondary uppercase tracking-wider sm:tracking-normal sm:normal-case">Last Edited By</p>
+ <p className="font-medium text-brand-navy text-[15px] sm:text-base">{branchInfo.editedBy} <span className="text-text-secondary text-[13px] sm:text-sm block sm:inline mt-1 sm:mt-0 sm:ml-2">({branchInfo.editedAt})</span></p>
  </div>
  </div>
  </Card>
@@ -309,6 +327,36 @@ export default function BranchDetails() {
  currentPage={empCurrentPage}
  totalPages={empTotalPages}
  onPageChange={setEmpCurrentPage}
+ renderMobileItem={(item) => (
+ <div className="p-4 flex flex-col gap-3">
+ <div className="flex items-start justify-between gap-2">
+ <div className="flex items-center gap-3">
+ <div className="w-12 h-12 rounded-full bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0 shadow-sm text-brand-orange-500 font-black text-xl">
+ {item.name.charAt(0).toUpperCase()}
+ </div>
+ <div className="flex flex-col">
+ <span className="font-black text-brand-navy text-base">{item.name}</span>
+ <span className="text-[12px] font-bold text-text-secondary font-mono">{item.empId}</span>
+ </div>
+ </div>
+ <Badge variant={item.status === 'Active' ? 'success' : 'error'} className="font-bold px-2 py-0.5 text-[10px] uppercase shrink-0">
+ {item.status}
+ </Badge>
+ </div>
+ 
+ <div className="flex items-center justify-between gap-2 bg-gray-50/50 p-3 rounded-xl border border-border/50 mt-1">
+ <div className="flex flex-col gap-0.5">
+ <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Role</span>
+ <span className="text-sm font-black text-brand-navy">{item.role}</span>
+ </div>
+ <Link to={`/restaurant/employees/${item.id}`}>
+ <button className="px-4 py-1.5 bg-brand-navy text-white rounded-lg text-sm font-bold flex items-center gap-1.5 shadow-sm hover:bg-brand-navy/90 transition-colors">
+ <Eye className="w-4 h-4" /> View
+ </button>
+ </Link>
+ </div>
+ </div>
+ )}
  />
  </div>
  </Card>

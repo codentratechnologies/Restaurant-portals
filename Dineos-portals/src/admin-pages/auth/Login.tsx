@@ -34,22 +34,23 @@ export default function Login() {
   };
 
   return (
-    <div className="h-screen w-full relative overflow-hidden flex font-sans">
+    <div className="h-screen w-full relative flex font-sans overflow-y-auto overflow-x-hidden">
       
       {/* ── Background ──────────────── */}
-      <Background />
-
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <Background />
+      </div>
 
       {/* ══════════════════════════════════════════════════════════════
           LEFT SECTION — Branding & Image
       ══════════════════════════════════════════════════════════════ */}
-      <div className="relative z-10 w-full h-full flex max-w-[1600px] mx-auto">
-        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center relative p-8 lg:p-12 xl:pl-20">
-          <div className="w-full max-w-[550px] xl:max-w-[600px] z-20 flex flex-col justify-center mx-auto lg:mx-0">
+      <div className="relative z-10 w-full min-h-screen flex flex-col lg:flex-row max-w-[1600px] mx-auto">
+        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center relative p-6 lg:p-10 xl:pl-20">
+          <div className="w-full max-w-[550px] xl:max-w-[600px] z-20 flex flex-col justify-center mx-auto lg:mx-0 -translate-y-1 lg:-translate-y-2">
             
             {/* Header Text Area */}
-            <div className="mt-4 lg:mt-8 xl:mt-12 mb-8 xl:mb-12">
-              <div className="mb-6">
+            <div className="mb-6 xl:mb-8 translate-y-6 lg:translate-y-10 xl:translate-y-12">
+              <div className="mb-6 xl:mb-8">
                 <img src="/logo.png" alt="DineOS Logo" className="h-10 lg:h-12 xl:h-14 object-contain" />
               </div>
 
@@ -63,12 +64,12 @@ export default function Login() {
               </p>
             </div>
 
-            {/* 3D Image */}
-            <div className="w-full flex items-center justify-start -mt-4 lg:-mt-8 xl:-mt-12">
+            {/* 3D Image - Beautiful large scale, no flex-shrink bugs */}
+            <div className="w-full flex items-center justify-start">
               <img 
                 src="/restro.png" 
                 alt="DineOS Platform" 
-                className="w-full max-w-[650px] max-h-[45vh] lg:max-h-[50vh] object-contain object-left pointer-events-none z-10 drop-shadow-2xl"
+                className="w-full max-w-[650px] max-h-[45vh] lg:max-h-[50vh] xl:max-h-[55vh] object-contain object-left pointer-events-none z-10 drop-shadow-2xl"
               />
             </div>
 
@@ -78,7 +79,7 @@ export default function Login() {
       {/* ══════════════════════════════════════════════════════════════
           RIGHT SECTION — Login Card
       ══════════════════════════════════════════════════════════════ */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-6 lg:p-12 z-20">
+        <div className="w-full lg:w-1/2 flex-1 lg:flex-none flex items-center justify-center p-4 sm:p-6 lg:p-12 z-20">
           <div className="w-full max-w-[360px] sm:max-w-[400px]">
             <div
               className="rounded-[24px] p-6"

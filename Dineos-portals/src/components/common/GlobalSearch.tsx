@@ -21,7 +21,7 @@ const searchRoutes = [
   { name: 'Profile Settings', path: '/settings/profile', type: 'Settings' },
 ];
 
-export default function GlobalSearch({ variant = 'nav' }: { variant?: 'nav' | 'dashboard' | 'mobile' }) {
+export default function GlobalSearch({ variant = 'nav', onSearchComplete }: { variant?: 'nav' | 'dashboard' | 'mobile', onSearchComplete?: () => void }) {
   const navigate = useNavigate();
   const { isAdmin } = useRoleAccess();
   const [searchQuery, setSearchQuery] = useState('');
@@ -66,6 +66,9 @@ export default function GlobalSearch({ variant = 'nav' }: { variant?: 'nav' | 'd
     navigate(`${prefix}${path}`);
     setIsDropdownOpen(false);
     setSearchQuery('');
+    if (onSearchComplete) {
+      onSearchComplete();
+    }
   };
 
   if (variant === 'mobile') {
@@ -104,8 +107,8 @@ export default function GlobalSearch({ variant = 'nav' }: { variant?: 'nav' | 'd
   const isDashboard = variant === 'dashboard';
 
   return (
-    <div ref={searchContainerRef} className={isDashboard ? "flex-1 w-full relative" : "hidden sm:flex items-center relative group w-64 md:w-80 lg:w-[450px]"}>
-      <Search className={`w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 ${isDashboard ? 'text-gray-400' : 'text-text-secondary group-focus-within:text-brand-orange-600 transition-colors'}`} />
+    <div ref={searchContainerRef} className={isDashboard ? "flex-1 w-full relative" : "flex-1 sm:flex-none flex items-center relative group w-full sm:w-64 md:w-80 lg:w-[450px]"}>
+      <Search className={`w-4 h-4 absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 ${isDashboard ? 'text-gray-400' : 'text-text-secondary group-focus-within:text-brand-orange-600 transition-colors'}`} />
       <input
         ref={searchInputRef}
         type="text"
@@ -118,7 +121,7 @@ export default function GlobalSearch({ variant = 'nav' }: { variant?: 'nav' | 'd
         onFocus={() => setIsDropdownOpen(true)}
         className={isDashboard 
           ? "w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-lg outline-none focus:border-brand-orange-500 focus:ring-1 focus:ring-brand-orange-500 text-sm font-medium text-gray-700 placeholder:text-gray-400 transition-all shadow-sm"
-          : "w-full pl-11 pr-4 py-2.5 bg-gray-50/50 border border-border/60 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 focus:bg-white transition-all shadow-sm placeholder:text-text-secondary/60 placeholder:font-medium"}
+          : "w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 bg-gray-50/50 border border-border/60 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 focus:bg-white transition-all shadow-sm placeholder:text-text-secondary/60 placeholder:font-medium"}
       />
       
       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1 pointer-events-none">

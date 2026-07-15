@@ -162,13 +162,8 @@ export default function CreateBranch() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
           <h1 className="text-2xl font-black text-[#1a1f36] tracking-tight">Add New Branch</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <Link to="/admin/dashboard" className="text-sm font-medium text-[#8896AB] hover:text-[#1a1f36]">Dashboard</Link>
-            <span className="text-sm font-medium text-[#8896AB]">&gt;</span>
-            <Link to="/admin/branches" className="text-sm font-medium text-[#8896AB] hover:text-[#1a1f36]">Branches</Link>
-            <span className="text-sm font-medium text-[#8896AB]">&gt;</span>
-            <span className="text-sm font-medium text-[#FF6B00]">Add New Branch</span>
-          </div>
+          <p className="text-sm font-medium text-[#8896AB] mt-1">Add a new branch location to your network.</p>
+
         </motion.div>
       </div>
 

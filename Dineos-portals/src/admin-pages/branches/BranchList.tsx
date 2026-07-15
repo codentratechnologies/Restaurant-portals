@@ -161,18 +161,17 @@ export default function BranchList() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-row items-center justify-between gap-4">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <h1 className="text-3xl font-black text-[#1a1f36] tracking-tight">Branches</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <Link to="/admin/dashboard" className="text-sm font-medium text-[#8896AB] hover:text-[#1a1f36]">Dashboard</Link>
-            <span className="text-sm font-medium text-[#8896AB]">&gt;</span>
-            <span className="text-sm font-medium text-[#FF6B00]">Branches</span>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-[#1a1f36] tracking-tight">Branches</h1>
+          <p className="text-sm font-medium text-[#8896AB] mt-1">Manage and monitor all your restaurant branches.</p>
         </motion.div>
         
         <Link to="/admin/branches/new" className="shrink-0">
-          <Button className="px-6 gap-2 shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg">
+          <Button className="sm:hidden w-10 h-10 p-0 flex items-center justify-center shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg">
+            <Plus className="w-5 h-5" />
+          </Button>
+          <Button className="hidden sm:flex px-6 gap-2 shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg">
             <Plus className="w-4 h-4" />
             Add New Branch
           </Button>

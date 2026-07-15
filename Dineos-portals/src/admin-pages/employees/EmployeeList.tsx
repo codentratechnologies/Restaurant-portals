@@ -217,11 +217,8 @@ export default function EmployeeList() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <h1 className="text-2xl font-black text-[#1a1f36] tracking-tight">Employees</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-sm font-semibold text-[#8896AB]">Dashboard</span>
-            <ChevronRight className="w-3 h-3 text-[#8896AB]" />
-            <span className="text-sm font-bold text-[#FF6B00]">Employees</span>
-          </div>
+          <p className="text-sm font-medium text-[#8896AB] mt-1">Manage staff accounts and permissions across branches.</p>
+
         </motion.div>
         
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>

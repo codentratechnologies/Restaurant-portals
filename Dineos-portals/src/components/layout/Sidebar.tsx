@@ -14,7 +14,11 @@ const sidebarItems = [
   { name: 'Orders', path: '/admin/orders', icon: ShoppingBag },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  onMobileClose?: () => void;
+}
+
+export default function Sidebar({ onMobileClose }: SidebarProps = {}) {
   const { user } = useAuth();
   const { role } = useRoleAccess();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -28,7 +32,7 @@ export default function Sidebar() {
       <div className={cn("h-16 flex items-center shrink-0 pt-2", isCollapsed ? "justify-center px-0" : "justify-between px-4")}>
         {!isCollapsed ? (
           <>
-            <Link to="/admin/dashboard" className="flex items-center overflow-hidden">
+            <Link to="/admin/dashboard" onClick={onMobileClose} className="flex items-center overflow-hidden">
               <img src="/logo.png" alt="DineOS Logo" className="h-9 w-auto object-contain origin-left" />
             </Link>
             <button 
@@ -41,7 +45,7 @@ export default function Sidebar() {
           </>
         ) : (
           <div className="relative flex items-center justify-center w-12 h-12 group cursor-pointer">
-            <Link to="/admin/dashboard" className="flex items-center justify-center w-full h-full group-hover:opacity-0 transition-opacity duration-200">
+            <Link to="/admin/dashboard" onClick={onMobileClose} className="flex items-center justify-center w-full h-full group-hover:opacity-0 transition-opacity duration-200">
               <img src="/logo_square.png" alt="DineOS Logo" className="h-9 w-9 object-contain" />
             </Link>
             <button 
@@ -62,6 +66,7 @@ export default function Sidebar() {
           <NavLink
             key={item.path}
             to={item.path}
+            onClick={onMobileClose}
             title={isCollapsed ? item.name : undefined}
             className={({ isActive }) =>
               cn(
@@ -93,7 +98,7 @@ export default function Sidebar() {
 
       {/* Profile Section at Bottom */}
       <div className={cn("border-t border-[#E8ECF4] shrink-0 transition-all", isCollapsed ? "p-3" : "p-4")}>
-        <Link to="/admin/profile" className={cn("flex items-center rounded-xl hover:bg-[#F4F6FA] transition-colors", isCollapsed ? "justify-center p-1.5" : "gap-3 p-2")}>
+        <Link to="/admin/profile" onClick={onMobileClose} className={cn("flex items-center rounded-xl hover:bg-[#F4F6FA] transition-colors", isCollapsed ? "justify-center p-1.5" : "gap-3 p-2")}>
           <div className={cn("rounded-full bg-[#FFF3E8] text-[#FF6B00] border border-[#FF6B00]/20 flex items-center justify-center font-black shrink-0", isCollapsed ? "w-10 h-10 text-lg" : "w-10 h-10 text-lg")}>
             {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'A'}
           </div>

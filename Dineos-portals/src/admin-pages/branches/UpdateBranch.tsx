@@ -240,13 +240,8 @@ export default function UpdateBranch() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
           <h1 className="text-2xl font-black text-[#1a1f36] tracking-tight">Update Branch &mdash; {formData.name}</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <Link to="/admin/dashboard" className="text-sm font-medium text-[#8896AB] hover:text-[#1a1f36]">Dashboard</Link>
-            <span className="text-sm font-medium text-[#8896AB]">&gt;</span>
-            <Link to="/admin/branches" className="text-sm font-medium text-[#8896AB] hover:text-[#1a1f36]">Branches</Link>
-            <span className="text-sm font-medium text-[#8896AB]">&gt;</span>
-            <span className="text-sm font-medium text-[#FF6B00]">Update Branch</span>
-          </div>
+          <p className="text-sm font-medium text-[#8896AB] mt-1">Modify details and settings for this branch.</p>
+
         </motion.div>
       </div>
 
@@ -346,7 +341,7 @@ export default function UpdateBranch() {
           </div>
 
           <div className="p-8 border-t border-[#E8ECF4] flex items-center justify-end gap-3 bg-[#F8FAFC] rounded-b-2xl">
-            <Link to={`/admin/branches/${id}`} onClick={handleCancelClick}>
+            <Link to={`/admin/branches`} onClick={handleCancelClick}>
               <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-[#1a1f36] bg-white border border-[#E8ECF4] hover:bg-[#F4F6FA] transition-all">
                 Cancel
               </button>

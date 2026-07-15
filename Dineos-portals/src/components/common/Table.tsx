@@ -23,6 +23,7 @@ interface TableProps<T> {
   itemsPerPage?: number;
   onItemsPerPageChange?: (limit: number) => void;
   itemsPerPageOptions?: number[];
+  renderMobileItem?: (item: T) => ReactNode;
 }
 
 export default function Table<T extends { id: string | number }>({
@@ -38,6 +39,7 @@ export default function Table<T extends { id: string | number }>({
   itemsPerPage,
   onItemsPerPageChange,
   itemsPerPageOptions = [5, 10, 25, 50],
+  renderMobileItem,
 }: TableProps<T>) {
 
   const getPageNumbers = () => {
@@ -93,7 +95,8 @@ export default function Table<T extends { id: string | number }>({
 
   return (
     <div className="w-full flex flex-col h-full flex-1">
-      <div className="overflow-x-auto bg-white rounded-2xl border border-border/50 shadow-sm">
+      {/* Desktop View / Default View */}
+      <div className={`overflow-x-auto bg-white rounded-2xl border border-border/50 shadow-sm ${renderMobileItem ? 'hidden md:block' : ''}`}>
         <table className="w-full text-left border-collapse min-w-[800px] whitespace-nowrap">
           <thead>
             <tr className="bg-gray-50/50 border-b border-border/50">
@@ -130,6 +133,33 @@ export default function Table<T extends { id: string | number }>({
           </tbody>
         </table>
       </div>
+
+      {/* Mobile Card View (conditionally rendered if renderMobileItem is provided) */}
+      {renderMobileItem && (
+        <div className="md:hidden flex flex-col divide-y divide-border/50 bg-white border border-border/50 shadow-sm rounded-2xl overflow-hidden mb-4">
+          {isLoading ? (
+            <div className="p-6 text-center text-sm font-bold text-text-secondary animate-pulse">Loading...</div>
+          ) : data.length === 0 ? (
+            <div className="p-10 flex flex-col items-center justify-center text-center">
+              <FileX className="w-10 h-10 text-text-secondary/50 mb-3" />
+              <p className="text-sm font-bold text-text-secondary">{emptyStateMessage}</p>
+            </div>
+          ) : (
+            data.map((item, i) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: i * 0.05 }}
+                onClick={() => onRowClick?.(item)}
+                className={onRowClick ? 'cursor-pointer hover:bg-gray-50 transition-colors' : ''}
+              >
+                {renderMobileItem(item)}
+              </motion.div>
+            ))
+          )}
+        </div>
+      )}
 
       {/* Pagination Footer */}
       {!isLoading && totalPages !== undefined && currentPage !== undefined && onPageChange && (
