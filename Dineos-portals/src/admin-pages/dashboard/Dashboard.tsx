@@ -467,8 +467,8 @@ export default function Dashboard() {
           pdf.setDrawColor(255, 107, 0);
           pdf.setLineWidth(0.8);
           
-          let prevPx = null;
-          let prevPy = null;
+          let prevPx: number | null = null;
+          let prevPy: number | null = null;
           
           revData.forEach((d, i) => {
             const px = 15 + chartLeft + (i * stepX);

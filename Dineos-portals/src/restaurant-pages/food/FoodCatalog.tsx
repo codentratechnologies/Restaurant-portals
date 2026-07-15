@@ -34,8 +34,8 @@ export default function FoodCatalog() {
  branch: activeAssignment.branchId
  });
 
- const adminId = activeAssignment.adminId;
- const branchId = activeAssignment.branchId;
+ const adminId = activeAssignment.adminId || '';
+ const branchId = activeAssignment.branchId || '';
 
  // Listen to branch assignments by code
  const branchQuery = query(ref(rtdb, `branch/${adminId}`), orderByChild('code'), equalTo(branchId));
