@@ -38,7 +38,7 @@ export default function AdminLayout() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 h-[100dvh] overflow-hidden">
         <AdminTopNav onMenuClick={() => setIsMobileMenuOpen(true)} />
         
         <main className="flex-1 overflow-y-auto bg-[#F8FAFC]">

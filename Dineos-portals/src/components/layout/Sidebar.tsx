@@ -25,7 +25,7 @@ export default function Sidebar({ onMobileClose }: SidebarProps = {}) {
 
   return (
     <aside className={cn(
-      "bg-white border-r border-[#E8ECF4] flex flex-col h-screen sticky top-0 shrink-0 transition-all duration-300 overflow-x-hidden",
+      "bg-white border-r border-[#E8ECF4] flex flex-col h-[100dvh] sticky top-0 shrink-0 transition-all duration-300 overflow-x-hidden",
       isCollapsed ? "w-20" : "w-64"
     )}>
       {/* Header: Logo & Toggle */}
