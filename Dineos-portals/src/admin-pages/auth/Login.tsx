@@ -43,32 +43,36 @@ export default function Login() {
       {/* ══════════════════════════════════════════════════════════════
           LEFT SECTION — Branding & Image
       ══════════════════════════════════════════════════════════════ */}
-      <div className="relative z-10 w-full h-full flex">
-        <div className="hidden lg:flex lg:w-1/2 flex-col pt-6 xl:pt-10 pl-12 xl:pl-20 relative">
-          
-          <div className="max-w-[600px] z-20 pr-8">
-            {/* Logo */}
-            <div className="mb-4">
-              <img src="/logo.png" alt="DineOS Logo" className="h-10 lg:h-12 xl:h-14 object-contain" />
+      <div className="relative z-10 w-full h-full flex max-w-[1600px] mx-auto">
+        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center relative p-8 lg:p-12 xl:pl-20">
+          <div className="w-full max-w-[550px] xl:max-w-[600px] z-20 flex flex-col justify-center mx-auto lg:mx-0">
+            
+            {/* Header Text Area */}
+            <div className="mt-4 lg:mt-8 xl:mt-12 mb-8 xl:mb-12">
+              <div className="mb-6">
+                <img src="/logo.png" alt="DineOS Logo" className="h-10 lg:h-12 xl:h-14 object-contain" />
+              </div>
+
+              <h2 className="text-[28px] lg:text-[32px] xl:text-[42px] font-black text-[#1e293b] leading-[1.2] mb-4 tracking-tight">
+                Manage Your <span className="text-[#ea580c]">Restaurant</span> <br className="hidden lg:block"/>
+                Smarter
+              </h2>
+              
+              <p className="text-gray-600 text-[13px] lg:text-[14px] leading-[1.6] max-w-[400px]">
+                DineOS helps you streamline orders, manage staff, track performance and grow your restaurant business with ease.
+              </p>
             </div>
 
-            {/* Typography */}
-            <h2 className="text-[28px] lg:text-[32px] xl:text-[42px] font-black text-[#1e293b] leading-[1.2] mb-4 tracking-tight">
-              Manage Your <span className="text-[#ea580c]">Restaurant</span> <br className="hidden lg:block"/>
-              Smarter
-            </h2>
-            
-            <p className="text-gray-600 text-[13px] lg:text-[14px] leading-[1.6] max-w-[400px]">
-              DineOS helps you streamline orders, manage staff, track performance and grow your restaurant business with ease.
-            </p>
-          </div>
+            {/* 3D Image */}
+            <div className="w-full flex items-center justify-start -mt-4 lg:-mt-8 xl:-mt-12">
+              <img 
+                src="/restro.png" 
+                alt="DineOS Platform" 
+                className="w-full max-w-[650px] max-h-[45vh] lg:max-h-[50vh] object-contain object-left pointer-events-none z-10 drop-shadow-2xl"
+              />
+            </div>
 
-          {/* 3D Image */}
-          <img 
-            src="/restro.png" 
-            alt="DineOS Platform" 
-            className="absolute bottom-0 left-4 lg:left-8 xl:left-12 w-[90%] lg:w-[85%] max-w-[720px] max-h-[45vh] lg:max-h-[50vh] xl:max-h-[55vh] object-contain object-bottom pointer-events-none z-10"
-          />
+          </div>
         </div>
 
       {/* ══════════════════════════════════════════════════════════════
