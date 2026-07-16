@@ -1,43 +1,34 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Search, Download, ArrowLeft, User, Store, Loader2, Calendar, FileText, Filter, Eye } from 'lucide-react';
-import Card from '../../components/common/Card';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Download, Calendar, Eye, Search } from 'lucide-react';
 import Badge from '../../components/common/Badge';
-import Button from '../../components/common/Button';
 import Table, { Column } from '../../components/common/Table';
 import Select from '../../components/common/Select';
-import Tooltip from '../../components/common/Tooltip';
-import toast from 'react-hot-toast';
 
 import { useOrders, Order } from '../../hooks/useOrders';
 
 export default function OrderTable() {
-  const navigate = useNavigate();
+  const { orders, loading } = useOrders();
   const [searchParams] = useSearchParams();
   const dateParam = searchParams.get('date');
-  const { orders, loading } = useOrders();
-
-  const displayDate = dateParam
-    ? new Date(dateParam).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    : 'All Time';
 
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('All Status');
+  const [paymentFilter, setPaymentFilter] = useState('All Payment Methods');
+  const [branchFilter, setBranchFilter] = useState('All Branches');
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchInput), 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const [branchFilter, setBranchFilter] = useState('All');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isExporting, setIsExporting] = useState(false);
-
   const filteredOrders = useMemo(() => {
-    let result = orders;
+    let result = [...orders];
 
     if (dateParam) {
       result = result.filter(o => {
@@ -50,32 +41,43 @@ export default function OrderTable() {
 
     if (debouncedSearch) {
       const q = debouncedSearch.toLowerCase();
-      result = result.filter(o =>
+      result = result.filter(o => 
         o.id.toLowerCase().includes(q) ||
         (o.customer?.phone || '').includes(q) ||
         (o.customer?.name || '').toLowerCase().includes(q)
       );
     }
 
-    if (branchFilter !== 'All') {
-      result = result.filter(o => o.branch === branchFilter);
-    }
-
-    if (statusFilter !== 'All') {
+    if (statusFilter !== 'All Status') {
       result = result.filter(o => o.status === statusFilter);
     }
 
-    return result;
-  }, [debouncedSearch, branchFilter, statusFilter, orders, dateParam]);
-
-  const handleExportCSV = async () => {
-    if (!dateParam && filteredOrders.length > 31 * 50) {
-      toast.error("Cannot export more than 31 days of data. Please apply a date filter.");
-      return;
+    if (paymentFilter !== 'All Payment Methods') {
+      result = result.filter(o => ((o as any).payment?.method || 'Online') === paymentFilter);
     }
 
+    if (branchFilter !== 'All Branches') {
+      result = result.filter(o => o.branch === branchFilter);
+    }
+
+    // Sort by descending created_at
+    result.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+
+    return result;
+  }, [dateParam, debouncedSearch, statusFilter, paymentFilter, branchFilter, orders]);
+
+  // Pagination Logic
+  const totalItems = filteredOrders.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  
+  const currentOrders = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredOrders.slice(start, start + itemsPerPage);
+  }, [filteredOrders, currentPage, itemsPerPage]);
+
+  const handleExportCSV = async () => {
     setIsExporting(true);
-    await new Promise(r => setTimeout(r, 1500));
+    await new Promise(r => setTimeout(r, 1000));
 
     const csvContent ="data:text/csv;charset=utf-8," +
       "Order ID,Time,Branch,Customer,Phone,Amount,Status\n" +
@@ -87,7 +89,7 @@ export default function OrderTable() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `orders_${dateParam || 'export'}.csv`);
+    link.setAttribute("download", `orders_export.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -97,89 +99,90 @@ export default function OrderTable() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Delivered': return <Badge variant="success" className="font-bold shadow-sm backdrop-blur-md">● Delivered</Badge>;
-      case 'Cancelled': return <Badge variant="error" className="font-bold shadow-sm backdrop-blur-md">● Cancelled</Badge>;
-      case 'Preparing': return <Badge variant="warning" className="font-bold shadow-sm backdrop-blur-md">● Preparing</Badge>;
-      case 'Out for Delivery': return <Badge variant="info" className="font-bold shadow-sm backdrop-blur-md">● Out for Delivery</Badge>;
-      case 'Pending': return <Badge variant="default" className="font-bold shadow-sm backdrop-blur-md">● Pending</Badge>;
-      default: return <Badge variant="default">{status}</Badge>;
+      case 'Delivered': return <Badge className="bg-[#E5F5ED] text-[#00A254] border-none font-bold shadow-none rounded-[4px] px-2.5 py-1">Delivered</Badge>;
+      case 'Confirmed': return <Badge className="bg-[#F3E8FF] text-[#9333EA] border-none font-bold shadow-none rounded-[4px] px-2.5 py-1">Confirmed</Badge>;
+      case 'Cancelled': return <Badge className="bg-[#FFF0F2] text-[#FF3B5C] border-none font-bold shadow-none rounded-[4px] px-2.5 py-1">Cancelled</Badge>;
+      case 'Preparing': return <Badge className="bg-[#FFF8E1] text-[#F59E0B] border-none font-bold shadow-none rounded-[4px] px-2.5 py-1">Preparing</Badge>;
+      case 'Out for Delivery': return <Badge className="bg-[#E8F0FE] text-[#1A73E8] border-none font-bold shadow-none rounded-[4px] px-2.5 py-1">Out for Delivery</Badge>;
+      default: return <Badge className="bg-gray-100 text-gray-700 border-none font-bold shadow-none rounded-[4px] px-2.5 py-1">{status}</Badge>;
     }
   };
 
   const columns: Column<Order>[] = [
     {
-      header: 'Order Details',
-      className: '',
+      header: 'ORDER ID',
+      className: 'w-[15%]',
       cell: (item) => {
-        const timeStr = item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
         return (
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-brand-orange-50 text-brand-orange-500 flex items-center justify-center shrink-0 border border-brand-orange-100/50">
-              <FileText className="w-6 h-6" />
-            </div>
-            <div>
-              <Link to={`/admin/orders/${item.id}`} className="font-bold text-brand-navy text-lg hover:text-brand-orange-600 transition-colors">
-                #{item.id}
-              </Link>
-              <div className="text-xs font-medium text-text-secondary mt-0.5 flex items-center gap-1">
-                <Calendar className="w-3 h-3" /> {timeStr}
-              </div>
-            </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="font-bold text-brand-navy text-sm">#{item.id}</span>
+            <span className="text-[11px] font-medium text-text-secondary">{dateStr}</span>
           </div>
         );
       },
     },
     {
-      header: 'Branch',
-      className: '',
+      header: 'CUSTOMER',
+      className: 'w-[18%]',
       cell: (item) => (
-        <Tooltip content={item.branch} position="top">
-          <span 
-            className="text-sm font-semibold text-text-secondary flex items-center gap-1.5 truncate max-w-[200px]"
-          >
-            <Store className="w-4 h-4 shrink-0" />
-            <span className="truncate">{item.branch}</span>
-          </span>
-        </Tooltip>
-      ),
-    },
-    {
-      header: 'Customer',
-      className: '',
-      cell: (item) => (
-        <div>
-          <Tooltip content={item.customer?.name} position="top">
-            <div 
-              className="flex items-center gap-1.5 font-bold text-brand-navy text-sm truncate max-w-[150px]"
-            >
-              <User className="w-4 h-4 text-text-secondary shrink-0" />
-              <span className="truncate">{item.customer?.name || 'N/A'}</span>
-            </div>
-          </Tooltip>
-          <div className="text-xs font-medium text-text-secondary mt-0.5 ml-5.5">
-            {item.customer?.phone || 'N/A'}
-          </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-bold text-brand-navy text-sm truncate max-w-[120px]">{item.customer?.name || 'N/A'}</span>
+          <span className="text-[11px] font-medium text-text-secondary">{item.customer?.phone || 'N/A'}</span>
         </div>
       ),
     },
     {
-      header: 'Amount',
-      className: '',
-      cell: (item) => <span className="font-black text-brand-navy text-base">₹{(item.billing?.total || 0).toLocaleString()}</span>,
+      header: 'BRANCH',
+      className: 'w-[20%]',
+      cell: (item) => (
+        <div className="flex flex-col gap-0.5">
+          <span className="font-bold text-brand-navy text-sm truncate max-w-[140px]">{item.branch || 'DineOS Main'}</span>
+          <span className="text-[11px] font-medium text-text-secondary">BR-{item.branch?.substring(0,3)?.toUpperCase() || '001'}</span>
+        </div>
+      ),
     },
     {
-      header: 'Status',
-      className: '',
+      header: 'STATUS',
+      className: 'w-[12%]',
       cell: (item) => getStatusBadge(item.status),
     },
     {
-      header: 'Action',
-      className: '',
+      header: 'PAYMENT',
+      className: 'w-[12%]',
+      cell: (item) => {
+        const payment = (item as any).payment;
+        const method = payment?.method || 'Online';
+        const isOnline = method === 'Online';
+        const pStatus = payment?.status || (isOnline ? 'Paid' : 'Pending');
+        return (
+          <div className="flex flex-col gap-0.5">
+            <span className={`text-[11px] font-bold ${isOnline ? 'text-[#00A254]' : 'text-[#FF6B00]'}`}>{method}</span>
+            <span className="text-[11px] font-medium text-text-secondary">{pStatus}</span>
+          </div>
+        );
+      },
+    },
+    {
+      header: 'ORDER TIME',
+      className: 'w-[10%]',
+      cell: (item) => {
+        const timeStr = item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        return <span className="text-[13px] font-medium text-text-secondary">{timeStr}</span>;
+      }
+    },
+    {
+      header: 'AMOUNT',
+      className: 'w-[10%]',
+      cell: (item) => <span className="font-bold text-brand-navy text-[13px]">₹ {(item.billing?.total || 0).toFixed(2)}</span>,
+    },
+    {
+      header: 'ACTION',
+      className: 'w-[5%] text-right',
       cell: (item) => (
         <Link
           to={`/admin/orders/${item.id}`}
-          title="View Order"
-          className="p-2 inline-flex items-center justify-center text-brand-navy bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors shadow-sm"
+          className="w-8 h-8 inline-flex items-center justify-center text-text-secondary border border-[#E8ECF4] rounded-[8px] hover:bg-gray-50 transition-colors shadow-sm bg-white"
         >
           <Eye className="w-4 h-4" />
         </Link>
@@ -188,110 +191,154 @@ export default function OrderTable() {
   ];
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-10">
+      
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-              <h1 className="text-3xl font-black text-brand-navy tracking-tight">Orders List</h1>
-              <p className="text-text-secondary mt-1 text-sm font-medium">Detailed view of all past orders.</p>
-          </motion.div>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-[13px] font-medium text-text-secondary mb-1">
+              <span>Dashboard</span>
+              <span>›</span>
+              <span className="text-[#FF6B00]">Orders</span>
+            </div>
+            <h1 className="text-3xl font-black text-brand-navy tracking-tight">Orders</h1>
+          </div>
+          <button 
+            onClick={handleExportCSV} 
+            disabled={isExporting}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-[#FF6B00] hover:bg-[#E66000] text-white rounded-lg font-bold text-sm shadow-sm transition-colors disabled:opacity-50"
+          >
+            <Download className="w-4 h-4" />
+            {isExporting ? 'Exporting...' : 'Export Orders'}
+          </button>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
-        <Card className="overflow-hidden p-0 border border-border/50 shadow-lg flex flex-col min-h-[600px] bg-white rounded-[2rem]">
+      {/* Main Card */}
+      <div className="bg-white border border-[#E8ECF4] rounded-2xl shadow-sm overflow-hidden flex flex-col">
+        
+        {/* Filters Row */}
+        <div className="p-4 border-b border-[#E8ECF4] flex flex-col md:flex-row items-stretch md:items-center gap-3 bg-white">
+          <button className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 border border-[#E8ECF4] rounded-lg text-[13px] font-medium text-brand-navy hover:bg-gray-50 transition-colors bg-white shrink-0">
+            <Calendar className="w-4 h-4 text-text-secondary" />
+            {dateParam ? new Date(dateParam).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'All Dates'}
+            <span className="text-text-secondary ml-1">›</span>
+          </button>
 
-          <div className="flex items-center gap-4 p-4 border-b border-border bg-gray-50/50">
-            <Link to="/admin/orders" className="p-2 bg-white border border-border shadow-sm rounded-lg hover:bg-gray-50 transition-all text-text-secondary shrink-0">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div className="flex items-center gap-2">
-              <Link to="/admin/orders" className="text-sm font-bold text-brand-orange-600 hover:underline flex items-center gap-1">
-                <Calendar className="w-4 h-4" /> Calendar View
-              </Link>
-              <span className="text-text-secondary">/</span>
-              <span className="text-sm font-bold text-text-secondary">{displayDate}</span>
-            </div>
-          </div>
-
-          {/* Sticky Filter Bar */}
-          <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-border p-4 flex flex-col md:flex-row md:items-center justify-between shadow-sm gap-2">
-            
-            {/* Top Row: Search & Mobile Filter Toggle */}
-            <div className="flex items-center justify-between gap-2 sm:gap-3 w-full md:w-auto flex-1">
-              <div className="relative flex-1 md:w-80 group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
-                <input
-                  type="text"
-                  placeholder="Search Order ID or Phone..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="w-full pl-11 pr-4 py-2.5 bg-gray-50/50 border border-border rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 transition-all shadow-sm hover:bg-white focus:bg-white placeholder:text-text-secondary/60 placeholder:font-medium"
-                />
-              </div>
-
-              {/* Mobile Filter Button */}
-              <button
-                onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
-                className={`md:hidden p-2.5 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileFilterOpen ? 'bg-brand-orange-50 border-brand-orange-200 text-brand-orange-600' : 'bg-gray-50 border-border text-text-secondary hover:text-brand-orange-600 hover:border-brand-orange-500'}`}
-              >
-                <Filter className="w-5 h-5" />
-              </button>
-
-              <Button onClick={handleExportCSV} disabled={isExporting} className="hidden md:flex gap-2 shadow-sm font-bold bg-brand-navy hover:bg-brand-navy/90 text-white rounded-xl">
-                {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                Export
-              </Button>
-            </div>
-
-            {/* Filters Card */}
-            <div className={`md:flex ${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full md:w-auto bg-gray-50 md:bg-transparent p-4 md:p-0 rounded-xl border border-border md:border-none shadow-sm md:shadow-none mt-2 md:mt-0`}>
-              <div className="w-full md:w-[200px]">
-                <Select
-                  value={branchFilter}
-                  onChange={(e) => setBranchFilter(e.target.value)}
-                  options={[
-                    { value: 'All', label: 'Branch: All' },
-                    { value: 'Downtown Main', label: 'Downtown Main' },
-                    { value: 'Westside Plaza', label: 'Westside Plaza' },
-                    { value: 'North Mall Kiosk', label: 'North Mall Kiosk' }
-                  ]}
-                />
-              </div>
-
-              <div className="w-full md:w-[200px]">
-                <Select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  options={[
-                    { value: 'All', label: 'Status: All' },
-                    { value: 'Delivered', label: 'Delivered' },
-                    { value: 'Cancelled', label: 'Cancelled' },
-                    { value: 'Preparing', label: 'Preparing' },
-                    { value: 'Out for Delivery', label: 'Out for Delivery' },
-                    { value: 'Pending', label: 'Pending' }
-                  ]}
-                />
-              </div>
-              <Button onClick={handleExportCSV} disabled={isExporting} className="w-full md:hidden flex justify-center gap-2 shadow-sm font-bold bg-brand-navy hover:bg-brand-navy/90 text-white rounded-xl">
-                {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                Export
-              </Button>
-            </div>
-          </div>
-
-          {/* Table Container */}
-          <div className="flex-1 flex flex-col relative bg-white">
-            <Table
-              columns={columns}
-              data={filteredOrders}
-              emptyStateMessage={loading ? "Loading orders..." : "No orders found for the selected filters."}
-              currentPage={currentPage}
-              totalPages={Math.max(1, Math.ceil(filteredOrders.length / 10))}
-              onPageChange={setCurrentPage}
+          <div className="relative flex-1 w-full min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+            <input
+              type="text"
+              placeholder="Search by ID, Customer or Phone..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-[#E8ECF4] rounded-lg text-[13px] font-medium focus:outline-none focus:border-brand-orange-500 transition-colors placeholder:text-text-secondary"
             />
           </div>
-        </Card>
-      </motion.div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Select 
+              value={branchFilter} 
+              onChange={e => setBranchFilter(e.target.value)} 
+              options={[
+                { value: 'All Branches', label: 'All Branches' },
+                { value: 'Koramangala', label: 'Koramangala' },
+                { value: 'Indiranagar', label: 'Indiranagar' },
+                { value: 'HSR Layout', label: 'HSR Layout' },
+                { value: 'Whitefield', label: 'Whitefield' },
+                { value: 'Marathahalli', label: 'Marathahalli' }
+              ]}
+              className="w-full sm:w-[160px] shrink-0 !py-2 !rounded-lg !text-[13px] !border-[#E8ECF4]"
+            />
+            <Select 
+              value={statusFilter} 
+              onChange={e => setStatusFilter(e.target.value)} 
+              options={[
+                { value: 'All Status', label: 'All Status' },
+                { value: 'Confirmed', label: 'Confirmed' },
+                { value: 'Preparing', label: 'Preparing' },
+                { value: 'Out for Delivery', label: 'Out for Delivery' },
+                { value: 'Delivered', label: 'Delivered' },
+                { value: 'Cancelled', label: 'Cancelled' }
+              ]}
+              className="w-full sm:w-[150px] shrink-0 !py-2 !rounded-lg !text-[13px] !border-[#E8ECF4]"
+            />
+            <Select 
+              value={paymentFilter} 
+              onChange={e => setPaymentFilter(e.target.value)} 
+              options={[
+                { value: 'All Payment Methods', label: 'All Payment Methods' },
+                { value: 'Online', label: 'Online' },
+                { value: 'COD', label: 'COD' }
+              ]}
+              className="w-full sm:w-[190px] shrink-0 !py-2 !rounded-lg !text-[13px] !border-[#E8ECF4]"
+            />
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="flex-1 overflow-x-auto min-h-[500px]">
+          <Table
+            columns={columns}
+            data={currentOrders}
+            isLoading={loading}
+            emptyStateMessage="No orders found matching your filters."
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
+            itemsPerPageOptions={[5, 10, 25, 50]}
+            renderMobileItem={(item) => {
+              const payment = (item as any).payment;
+              const isOnline = (payment?.method || 'Online') === 'Online';
+              const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+              const timeStr = item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+              
+              return (
+                <div className="p-4 flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-bold text-brand-navy text-sm">#{item.id}</span>
+                      <span className="text-[11px] font-medium text-text-secondary">{dateStr} at {timeStr}</span>
+                    </div>
+                    {getStatusBadge(item.status)}
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-4 pt-3 border-t border-[#E8ECF4]">
+                    <div className="flex flex-col gap-0.5 min-w-[100px]">
+                      <span className="text-[10px] uppercase font-bold text-text-secondary">Customer</span>
+                      <span className="font-bold text-brand-navy text-[13px]">{item.customer?.name || 'N/A'}</span>
+                      <span className="text-[11px] font-medium text-text-secondary">{item.customer?.phone || 'N/A'}</span>
+                    </div>
+                    <div className="flex flex-col gap-0.5 min-w-[100px]">
+                      <span className="text-[10px] uppercase font-bold text-text-secondary">Branch</span>
+                      <span className="font-bold text-brand-navy text-[13px]">{item.branch || 'DineOS Main'}</span>
+                      <span className="text-[11px] font-medium text-text-secondary">BR-{item.branch?.substring(0,3)?.toUpperCase() || '001'}</span>
+                    </div>
+                    <div className="flex flex-col gap-0.5 min-w-[100px]">
+                      <span className="text-[10px] uppercase font-bold text-text-secondary">Amount</span>
+                      <span className="font-bold text-brand-navy text-[13px]">₹ {(item.billing?.total || 0).toFixed(2)}</span>
+                      <span className={`text-[11px] font-bold ${isOnline ? 'text-[#00A254]' : 'text-[#FF6B00]'}`}>{(item as any).payment?.method || 'Online'} - {(item as any).payment?.status || (isOnline ? 'Paid' : 'Pending')}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-1 flex justify-end">
+                    <Link
+                      to={`/admin/orders/${item.id}`}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 text-[13px] font-bold text-text-secondary border border-[#E8ECF4] rounded-lg hover:bg-gray-50 transition-colors shadow-sm bg-white"
+                    >
+                      <Eye className="w-4 h-4" />
+                      View Details
+                    </Link>
+                  </div>
+                </div>
+              );
+            }}
+          />
+        </div>
+
+      </div>
     </div>
   );
 }

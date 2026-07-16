@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Tag, Calendar, Users, Store, Edit2, Loader2, Copy, CheckCircle, ChevronRight, Hash } from 'lucide-react';
+import { 
+    ArrowLeft, ChevronDown, Edit2, Loader2, Calendar, 
+    ShoppingCart, Users, Tag, Lock, User, Percent, Info, IndianRupee, CheckSquare
+} from 'lucide-react';
 import { motion } from 'framer-motion';
-import Button from '../../components/common/Button';
-import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import { useRoleAccess } from '../../hooks/useRoleAccess';
 import { useAuth } from '../../hooks/useAuth';
@@ -13,275 +14,277 @@ import { rtdb } from '../../lib/firebase';
 import toast from 'react-hot-toast';
 
 const getDynamicStatus = (validFromStr: string, validUntilStr: string): 'Active' | 'Inactive' | 'Terminated' => {
- if (!validFromStr || !validUntilStr) return 'Active';
- 
- const today = new Date();
- today.setHours(0, 0, 0, 0);
-
- const validFrom = new Date(validFromStr);
- validFrom.setHours(0, 0, 0, 0);
-
- const validUntil = new Date(validUntilStr);
- validUntil.setHours(0, 0, 0, 0);
-
- if (today < validFrom) {
- return 'Inactive';
- } else if (today > validUntil) {
- return 'Terminated';
- } else {
- return 'Active';
- }
+    if (!validFromStr || !validUntilStr) return 'Active';
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const validFrom = new Date(validFromStr);
+    validFrom.setHours(0, 0, 0, 0);
+    const validUntil = new Date(validUntilStr);
+    validUntil.setHours(0, 0, 0, 0);
+    if (today < validFrom) return 'Inactive';
+    else if (today > validUntil) return 'Terminated';
+    return 'Active';
 };
 
 export default function CouponDetails() {
- const { id } = useParams();
- const navigate = useNavigate();
- const { user } = useAuth();
- const { canEditCoupon } = useRoleAccess();
- const { branches } = useBranches();
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth();
+    const { canEditCoupon } = useRoleAccess();
+    const { branches } = useBranches();
+    const [couponInfo, setCouponInfo] = useState<any | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
- const [couponInfo, setCouponInfo] = useState<any | null>(null);
- const [isLoading, setIsLoading] = useState(true);
- const [copied, setCopied] = useState(false);
+    useEffect(() => {
+        const fetchCoupon = async () => {
+            if (!user || !id) return;
+            try {
+                const snapshot = await get(ref(rtdb, `coupons/${user.uid}/${id}`));
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    setCouponInfo({ 
+                        id, 
+                        ...data,
+                        status: getDynamicStatus(data.validFrom, data.validUntil)
+                    });
+                } else {
+                    toast.error('Coupon not found');
+                    navigate('/admin/coupons');
+                }
+            } catch (err) {
+                console.error('Error fetching coupon details:', err);
+                toast.error('Failed to load coupon details');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchCoupon();
+    }, [user, id, navigate]);
 
- const handleCopyCode = () => {
- if (couponInfo?.code) {
- navigator.clipboard.writeText(couponInfo.code);
- setCopied(true);
- toast.success('Coupon Code copied!');
- setTimeout(() => setCopied(false), 2000);
- }
- };
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center h-[500px]">
+                <Loader2 className="w-8 h-8 animate-spin text-[#FF6B00]" />
+            </div>
+        );
+    }
 
- useEffect(() => {
- const fetchCoupon = async () => {
- if (!user || !id) return;
- try {
- const snapshot = await get(ref(rtdb, `coupons/${user.uid}/${id}`));
- if (snapshot.exists()) {
- const data = snapshot.val();
- setCouponInfo({ 
- id, 
- ...data,
- status: getDynamicStatus(data.validFrom, data.validUntil)
- });
- } else {
- toast.error('Coupon not found');
- navigate('/admin/coupons');
- }
- } catch (err) {
- console.error('Error fetching coupon details:', err);
- toast.error('Failed to load coupon details');
- } finally {
- setIsLoading(false);
- }
- };
- fetchCoupon();
- }, [user, id, navigate]);
+    if (!couponInfo) return null;
 
- if (isLoading) {
- return (
- <div className="flex justify-center items-center h-[500px]">
- <Loader2 className="w-8 h-8 animate-spin text-brand-orange-500" />
- </div>
- );
- }
+    const formatDateTime = (dateStr: string) => {
+        if (!dateStr) return 'N/A';
+        const date = new Date(dateStr);
+        const day = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        return `${day}, ${time}`;
+    };
 
- if (!couponInfo) return null;
+    const branchesList = couponInfo.applicableBranches || ['All Branches'];
+    const branchNames = branchesList.includes('All Branches')
+        ? 'All Restaurants'
+        : branchesList.map((branchId: string) => branches.find((b) => b.id === branchId)?.name || branchId).join(', ');
 
- // Resolve applicable branch names
- const branchesList = couponInfo.applicableBranches || ['All Branches'];
- const branchNames = branchesList.includes('All Branches')
- ? 'All Branches'
- : branchesList
- .map((branchId: string) => branches.find((b) => b.id === branchId)?.name || branchId)
- .join(', ');
+    return (
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 max-w-7xl mx-auto space-y-6">
+            
+            {/* Breadcrumbs */}
+            <div className="flex items-center text-sm font-semibold text-[#8896AB] mb-2 gap-2">
+                <Link to="/admin/coupons" className="hover:text-[#1a1f36] transition-colors">Coupons</Link>
+                <ChevronDown className="w-3 h-3 -rotate-90" />
+                <span className="text-[#1a1f36]">Coupon Details</span>
+            </div>
 
- const formattedValidFrom = new Date(couponInfo.validFrom).toLocaleDateString('en-US', {
- year: 'numeric',
- month: 'short',
- day: 'numeric',
- });
+            {/* Header */}
+            <div className="flex flex-row items-start justify-between gap-4 mb-6">
+                <div>
+                    <button 
+                        onClick={() => navigate(-1)}
+                        className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 bg-white border border-[#E8ECF4] rounded-lg text-sm font-bold text-[#1a1f36] hover:bg-[#F8FAFC] transition-colors shadow-sm mb-4 w-fit"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="hidden sm:inline">Back to Coupons</span>
+                        <span className="sm:hidden">Back</span>
+                    </button>
+                    <h1 className="text-2xl sm:text-[28px] font-black text-[#1a1f36] tracking-tight">Coupon Details</h1>
+                    <p className="text-xs sm:text-sm font-medium text-[#8896AB] mt-1">View detailed information about this coupon.</p>
+                </div>
+                
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0 mt-1 sm:mt-0">
+                    {canEditCoupon && (
+                        <Link to={`/admin/coupons/${id}/edit`}>
+                            <button className="flex items-center justify-center w-10 h-10 sm:w-auto sm:px-5 sm:py-2.5 bg-white border border-[#FF6B00] rounded-xl text-sm font-bold text-[#FF6B00] hover:bg-[#FFF3E8] transition-colors shadow-sm">
+                                <Edit2 className="w-5 h-5 sm:w-4 sm:h-4" />
+                                <span className="hidden sm:inline sm:ml-2">Edit Coupon</span>
+                            </button>
+                        </Link>
+                    )}
+                </div>
+            </div>
 
- const formattedValidUntil = new Date(couponInfo.validUntil).toLocaleDateString('en-US', {
- year: 'numeric',
- month: 'short',
- day: 'numeric',
- });
+            {/* Main Ticket Card */}
+            <div className="bg-white rounded-2xl border border-[#E8ECF4] shadow-sm p-6 sm:p-8 flex flex-col lg:flex-row gap-8 lg:gap-12 items-center lg:items-center">
+                
+                {/* Ticket Side */}
+                <div className="relative shrink-0 w-full lg:w-[280px] h-[160px] bg-[#FFF8F3] border-[2px] border-dashed border-[#FFD0B5] rounded-2xl flex flex-col items-center justify-center">
+                    {/* Cutouts */}
+                    <div className="absolute top-1/2 -left-[14px] -translate-y-1/2 w-7 h-7 bg-white rounded-full"></div>
+                    <div className="absolute top-1/2 -right-[14px] -translate-y-1/2 w-7 h-7 bg-white rounded-full"></div>
+                    
+                    <p className="text-[11px] font-bold text-[#FF6B00] uppercase tracking-wider mb-2">Coupon Code</p>
+                    <h2 className="text-4xl font-black text-[#FF6B00] tracking-tight">{couponInfo.code}</h2>
+                </div>
 
- const formattedCreatedAt = couponInfo.created_at
- ? new Date(couponInfo.created_at).toLocaleString('en-US', {
- year: 'numeric',
- month: 'short',
- day: 'numeric',
- hour: '2-digit',
- minute: '2-digit',
- })
- : 'N/A';
+                {/* Details Side */}
+                <div className="flex-1 flex flex-col w-full py-2">
+                    <div className="flex items-center gap-4 mb-4">
+                        <Badge 
+                            variant={couponInfo.status === 'Active' ? 'success' : couponInfo.status === 'Terminated' ? 'error' : 'warning'} 
+                            className="font-black px-3 py-1.5 text-xs rounded uppercase tracking-wider shadow-sm"
+                        >
+                            {couponInfo.status}
+                        </Badge>
+                    </div>
+                    <p className="text-sm font-medium text-[#8896AB] mb-8">
+                        {couponInfo.discountType === 'Percentage' 
+                            ? `Flat ${couponInfo.discountPercentage}% off on orders above ₹${couponInfo.minOrderValue || '0'}`
+                            : `Flat ₹${couponInfo.maxDiscountAmount} off on orders above ₹${couponInfo.minOrderValue || '0'}`
+                        }
+                    </p>
 
- const formattedUpdatedAt = couponInfo.updated_at
- ? new Date(couponInfo.updated_at).toLocaleString('en-US', {
- year: 'numeric',
- month: 'short',
- day: 'numeric',
- hour: '2-digit',
- minute: '2-digit',
- })
- : 'N/A';
+                    {/* 4 Column Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#FFF3E8] flex items-center justify-center shrink-0">
+                                <Tag className="w-5 h-5 text-[#FF6B00]" />
+                            </div>
+                            <div>
+                                <p className="text-[11px] font-bold text-[#8896AB] mb-0.5 whitespace-nowrap">Discount Type</p>
+                                <p className="text-[13px] font-bold text-[#1a1f36]">
+                                    {couponInfo.discountType === 'Percentage' ? 'Percentage' : 'Flat Amount'}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#FFF3E8] flex items-center justify-center shrink-0">
+                                {couponInfo.discountType === 'Percentage' ? <Percent className="w-5 h-5 text-[#FF6B00]" /> : <IndianRupee className="w-5 h-5 text-[#FF6B00]" />}
+                            </div>
+                            <div>
+                                <p className="text-[11px] font-bold text-[#8896AB] mb-0.5 whitespace-nowrap">Discount Value</p>
+                                <p className="text-[13px] font-bold text-[#1a1f36]">
+                                    {couponInfo.discountType === 'Percentage' ? `${couponInfo.discountPercentage}%` : `₹${couponInfo.maxDiscountAmount}.00`}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#F4F6FA] flex items-center justify-center shrink-0">
+                                <ShoppingCart className="w-5 h-5 text-[#8896AB]" />
+                            </div>
+                            <div>
+                                <p className="text-[11px] font-bold text-[#8896AB] mb-0.5 whitespace-nowrap">Min. Order Value</p>
+                                <p className="text-[13px] font-bold text-[#1a1f36]">
+                                    {couponInfo.minOrderValue ? `₹${couponInfo.minOrderValue}.00` : 'N/A'}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#F4F6FA] flex items-center justify-center shrink-0">
+                                <Users className="w-5 h-5 text-[#8896AB]" />
+                            </div>
+                            <div>
+                                <p className="text-[11px] font-bold text-[#8896AB] mb-0.5 whitespace-nowrap">Applies To</p>
+                                <p className="text-[13px] font-bold text-[#1a1f36]">
+                                    {couponInfo.targetAudience === 'Existing Users' ? 'Existing Users' : couponInfo.targetAudience === 'New Users' ? 'New Users' : 'All Users'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
- return (
- <div className="space-y-6">
- 
- {/* Breadcrumbs & Back */}
- <div className="flex items-center gap-4 mb-4 px-2">
- <button onClick={() => navigate(-1)} title="Back" className="p-2 bg-white shadow-sm border border-border hover:bg-gray-50 transition-colors rounded-xl flex items-center justify-center">
- <ArrowLeft className="w-5 h-5 text-text-secondary" />
- </button>
- 
- </div>
+            {/* Bottom Details Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                {/* Validity */}
+                <div className="bg-white rounded-2xl border border-[#E8ECF4] shadow-sm p-6 sm:p-8">
+                    <div className="flex items-center gap-3 mb-8">
+                        <div className="w-8 h-8 rounded-lg bg-[#FFF3E8] flex items-center justify-center">
+                            <Calendar className="w-4 h-4 text-[#FF6B00]" />
+                        </div>
+                        <h3 className="text-lg font-black text-[#1a1f36]">Validity</h3>
+                    </div>
+                    
+                    <div className="space-y-4 sm:space-y-6">
+                        <div className="flex flex-row items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 sm:gap-3 text-[#8896AB]">
+                                <Calendar className="w-4 h-4 shrink-0" />
+                                <span className="text-xs sm:text-sm font-bold">Valid From</span>
+                            </div>
+                            <span className="text-xs sm:text-sm font-bold text-[#1a1f36] text-right">{formatDateTime(couponInfo.validFrom)}</span>
+                        </div>
+                        <div className="flex flex-row items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 sm:gap-3 text-[#8896AB]">
+                                <Calendar className="w-4 h-4 shrink-0" />
+                                <span className="text-xs sm:text-sm font-bold">Valid Until</span>
+                            </div>
+                            <span className="text-xs sm:text-sm font-bold text-[#1a1f36] text-right">{formatDateTime(couponInfo.validUntil)}</span>
+                        </div>
+                        <div className="flex flex-row items-start justify-between gap-2">
+                            <div className="flex items-center gap-2 sm:gap-3 text-[#8896AB] mt-0.5">
+                                <CheckSquare className="w-4 h-4 shrink-0" />
+                                <span className="text-xs sm:text-sm font-bold">Applicable On</span>
+                            </div>
+                            <span className="text-xs sm:text-sm font-bold text-[#1a1f36] text-right leading-snug">{branchNames}</span>
+                        </div>
+                    </div>
+                </div>
 
- {/* ZONE 1: Premium Hero Header */}
- <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="relative z-10">
- <Card className="p-6 sm:p-8 bg-gradient-to-r from-brand-orange-500/10 via-brand-orange-500/5 to-white border border-brand-orange-500/20 shadow-premium overflow-hidden relative rounded-2xl flex flex-col">
- <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.05] pointer-events-none"></div>
- 
- <div className="relative z-10 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
- <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-brand-orange-50 to-orange-100 border-4 border-white rounded-2xl shadow-md flex items-center justify-center shrink-0 overflow-hidden relative">
- <div className="absolute inset-0 bg-brand-orange-50/50"></div>
- <Tag className="w-12 h-12 sm:w-16 sm:h-16 text-brand-orange-500 relative z-10" />
- </div>
- 
- <div className="flex-1 space-y-3 text-center sm:text-left mt-2 sm:mt-4">
- <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
- <h1 className="text-3xl sm:text-4xl font-black text-brand-navy tracking-tight">
- {couponInfo.code}
- </h1>
- <Badge 
- variant={
- couponInfo.status === 'Active' ? 'success' : 
- couponInfo.status === 'Terminated' ? 'error' : 
- 'warning'
- } 
- className="font-black px-3 py-1 shadow-sm uppercase tracking-widest text-[11px] rounded-md"
- >
- {couponInfo.status}
- </Badge>
- </div>
- 
- <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
- <div className="flex items-center gap-1.5 bg-white/80 backdrop-blur-sm px-2 py-1 rounded border border-brand-orange-500/20 cursor-pointer hover:bg-white transition-colors shadow-sm" onClick={handleCopyCode} title="Copy Coupon Code">
- <span className="font-mono font-bold text-xs text-brand-navy">{couponInfo.code}</span>
- {copied ? <CheckCircle className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5 text-text-secondary" />}
- </div>
- <span className="text-text-secondary/50">•</span>
- <div className="text-sm font-bold text-brand-navy flex items-center gap-1.5 bg-white/80 backdrop-blur-sm px-3 py-1 rounded border border-brand-orange-500/20 shadow-sm">
- <span className="text-brand-orange-600 font-black">
- {couponInfo.discountType === 'Percentage' ? `${couponInfo.discountPercentage}%` : `₹${couponInfo.maxDiscountAmount}`}
- </span>
- OFF
- </div>
- </div>
- </div>
- </div>
- </Card>
- </motion.div>
+                {/* System Information */}
+                <div className="bg-white rounded-2xl border border-[#E8ECF4] shadow-sm p-6 sm:p-8">
+                    <div className="flex items-center gap-3 mb-8">
+                        <div className="w-8 h-8 rounded-lg bg-[#FFF3E8] flex items-center justify-center">
+                            <Info className="w-4 h-4 text-[#FF6B00]" />
+                        </div>
+                        <h3 className="text-lg font-black text-[#1a1f36]">System Information</h3>
+                    </div>
+                    
+                    <div className="space-y-4 sm:space-y-6">
+                        <div className="flex flex-row items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 sm:gap-3 text-[#8896AB]">
+                                <Info className="w-4 h-4 shrink-0" />
+                                <span className="text-xs sm:text-sm font-bold">Coupon ID</span>
+                            </div>
+                            <span className="text-xs sm:text-sm font-bold text-[#1a1f36]">{couponInfo.id.substring(0,8).toUpperCase()}</span>
+                        </div>
+                        <div className="flex flex-row items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 sm:gap-3 text-[#8896AB]">
+                                <Calendar className="w-4 h-4 shrink-0" />
+                                <span className="text-xs sm:text-sm font-bold">Created At</span>
+                            </div>
+                            <span className="text-xs sm:text-sm font-bold text-[#1a1f36] text-right">{formatDateTime(couponInfo.created_at)}</span>
+                        </div>
+                        <div className="flex flex-row items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 sm:gap-3 text-[#8896AB]">
+                                <Edit2 className="w-4 h-4 shrink-0" />
+                                <span className="text-xs sm:text-sm font-bold">Last Updated</span>
+                            </div>
+                            <span className="text-xs sm:text-sm font-bold text-[#1a1f36] text-right">{formatDateTime(couponInfo.updated_at)}</span>
+                        </div>
+                        <div className="flex flex-row items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 sm:gap-3 text-[#8896AB]">
+                                <CheckSquare className="w-4 h-4 shrink-0" />
+                                <span className="text-xs sm:text-sm font-bold">Current Status</span>
+                            </div>
+                            <Badge 
+                                variant={couponInfo.status === 'Active' ? 'success' : couponInfo.status === 'Terminated' ? 'error' : 'warning'} 
+                                className="font-black px-2.5 py-1 text-[10px] sm:text-[11px] rounded uppercase tracking-wider"
+                            >
+                                {couponInfo.status}
+                            </Badge>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
- <div className="mt-6">
- <motion.div 
- initial={{ opacity: 0, y: 10 }} 
- animate={{ opacity: 1, y: 0 }} 
- transition={{ duration: 0.3 }}
- className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"
- >
- {/* Discount Details Card */}
- <Card className="p-6 border border-border/40 shadow-sm bg-white hover:shadow-premium transition-shadow rounded-2xl relative overflow-hidden">
- <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full pointer-events-none opacity-50"></div>
- <div className="flex items-center gap-3 mb-6 relative z-10">
- <div className="p-2.5 bg-blue-50 rounded-xl shadow-inner border border-blue-100"><Tag className="w-5 h-5 text-blue-600" /></div>
- <h3 className="text-lg font-black text-brand-navy">Discount Specs</h3>
- </div>
- <div className="space-y-5 relative z-10">
- <div>
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Discount Type</p>
- <p className="font-bold text-brand-navy bg-gray-50 px-3 py-2 rounded-xl border border-border/50 inline-block">
- {couponInfo.discountType}
- </p>
- </div>
- <div>
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Value</p>
- <p className="font-black text-brand-orange-600 bg-orange-50/50 p-3 rounded-xl border border-brand-orange-100/50 inline-block">
- {couponInfo.discountType === 'Percentage' ? `${couponInfo.discountPercentage}%` : `₹${couponInfo.maxDiscountAmount}`}
- </p>
- </div>
- <div>
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Minimum Order Value</p>
- <p className="font-bold text-brand-navy bg-gray-50 p-3 rounded-xl border border-border/50 inline-block">
- {couponInfo.minOrderValue ? `₹${couponInfo.minOrderValue}` : 'No Minimum'}
- </p>
- </div>
- </div>
- </Card>
-
- {/* Conditions & Targeting Card */}
- <Card className="p-6 border border-border/40 shadow-sm bg-white hover:shadow-premium transition-shadow rounded-2xl relative overflow-hidden">
- <div className="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-bl-full pointer-events-none opacity-50"></div>
- <div className="flex items-center gap-3 mb-6 relative z-10">
- <div className="p-2.5 bg-purple-50 rounded-xl shadow-inner border border-purple-100"><Users className="w-5 h-5 text-purple-600" /></div>
- <h3 className="text-lg font-black text-brand-navy">Targeting & Validity</h3>
- </div>
- <div className="space-y-5 relative z-10">
- <div>
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Valid Period</p>
- <p className="font-bold text-brand-navy bg-gray-50 p-3 rounded-xl border border-border/50 flex items-center gap-2">
- <Calendar className="w-4 h-4 text-brand-orange-500" /> {formattedValidFrom} - {formattedValidUntil}
- </p>
- </div>
- <div>
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Target Audience</p>
- <span className={`inline-flex px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider shadow-sm ${
- couponInfo.targetAudience === 'New Users' ? 'bg-green-50 text-green-700 border border-green-200/50' :
- couponInfo.targetAudience === 'Existing Users' ? 'bg-blue-50 text-blue-700 border border-blue-200/50' :
- 'bg-purple-50 text-purple-700 border border-purple-200/50'
- }`}>
- {couponInfo.targetAudience}
- </span>
- </div>
- <div>
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Applicable Branches</p>
- <p className="font-bold text-brand-navy flex items-start gap-2 bg-gray-50 p-3 rounded-xl border border-border/50">
- <Store className="w-4 h-4 text-brand-orange-500 shrink-0 mt-0.5" /> 
- <span className="leading-snug">{branchNames}</span>
- </p>
- </div>
- </div>
- </Card>
-
- {/* Audit Trail Card */}
- <Card className="p-6 border border-border/40 shadow-sm bg-white hover:shadow-premium transition-shadow rounded-2xl relative overflow-hidden">
- <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-bl-full pointer-events-none opacity-50"></div>
- <div className="flex items-center gap-3 mb-6 relative z-10">
- <div className="p-2.5 bg-gray-100 rounded-xl shadow-inner border border-gray-200"><Hash className="w-5 h-5 text-gray-600" /></div>
- <h3 className="text-lg font-black text-brand-navy">System Information</h3>
- </div>
- <div className="space-y-5 relative z-10">
- <div>
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Coupon DB ID</p>
- <p className="font-mono font-bold text-brand-navy bg-gray-50 px-3 py-2 rounded-xl border border-border/50 inline-block">
- {couponInfo.couponId || couponInfo.id.substring(0, 8).toUpperCase()}
- </p>
- </div>
- <div>
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Created At</p>
- <p className="font-semibold text-brand-navy bg-gray-50 p-3 rounded-xl border border-border/50">{formattedCreatedAt}</p>
- </div>
- <div>
- <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Last Edited At</p>
- <p className="font-semibold text-brand-navy bg-gray-50 p-3 rounded-xl border border-border/50">{formattedUpdatedAt}</p>
- </div>
- </div>
- </Card>
- </motion.div>
- </div>
- </div>
- );
+        </div>
+    );
 }

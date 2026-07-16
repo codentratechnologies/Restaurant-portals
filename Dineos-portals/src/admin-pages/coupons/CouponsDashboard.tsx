@@ -182,17 +182,19 @@ export default function CouponsDashboard() {
         <div className="space-y-6 w-full px-4 sm:px-6 lg:px-8 pb-10 pt-4">
             
             {/* Page Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-row items-center justify-between gap-4">
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-                    <h1 className="text-[28px] font-black text-[#1a1f36] tracking-tight">Coupons</h1>
-                    <p className="text-sm font-medium text-[#8896AB] mt-1">Create and manage promotional discounts and offers.</p>
-
+                    <h1 className="text-2xl sm:text-[28px] font-black text-[#1a1f36] tracking-tight">Coupons</h1>
+                    <p className="text-xs sm:text-sm font-medium text-[#8896AB] mt-1">Create and manage promotional discounts.</p>
                 </motion.div>
 
                 {canCreateCoupon && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
-                        <Link to="/admin/coupons/new">
-                            <Button className="gap-2 shadow-md shadow-[#FF6B00]/20 font-bold px-6">
+                        <Link to="/admin/coupons/new" className="shrink-0">
+                            <Button className="sm:hidden w-10 h-10 p-0 flex items-center justify-center shadow-md shadow-[#FF6B00]/20 font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg">
+                                <Plus className="w-5 h-5" />
+                            </Button>
+                            <Button className="hidden sm:flex gap-2 shadow-md shadow-[#FF6B00]/20 font-bold px-6">
                                 <Plus className="w-5 h-5" />
                                 Add Coupon
                             </Button>
@@ -202,41 +204,41 @@ export default function CouponsDashboard() {
             </div>
 
             {/* KPI Cards */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="p-6 border border-[#E8ECF4] shadow-sm rounded-2xl bg-white flex items-center gap-5">
-                    <div className="w-14 h-14 rounded-full bg-[#FFF3E8] border-[6px] border-[#fff9f2] flex items-center justify-center text-[#FF6B00] shrink-0">
-                        <Percent className="w-6 h-6" />
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
+                <Card className="p-3.5 sm:p-6 border border-[#E8ECF4] shadow-sm rounded-2xl bg-white flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+                    <div className="w-8 h-8 sm:w-14 sm:h-14 rounded-[10px] sm:rounded-full bg-[#FFF3E8] sm:border-[6px] sm:border-[#fff9f2] flex items-center justify-center text-[#FF6B00] shrink-0">
+                        <Percent className="w-4 h-4 sm:w-6 sm:h-6" />
                     </div>
                     <div>
-                        <p className="text-[13px] font-bold text-[#1a1f36] mb-0.5">Total Coupons</p>
-                        <h3 className="text-[32px] font-black text-[#1a1f36] leading-none mb-1">{coupons.length}</h3>
-                        <p className="text-xs font-semibold text-[#8896AB]">
+                        <p className="text-[10px] sm:text-[13px] font-bold text-[#1a1f36] mb-0.5 sm:mb-0.5 line-clamp-1">Total</p>
+                        <h3 className="text-xl sm:text-[32px] font-black text-[#1a1f36] leading-none mb-1">{coupons.length}</h3>
+                        <p className="hidden sm:block text-xs font-semibold text-[#8896AB]">
                             All coupons created
                         </p>
                     </div>
                 </Card>
 
-                <Card className="p-6 border border-[#E8ECF4] shadow-sm rounded-2xl bg-white flex items-center gap-5">
-                    <div className="w-14 h-14 rounded-full bg-[#E5F5ED] border-[6px] border-[#f0f9f4] flex items-center justify-center text-[#00A254] shrink-0">
-                        <CheckCircle2 className="w-6 h-6" />
+                <Card className="p-3.5 sm:p-6 border border-[#E8ECF4] shadow-sm rounded-2xl bg-white flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+                    <div className="w-8 h-8 sm:w-14 sm:h-14 rounded-[10px] sm:rounded-full bg-[#E5F5ED] sm:border-[6px] sm:border-[#f0f9f4] flex items-center justify-center text-[#00A254] shrink-0">
+                        <CheckCircle2 className="w-4 h-4 sm:w-6 sm:h-6" />
                     </div>
                     <div>
-                        <p className="text-[13px] font-bold text-[#1a1f36] mb-0.5">Active Coupons</p>
-                        <h3 className="text-[32px] font-black text-[#1a1f36] leading-none mb-1">{activeCouponsCount}</h3>
-                        <p className="text-xs font-semibold text-[#8896AB]">
+                        <p className="text-[10px] sm:text-[13px] font-bold text-[#1a1f36] mb-0.5 sm:mb-0.5 line-clamp-1">Active</p>
+                        <h3 className="text-xl sm:text-[32px] font-black text-[#1a1f36] leading-none mb-1">{activeCouponsCount}</h3>
+                        <p className="hidden sm:block text-xs font-semibold text-[#8896AB]">
                             <span className="text-[#00A254]">{activePercent}%</span> of total
                         </p>
                     </div>
                 </Card>
 
-                <Card className="p-6 border border-[#E8ECF4] shadow-sm rounded-2xl bg-white flex items-center gap-5">
-                    <div className="w-14 h-14 rounded-full bg-[#FFF0F2] border-[6px] border-[#fff7f8] flex items-center justify-center text-[#FF3B5C] shrink-0">
-                        <PauseCircle className="w-6 h-6" />
+                <Card className="col-span-2 md:col-span-1 p-3.5 sm:p-6 border border-[#E8ECF4] shadow-sm rounded-2xl bg-white flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+                    <div className="w-8 h-8 sm:w-14 sm:h-14 rounded-[10px] sm:rounded-full bg-[#FFF0F2] sm:border-[6px] sm:border-[#fff7f8] flex items-center justify-center text-[#FF3B5C] shrink-0">
+                        <PauseCircle className="w-4 h-4 sm:w-6 sm:h-6" />
                     </div>
                     <div>
-                        <p className="text-[13px] font-bold text-[#1a1f36] mb-0.5">Inactive Coupons</p>
-                        <h3 className="text-[32px] font-black text-[#1a1f36] leading-none mb-1">{inactiveCouponsCount}</h3>
-                        <p className="text-xs font-semibold text-[#8896AB]">
+                        <p className="text-[10px] sm:text-[13px] font-bold text-[#1a1f36] mb-0.5 sm:mb-0.5 line-clamp-1">Inactive</p>
+                        <h3 className="text-xl sm:text-[32px] font-black text-[#1a1f36] leading-none mb-1">{inactiveCouponsCount}</h3>
+                        <p className="hidden sm:block text-xs font-semibold text-[#8896AB]">
                             <span className="text-[#FF3B5C]">{inactivePercent}%</span> of total
                         </p>
                     </div>
@@ -386,63 +388,46 @@ export default function CouponsDashboard() {
 
                     {/* Pagination */}
                     {!isLoading && totalPages > 0 && (
-                        <div className="mt-auto px-6 py-4 border-t border-[#E8ECF4] flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <p className="text-sm text-[#8896AB] font-medium">
-                                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredData.length)} of <span className="font-bold text-[#1a1f36]">{filteredData.length}</span> coupons
-                            </p>
+                        <div className="mt-auto px-4 sm:px-6 py-4 border-t border-[#E8ECF4] flex flex-col items-center justify-center gap-4 bg-white rounded-b-2xl">
+                            <div className="flex items-center justify-center w-full gap-2 sm:gap-3">
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg border border-[#E8ECF4] hover:bg-[#F4F6FA] text-[#8896AB] hover:text-[#1a1f36] transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                </button>
 
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                        disabled={currentPage === 1}
-                                        className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E8ECF4] text-[#8896AB] hover:bg-gray-50 hover:text-[#1a1f36] transition-all disabled:opacity-50"
-                                    >
-                                        <ChevronLeft className="w-4 h-4" />
-                                    </button>
-
+                                <div className="flex items-center gap-1.5">
                                     {getPageNumbers().map((page, idx) => (
                                         <button
                                             key={idx}
                                             onClick={() => typeof page === 'number' ? setCurrentPage(page) : undefined}
                                             disabled={page === '...'}
-                                            className={`min-w-[32px] h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${
+                                            className={`min-w-[32px] sm:min-w-[36px] h-8 sm:h-9 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${
                                                 page === currentPage
-                                                    ? 'border border-[#FF6B00] text-[#FF6B00] bg-[#FFF3E8]'
+                                                    ? 'border border-[#FF6B00] text-[#FF6B00] bg-white'
                                                     : page === '...'
-                                                        ? 'text-[#8896AB] cursor-default'
-                                                        : 'text-[#8896AB] hover:text-[#1a1f36] hover:bg-gray-50'
+                                                        ? 'text-[#8896AB] cursor-default border-none bg-transparent'
+                                                        : 'border border-[#E8ECF4] text-[#1a1f36] bg-white hover:bg-[#F4F6FA]'
                                                 }`}
                                         >
                                             {page}
                                         </button>
                                     ))}
-
-                                    <button
-                                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                        disabled={currentPage === totalPages}
-                                        className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E8ECF4] text-[#8896AB] hover:bg-gray-50 hover:text-[#1a1f36] transition-all disabled:opacity-50"
-                                    >
-                                        <ChevronRight className="w-4 h-4" />
-                                    </button>
                                 </div>
 
-                                <div className="flex items-center border border-[#E8ECF4] rounded-lg px-2 h-8 hover:bg-gray-50 transition-colors">
-                                    <select 
-                                        value={itemsPerPage} 
-                                        onChange={(e) => {
-                                            setItemsPerPage(Number(e.target.value));
-                                            setCurrentPage(1);
-                                        }}
-                                        className="bg-transparent text-sm font-bold text-[#1a1f36] outline-none cursor-pointer pr-1"
-                                    >
-                                        <option value={5}>5 / page</option>
-                                        <option value={10}>10 / page</option>
-                                        <option value={20}>20 / page</option>
-                                        <option value={50}>50 / page</option>
-                                    </select>
-                                </div>
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg border border-[#E8ECF4] hover:bg-[#F4F6FA] text-[#8896AB] hover:text-[#1a1f36] transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white"
+                                >
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
                             </div>
+                            <p className="text-sm text-[#8896AB] font-semibold">
+                                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length} coupons
+                            </p>
                         </div>
                     )}
                 </Card>

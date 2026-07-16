@@ -114,26 +114,26 @@ export default function FoodDetails() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3 sm:gap-4">
           <Link
             to="/restaurant/food"
-            className="p-2.5 text-text-secondary hover:text-brand-navy hover:bg-white rounded-xl transition-all shadow-sm border border-transparent hover:border-border bg-gray-50"
+            className="mt-1 sm:mt-0 p-2 sm:p-2.5 text-text-secondary hover:text-brand-navy hover:bg-white rounded-xl transition-all shadow-sm border border-transparent hover:border-border bg-gray-50 shrink-0"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </Link>
           <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-3xl font-black text-brand-navy tracking-tight truncate max-w-[300px] sm:max-w-[500px]">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h1 className="text-2xl sm:text-3xl font-black text-brand-navy tracking-tight leading-tight">
                 {foodItem.name}
               </h1>
               {foodItem.displayId && (
-                <span className="font-mono text-xs font-bold text-text-secondary bg-gray-100 border border-border/50 px-2 py-0.5 rounded tracking-widest uppercase">
+                <span className="font-mono text-[10px] sm:text-xs font-bold text-text-secondary bg-gray-100 border border-border/50 px-2 py-0.5 rounded tracking-widest uppercase shrink-0">
                   {foodItem.displayId}
                 </span>
               )}
             </div>
-            <p className="text-text-secondary mt-1 text-sm font-medium">Detailed view of menu item</p>
+            <p className="text-text-secondary mt-1 text-xs sm:text-sm font-medium">Detailed view of menu item</p>
           </motion.div>
         </div>
       </div>
@@ -152,10 +152,22 @@ export default function FoodDetails() {
                   onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400' }}
                 />
                 {!foodItem.is_available && (
-                  <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px] flex items-center justify-center">
+                  <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px] flex items-center justify-center z-10">
                     <Badge variant="error" className="px-4 py-2 text-sm font-black shadow-lg">CURRENTLY UNAVAILABLE</Badge>
                   </div>
                 )}
+                
+                {/* Dietary Icon Overlay */}
+                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-1.5 rounded-lg shadow-md border border-border/50 z-20">
+                    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="1" y="1" width="14" height="14" stroke={foodItem.dietary_types?.includes('Veg') ? '#00A254' : '#FF3B5C'} strokeWidth="1.5" rx="2" />
+                        {foodItem.dietary_types?.includes('Veg') ? (
+                            <circle cx="8" cy="8" r="3.5" fill="#00A254" />
+                        ) : (
+                            <path d="M8 4.5L11.5 10.5H4.5L8 4.5Z" fill="#FF3B5C" />
+                        )}
+                    </svg>
+                </div>
               </div>
               <div className="p-6 sm:p-8">
                 <h3 className="text-sm font-black text-brand-navy mb-3 uppercase tracking-wider">Item Description</h3>
@@ -173,10 +185,10 @@ export default function FoodDetails() {
             <Card className="border-border/50 shadow-sm rounded-2xl p-6 sm:p-8 bg-white">
               
               {/* Top Key Metrics */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 pb-8 border-b border-border/50">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-border/50">
                 <div>
                   <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Base Price</p>
-                  <div className="text-4xl font-black text-brand-orange-600">₹{foodItem.price}</div>
+                  <div className="text-3xl sm:text-4xl font-black text-brand-orange-600">₹{foodItem.price}</div>
                 </div>
                 <div className="flex flex-col gap-1 sm:items-end">
                   <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Menu Status</p>

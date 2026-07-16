@@ -152,6 +152,7 @@ export default function FoodCatalog() {
  // Modal State
  const [modalOpen, setModalOpen] = useState(false);
  const [itemToDisable, setItemToDisable] = useState<any>(null);
+ const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
  
  const [enableModalOpen, setEnableModalOpen] = useState(false);
  const [itemToEnable, setItemToEnable] = useState<any>(null);
@@ -287,7 +288,9 @@ export default function FoodCatalog() {
  <Card className="p-0 overflow-hidden border border-border/50 shadow-soft bg-white flex flex-col min-h-[600px]">
 
  {/* Filter Bar */}
- <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-border p-4 flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
+ <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-border p-4 flex flex-col xl:flex-row xl:items-center justify-between shadow-sm gap-2">
+ {/* Top Row: Search & Mobile Filter Toggle */}
+ <div className="flex items-center justify-between gap-2 sm:gap-3 w-full xl:w-auto">
  <div className="relative w-full md:w-80 group">
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
  <input
@@ -296,16 +299,27 @@ export default function FoodCatalog() {
  maxLength={100}
  value={searchInput}
  onChange={(e) => setSearchInput(e.target.value)}
- className="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 transition-all shadow-sm hover:bg-white focus:bg-white placeholder:text-text-secondary/60"
+ className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 transition-all shadow-sm hover:bg-white focus:bg-white placeholder:text-text-secondary/60"
  />
  </div>
 
- <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+ {/* Mobile Filter Button */}
+ <button
+ onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+ className={`xl:hidden p-2.5 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileFilterOpen ? 'bg-[#FFF3E8] border-[#FFD0B5] text-[#FF6B00]' : 'bg-gray-50 border-border text-text-secondary hover:text-[#FF6B00] hover:border-[#FF6B00]'}`}
+ >
+ <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+ </button>
+ </div>
+
+ {/* Filters Card */}
+ <div className={`xl:flex ${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full xl:w-auto bg-gray-50 xl:bg-transparent p-4 xl:p-0 rounded-xl border border-border xl:border-none shadow-sm xl:shadow-none mt-2 xl:mt-0`}>
  <div className="w-full md:w-[160px]">
  <Select
  value={categoryFilter}
  onChange={(e) => setCategoryFilter(e.target.value)}
  options={categories.map(cat => ({ value: cat, label: cat === 'All' ? 'All Categories' : cat }))}
+ className="py-2 h-auto text-sm font-bold shadow-sm bg-gray-50/50 hover:bg-white"
  />
  </div>
  <div className="w-full md:w-[150px]">
@@ -317,6 +331,7 @@ export default function FoodCatalog() {
  { value: 'Available', label: 'Available' },
  { value: 'Unavailable', label: 'Unavailable' }
  ]}
+ className="py-2 h-auto text-sm font-bold shadow-sm bg-gray-50/50 hover:bg-white"
  />
  </div>
  </div>
@@ -358,8 +373,7 @@ export default function FoodCatalog() {
  initial={{ opacity: 0, y: 5 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.2, delay: i * 0.03 }}
- onClick={() => navigate(`/restaurant/food/${item.id}`)}
- className={`hover:bg-orange-50/30 transition-colors group cursor-pointer ${!item.isAvailable && 'opacity-70'}`}
+ className={`hover:bg-orange-50/30 transition-colors group ${!item.isAvailable && 'opacity-70'}`}
  >
  {/* Item Details */}
  <td className="px-6 py-5 relative">
@@ -436,33 +450,28 @@ export default function FoodCatalog() {
 
  {/* Pagination Footer */}
  {totalPages > 0 && (
- <div className="mt-auto px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50 rounded-b-xl">
- <p className="text-sm text-text-secondary font-medium">
- Showing page <span className="font-bold text-brand-navy">{currentPage}</span> of <span className="font-bold text-brand-navy">{totalPages}</span>
- </p>
-
- <div className="flex items-center gap-2">
+ <div className="mt-auto px-4 sm:px-6 py-4 border-t border-border flex flex-col items-center justify-center gap-4 bg-white rounded-b-2xl">
+ <div className="flex items-center justify-center w-full gap-2 sm:gap-3">
  <button
  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
  disabled={currentPage === 1}
- className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+ className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg border border-border hover:bg-gray-50 text-text-secondary hover:text-brand-navy transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white shadow-sm"
  >
  <ChevronLeft className="w-4 h-4" />
- <span>Prev</span>
  </button>
 
- <div className="hidden sm:flex items-center gap-1 px-2">
+ <div className="flex items-center gap-1.5">
  {getPageNumbers().map((page, idx) => (
  <button
  key={idx}
  onClick={() => typeof page === 'number' ? setCurrentPage(page) : undefined}
  disabled={page === '...'}
- className={`min-w-[32px] h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${
+ className={`min-w-[32px] sm:min-w-[36px] h-8 sm:h-9 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${
  page === currentPage
- ? 'bg-brand-navy text-white shadow-sm'
+ ? 'border border-brand-orange-500 text-brand-orange-500 bg-white shadow-sm'
  : page === '...'
- ? 'text-text-secondary cursor-default'
- : 'text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm'
+ ? 'text-text-secondary cursor-default border-none bg-transparent'
+ : 'border border-border text-brand-navy bg-white hover:bg-gray-50 shadow-sm'
  }`}
  >
  {page}
@@ -473,12 +482,14 @@ export default function FoodCatalog() {
  <button
  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
  disabled={currentPage === totalPages}
- className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-text-secondary hover:bg-white hover:text-brand-navy hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+ className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg border border-border hover:bg-gray-50 text-text-secondary hover:text-brand-navy transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white shadow-sm"
  >
- <span>Next</span>
  <ChevronRight className="w-4 h-4" />
  </button>
  </div>
+ <p className="text-sm text-text-secondary font-semibold">
+ Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredItems.length)} of {filteredItems.length} items
+ </p>
  </div>
  )}
  </Card>

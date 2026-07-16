@@ -183,49 +183,49 @@ export default function BranchList() {
         initial={{ opacity: 0, y: 20 }} 
         animate={{ opacity: 1, y: 0 }} 
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
       >
-        <div className="bg-white p-5 rounded-2xl border border-[#E8ECF4] shadow-sm flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-[#FFF3E8] text-[#FF6B00] flex items-center justify-center shrink-0">
-            <Store className="w-6 h-6" />
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-[#E8ECF4] shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 hover:shadow-md transition-shadow">
+          <div className="w-8 h-8 sm:w-14 sm:h-14 rounded-[10px] sm:rounded-full bg-[#FFF3E8] text-[#FF6B00] flex items-center justify-center shrink-0">
+            <Store className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <p className="text-xs font-bold text-[#8896AB] mb-0.5">Total Branches</p>
-            <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-1">{branches.length}</h3>
-            <p className="text-[11px] font-semibold text-[#8896AB]">Across all locations</p>
+            <p className="text-[10px] sm:text-xs font-bold text-[#8896AB] mb-1 sm:mb-0.5 line-clamp-1">Total Branches</p>
+            <h3 className="text-xl sm:text-2xl font-black text-[#1a1f36] leading-none mb-1">{branches.length}</h3>
+            <p className="hidden sm:block text-[11px] font-semibold text-[#8896AB]">Across all locations</p>
           </div>
         </div>
         
-        <div className="bg-white p-5 rounded-2xl border border-[#E8ECF4] shadow-sm flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-[#E5F5ED] text-[#00A254] flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-6 h-6" />
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-[#E8ECF4] shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 hover:shadow-md transition-shadow">
+          <div className="w-8 h-8 sm:w-14 sm:h-14 rounded-[10px] sm:rounded-full bg-[#E5F5ED] text-[#00A254] flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <p className="text-xs font-bold text-[#8896AB] mb-0.5">Active Branches</p>
-            <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-1">{branches.filter(b => b.is_active).length}</h3>
-            <p className="text-[11px] font-semibold text-[#8896AB]">{Math.round((branches.filter(b => b.is_active).length / (branches.length || 1)) * 100)}% of total</p>
+            <p className="text-[10px] sm:text-xs font-bold text-[#8896AB] mb-1 sm:mb-0.5 line-clamp-1">Active</p>
+            <h3 className="text-xl sm:text-2xl font-black text-[#1a1f36] leading-none mb-1">{branches.filter(b => b.is_active).length}</h3>
+            <p className="hidden sm:block text-[11px] font-semibold text-[#8896AB]">{Math.round((branches.filter(b => b.is_active).length / (branches.length || 1)) * 100)}% of total</p>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-[#E8ECF4] shadow-sm flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-[#FFF0F2] text-[#FF3B5C] flex items-center justify-center shrink-0">
-            <PauseCircle className="w-6 h-6" />
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-[#E8ECF4] shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 hover:shadow-md transition-shadow">
+          <div className="w-8 h-8 sm:w-14 sm:h-14 rounded-[10px] sm:rounded-full bg-[#FFF0F2] text-[#FF3B5C] flex items-center justify-center shrink-0">
+            <PauseCircle className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <p className="text-xs font-bold text-[#8896AB] mb-0.5">Inactive Branches</p>
-            <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-1">{branches.filter(b => !b.is_active).length}</h3>
-            <p className="text-[11px] font-semibold text-[#8896AB]">{Math.round((branches.filter(b => !b.is_active).length / (branches.length || 1)) * 100)}% of total</p>
+            <p className="text-[10px] sm:text-xs font-bold text-[#8896AB] mb-1 sm:mb-0.5 line-clamp-1">Inactive</p>
+            <h3 className="text-xl sm:text-2xl font-black text-[#1a1f36] leading-none mb-1">{branches.filter(b => !b.is_active).length}</h3>
+            <p className="hidden sm:block text-[11px] font-semibold text-[#8896AB]">{Math.round((branches.filter(b => !b.is_active).length / (branches.length || 1)) * 100)}% of total</p>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-[#E8ECF4] shadow-sm flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-[#F4EDFF] text-[#843BFF] flex items-center justify-center shrink-0">
-            <MapPin className="w-6 h-6" />
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-[#E8ECF4] shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 hover:shadow-md transition-shadow">
+          <div className="w-8 h-8 sm:w-14 sm:h-14 rounded-[10px] sm:rounded-full bg-[#F4EDFF] text-[#843BFF] flex items-center justify-center shrink-0">
+            <MapPin className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <p className="text-xs font-bold text-[#8896AB] mb-0.5">Total Cities</p>
-            <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-1">{uniqueCities.length}</h3>
-            <p className="text-[11px] font-semibold text-[#8896AB]">Across all branches</p>
+            <p className="text-[10px] sm:text-xs font-bold text-[#8896AB] mb-1 sm:mb-0.5 line-clamp-1">Cities</p>
+            <h3 className="text-xl sm:text-2xl font-black text-[#1a1f36] leading-none mb-1">{uniqueCities.length}</h3>
+            <p className="hidden sm:block text-[11px] font-semibold text-[#8896AB]">Across all branches</p>
           </div>
         </div>
       </motion.div>
@@ -237,20 +237,30 @@ export default function BranchList() {
           {/* Filter Bar */}
           <div className="bg-white border-b border-[#E8ECF4] p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
             
-            {/* Left: Search */}
-            <div className="relative w-full md:w-96 group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8896AB] group-focus-within:text-[#FF6B00] transition-colors" />
-              <input
-                type="text"
-                placeholder="Search branches..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] border border-[#E8ECF4] rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] transition-all hover:bg-white focus:bg-white placeholder:text-[#8896AB]"
-              />
+            {/* Top Row: Search & Mobile Filter Toggle */}
+            <div className="flex items-center justify-between gap-2 sm:gap-3 w-full md:w-auto flex-1">
+              <div className="relative flex-1 md:w-96 group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8896AB] group-focus-within:text-[#FF6B00] transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Search branches..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] border border-[#E8ECF4] rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] transition-all hover:bg-white focus:bg-white placeholder:text-[#8896AB]"
+                />
+              </div>
+
+              {/* Mobile Filter Button */}
+              <button
+                onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+                className={`md:hidden p-2 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileFilterOpen ? 'bg-orange-50 border-orange-200 text-[#FF6B00]' : 'bg-[#F8FAFC] border-[#E8ECF4] text-[#8896AB] hover:text-[#FF6B00] hover:border-[#FF6B00]'}`}
+              >
+                <Filter className="w-5 h-5" />
+              </button>
             </div>
 
-            {/* Right: Dropdowns */}
-            <div className="flex items-center gap-3 w-full md:w-auto">
+            {/* Filters Dropdowns */}
+            <div className={`md:flex ${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full md:w-auto mt-2 md:mt-0`}>
               <div className="w-full md:w-40">
                 <Select
                   value={statusFilter}

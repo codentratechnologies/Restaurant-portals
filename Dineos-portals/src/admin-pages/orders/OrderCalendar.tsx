@@ -8,209 +8,209 @@ import { useOrders } from '../../hooks/useOrders';
 import toast from 'react-hot-toast';
 
 export default function OrderCalendar() {
- const navigate = useNavigate();
- const { orders } = useOrders();
- const [currentDate, setCurrentDate] = useState(new Date());
+  const navigate = useNavigate();
+  const { orders } = useOrders();
+  const [currentDate, setCurrentDate] = useState(new Date());
 
- const currentYear = currentDate.getFullYear();
- const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth();
 
- const metrics = useMemo(() => {
- const calculatedMetrics: Record<number, { count: number; revenue: number }> = {};
- 
- // Initialize current month's days with 0
- const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
- for (let i = 1; i <= daysInMonth; i++) {
- calculatedMetrics[i] = { count: 0, revenue: 0 };
- }
+  const metrics = useMemo(() => {
+    const calculatedMetrics: Record<number, { count: number; revenue: number }> = {};
 
- orders.forEach(order => {
- const orderDate = new Date(order.created_at || new Date().toISOString());
- if (orderDate.getFullYear() === currentYear && orderDate.getMonth() === currentMonth) {
- const day = orderDate.getDate();
- if (!calculatedMetrics[day]) {
- calculatedMetrics[day] = { count: 0, revenue: 0 };
- }
- calculatedMetrics[day].count += 1;
- calculatedMetrics[day].revenue += (order.billing?.total || 0);
- }
- });
+    // Initialize current month's days with 0
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    for (let i = 1; i <= daysInMonth; i++) {
+      calculatedMetrics[i] = { count: 0, revenue: 0 };
+    }
 
- return calculatedMetrics;
- }, [currentYear, currentMonth, orders]);
+    orders.forEach(order => {
+      const orderDate = new Date(order.created_at || new Date().toISOString());
+      if (orderDate.getFullYear() === currentYear && orderDate.getMonth() === currentMonth) {
+        const day = orderDate.getDate();
+        if (!calculatedMetrics[day]) {
+          calculatedMetrics[day] = { count: 0, revenue: 0 };
+        }
+        calculatedMetrics[day].count += 1;
+        calculatedMetrics[day].revenue += (order.billing?.total || 0);
+      }
+    });
 
- // Calculate max revenue for heatmap calculation
- const maxRevenue = useMemo(() => {
- let max = 0;
- Object.values(metrics).forEach(m => {
- if (m.revenue > max) max = m.revenue;
- });
- return max || 1;
- }, [metrics]);
+    return calculatedMetrics;
+  }, [currentYear, currentMonth, orders]);
 
- const getHeatmapColor = (revenue: number) => {
- const intensity = revenue / maxRevenue;
- if (intensity > 0.8) return 'bg-brand-orange-500/10 border-brand-orange-500/20';
- if (intensity > 0.5) return 'bg-brand-orange-500/5 border-brand-orange-500/10';
- if (intensity > 0.2) return 'bg-gray-50/80 border-gray-100';
- return 'bg-white border-transparent';
- };
+  // Calculate max revenue for heatmap calculation
+  const maxRevenue = useMemo(() => {
+    let max = 0;
+    Object.values(metrics).forEach(m => {
+      if (m.revenue > max) max = m.revenue;
+    });
+    return max || 1;
+  }, [metrics]);
 
- const handlePrevMonth = () => {
- setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
- };
+  const getHeatmapColor = (revenue: number) => {
+    const intensity = revenue / maxRevenue;
+    if (intensity > 0.8) return 'bg-brand-orange-500/10 border-brand-orange-500/20';
+    if (intensity > 0.5) return 'bg-brand-orange-500/5 border-brand-orange-500/10';
+    if (intensity > 0.2) return 'bg-gray-50/80 border-gray-100';
+    return 'bg-white border-transparent';
+  };
 
- const handleNextMonth = () => {
- setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
- };
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
+  };
 
- const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
- const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+  };
 
- const realToday = new Date();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
 
- const isFutureDate = (day: number) => {
- const checkDate = new Date(currentYear, currentMonth, day);
- checkDate.setHours(0, 0, 0, 0);
- const today = new Date();
- today.setHours(0, 0, 0, 0);
- return checkDate > today;
- };
+  const realToday = new Date();
 
- const handleDayClick = (day: number) => {
- if (isFutureDate(day)) return;
- 
- const dayMetrics = metrics[day];
- if (!dayMetrics || dayMetrics.count === 0) {
- toast.error('No orders found for this date', {
- icon: '📭',
- style: {
- borderRadius: '10px',
- background: '#333',
- color: '#fff',
- },
- });
- return;
- }
+  const isFutureDate = (day: number) => {
+    const checkDate = new Date(currentYear, currentMonth, day);
+    checkDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return checkDate > today;
+  };
 
- const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
- navigate(`/admin/orders/list?date=${formattedDate}`);
- };
+  const handleDayClick = (day: number) => {
+    if (isFutureDate(day)) return;
 
- return (
- <div className="space-y-6 max-w-7xl mx-auto">
+    const dayMetrics = metrics[day];
+    if (!dayMetrics || dayMetrics.count === 0) {
+      toast.error('No orders found for this date', {
+        icon: '📭',
+        style: {
+          borderRadius: '10px',
+          background: '#333',
+          color: '#fff',
+        },
+      });
+      return;
+    }
 
- {/* Page Header */}
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
- <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
- <h1 className="text-3xl font-black text-brand-navy tracking-tight">Orders</h1>
- <p className="text-text-secondary mt-1 text-sm font-medium">View and manage daily order metrics.</p>
- </motion.div>
- </div>
+    const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    navigate(`/admin/orders/list?date=${formattedDate}`);
+  };
 
- {/* Calendar Grid */}
- <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
- <Card className="p-0 border border-border/60 shadow-lg overflow-hidden bg-white/50 backdrop-blur-xl rounded-3xl">
+  return (
+    <div className="space-y-6 max-w-7xl mx-auto">
 
- <div className="flex justify-end p-4 bg-white/80 backdrop-blur-xl border-b border-border">
- <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="flex items-center gap-2 bg-white border border-border rounded-2xl shadow-sm p-1">
- <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-100 rounded-xl transition-all text-text-secondary hover:text-brand-navy active:scale-95">
- <ChevronLeft className="w-5 h-5" />
- </button>
- <div className="font-black text-brand-navy min-w-[140px] text-center text-lg tracking-tight">
- <AnimatePresence mode="wait">
- <motion.span
- key={currentDate.toString()}
- initial={{ y: 10, opacity: 0 }}
- animate={{ y: 0, opacity: 1 }}
- exit={{ y: -10, opacity: 0 }}
- transition={{ duration: 0.2 }}
- className="block"
- >
- {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
- </motion.span>
- </AnimatePresence>
- </div>
- <button onClick={handleNextMonth} className="p-2 hover:bg-gray-100 rounded-xl transition-all text-text-secondary hover:text-brand-navy active:scale-95">
- <ChevronRight className="w-5 h-5" />
- </button>
- </motion.div>
- </div>
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+          <h1 className="text-3xl font-black text-brand-navy tracking-tight">Orders</h1>
+          <p className="text-text-secondary mt-1 text-sm font-medium">View and manage daily order metrics.</p>
+        </motion.div>
+      </div>
 
- <div className="grid grid-cols-7 border-b border-border bg-white">
- {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
- <div key={day} className="py-4 text-center text-xs font-black text-text-secondary uppercase tracking-widest">
- {day}
- </div>
- ))}
- </div>
+      {/* Calendar Grid */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
+        <Card className="p-0 border border-border/60 shadow-lg overflow-hidden bg-white/50 backdrop-blur-xl rounded-3xl">
 
- <AnimatePresence mode="wait">
- <motion.div
- key={currentDate.toString()}
- initial={{ opacity: 0 }}
- animate={{ opacity: 1 }}
- exit={{ opacity: 0 }}
- transition={{ duration: 0.3 }}
- className="grid grid-cols-7 auto-rows-fr bg-gray-50/30"
- >
- {/* Empty cells for start of month */}
- {Array.from({ length: firstDayOfMonth }).map((_, i) => (
- <div key={`empty-${i}`} className="min-h-[80px] sm:min-h-[140px] p-1 sm:p-2 border-b border-r border-border/50 bg-gray-50/50" />
- ))}
+          <div className="flex justify-end p-4 bg-white/80 backdrop-blur-xl border-b border-border">
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="flex items-center gap-2 bg-white border border-border rounded-2xl shadow-sm p-1">
+              <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-100 rounded-xl transition-all text-text-secondary hover:text-brand-navy active:scale-95">
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <div className="font-black text-brand-navy min-w-[140px] text-center text-lg tracking-tight">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={currentDate.toString()}
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -10, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="block"
+                  >
+                    {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                  </motion.span>
+                </AnimatePresence>
+              </div>
+              <button onClick={handleNextMonth} className="p-2 hover:bg-gray-100 rounded-xl transition-all text-text-secondary hover:text-brand-navy active:scale-95">
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </motion.div>
+          </div>
 
- {/* Day cells */}
- {Array.from({ length: daysInMonth }).map((_, i) => {
- const day = i + 1;
- const isFuture = isFutureDate(day);
- const dayMetrics = metrics[day];
- const heatClass = !isFuture && dayMetrics ? getHeatmapColor(dayMetrics.revenue) : 'bg-transparent border-transparent';
+          <div className="grid grid-cols-7 border-b border-border bg-white">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              <div key={day} className="py-4 text-center text-xs font-black text-text-secondary uppercase tracking-widest">
+                {day}
+              </div>
+            ))}
+          </div>
 
- return (
- <button
- key={day}
- onClick={() => handleDayClick(day)}
- disabled={isFuture}
- className={`min-h-[80px] sm:min-h-[140px] p-1 sm:p-3 border-b border-r border-border/50 flex flex-col items-start transition-all duration-300 relative group overflow-hidden ${isFuture
- ? 'bg-gray-50/80 cursor-not-allowed'
- : `cursor-pointer hover:bg-white hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:z-20 hover:scale-[1.02] hover:rounded-xl hover:border-transparent ${heatClass}`
- }`}
- >
- <span className={`text-xs sm:text-sm font-bold w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center rounded-full mb-1 sm:mb-2 transition-colors shrink-0 ${isFuture
- ? 'text-gray-400'
- : 'text-brand-navy group-hover:bg-brand-orange-500 group-hover:text-white group-hover:shadow-md'
- }`}>
- {day}
- </span>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentDate.toString()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="grid grid-cols-7 auto-rows-fr bg-gray-50/30"
+            >
+              {/* Empty cells for start of month */}
+              {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                <div key={`empty-${i}`} className="min-h-[80px] sm:min-h-[140px] p-1 sm:p-2 border-b border-r border-border/50 bg-gray-50/50" />
+              ))}
 
- {dayMetrics && dayMetrics.count > 0 && !isFuture && (
- <div className="mt-auto space-y-1 sm:space-y-2 w-full overflow-hidden">
- <div className="flex items-center justify-center sm:justify-start text-[9px] sm:text-xs font-bold text-text-secondary group-hover:text-brand-navy transition-colors whitespace-nowrap">
- <span className="hidden sm:inline">Ord: {dayMetrics.count}</span>
- <span className="sm:hidden">{dayMetrics.count}</span>
- </div>
- <div className="flex items-center justify-center sm:justify-start gap-0.5 sm:gap-1 text-[9px] sm:text-sm font-black text-brand-navy bg-white/50 group-hover:bg-gray-50 p-1 sm:p-1.5 rounded sm:rounded-lg border border-border/50 transition-colors overflow-hidden">
- <TrendingUp className="hidden sm:block w-3.5 h-3.5 text-brand-orange-500 shrink-0" />
- <span className="truncate whitespace-nowrap">
-   ₹{dayMetrics.revenue > 999 && window.innerWidth < 640 
-       ? (dayMetrics.revenue / 1000).toFixed(1) + 'k' 
-       : dayMetrics.revenue.toLocaleString()}
- </span>
- </div>
- </div>
- )}
- </button>
- );
- })}
+              {/* Day cells */}
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const isFuture = isFutureDate(day);
+                const dayMetrics = metrics[day];
+                const heatClass = !isFuture && dayMetrics ? getHeatmapColor(dayMetrics.revenue) : 'bg-transparent border-transparent';
 
- {/* Empty cells for end of month */}
- {Array.from({ length: (42 - (daysInMonth + firstDayOfMonth)) % 7 }).map((_, i) => (
- <div key={`empty-end-${i}`} className="min-h-[80px] sm:min-h-[140px] p-1 sm:p-2 border-b border-r border-border/50 bg-gray-50/50" />
- ))}
- </motion.div>
- </AnimatePresence>
- </Card>
- </motion.div>
- </div>
- );
+                return (
+                  <button
+                    key={day}
+                    onClick={() => handleDayClick(day)}
+                    disabled={isFuture}
+                    className={`min-h-[80px] sm:min-h-[140px] p-1 sm:p-3 border-b border-r border-border/50 flex flex-col items-start transition-all duration-300 relative group overflow-hidden ${isFuture
+                      ? 'bg-gray-50/80 cursor-not-allowed'
+                      : `cursor-pointer hover:bg-white hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:z-20 hover:scale-[1.02] hover:rounded-xl hover:border-transparent ${heatClass}`
+                      }`}
+                  >
+                    <span className={`text-xs sm:text-sm font-bold w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center rounded-full mb-1 sm:mb-2 transition-colors shrink-0 ${isFuture
+                      ? 'text-gray-400'
+                      : 'text-brand-navy group-hover:bg-brand-orange-500 group-hover:text-white group-hover:shadow-md'
+                      }`}>
+                      {day}
+                    </span>
+
+                    {dayMetrics && dayMetrics.count > 0 && !isFuture && (
+                      <div className="mt-auto space-y-1 sm:space-y-2 w-full overflow-hidden">
+                        <div className="flex items-center justify-center sm:justify-start text-[9px] sm:text-xs font-bold text-text-secondary group-hover:text-brand-navy transition-colors whitespace-nowrap">
+                          <span className="hidden sm:inline">Ord: {dayMetrics.count}</span>
+                          <span className="sm:hidden">{dayMetrics.count}</span>
+                        </div>
+                        <div className="flex items-center justify-center sm:justify-start gap-0.5 sm:gap-1 text-[9px] sm:text-sm font-black text-brand-navy bg-white/50 group-hover:bg-gray-50 p-1 sm:p-1.5 rounded sm:rounded-lg border border-border/50 transition-colors overflow-hidden">
+                          <TrendingUp className="hidden sm:block w-3.5 h-3.5 text-brand-orange-500 shrink-0" />
+                          <span className="truncate whitespace-nowrap">
+                            ₹{dayMetrics.revenue > 999 && window.innerWidth < 640
+                              ? (dayMetrics.revenue / 1000).toFixed(1) + 'k'
+                              : dayMetrics.revenue.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+
+              {/* Empty cells for end of month */}
+              {Array.from({ length: (42 - (daysInMonth + firstDayOfMonth)) % 7 }).map((_, i) => (
+                <div key={`empty-end-${i}`} className="min-h-[80px] sm:min-h-[140px] p-1 sm:p-2 border-b border-r border-border/50 bg-gray-50/50" />
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </Card>
+      </motion.div>
+    </div>
+  );
 }

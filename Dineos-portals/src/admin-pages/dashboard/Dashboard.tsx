@@ -677,7 +677,7 @@ export default function Dashboard() {
             <button
               onClick={handleExportReport}
               disabled={isExporting}
-              className="flex items-center justify-center gap-2 bg-[#1a1f36] hover:bg-[#2d334a] text-white px-3 sm:px-4 py-[9px] sm:py-2.5 rounded-xl font-bold transition-colors disabled:opacity-50 shrink-0 shadow-sm"
+              className="flex items-center justify-center gap-2 bg-[#FF6B00] hover:bg-[#E66000] text-white px-3 sm:px-4 py-[9px] sm:py-2.5 rounded-xl font-bold transition-colors disabled:opacity-50 shrink-0 shadow-sm"
               title="Export Report"
             >
               {isExporting ? (

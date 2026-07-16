@@ -5,6 +5,7 @@ import { ArrowLeft, Edit2, ChevronDown, LayoutTemplate, Info, MapPin, Receipt, T
 import { useMenuItems, MenuItem } from '../../hooks/useMenuItems';
 import { useBranches } from '../../hooks/useBranches';
 import Card from '../../components/common/Card';
+import BranchesModal from './components/BranchesModal';
 
 export default function FoodDetails() {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +15,7 @@ export default function FoodDetails() {
   
   const [foodItem, setFoodItem] = useState<MenuItem | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isBranchesModalOpen, setIsBranchesModalOpen] = useState(false);
 
   useEffect(() => {
     if (!menuLoading && id) {
@@ -92,27 +94,26 @@ export default function FoodDetails() {
     <div className="space-y-5 pb-10 w-full px-4 sm:px-6 lg:px-8 pt-4">
 
 
-      {/* Back Button & Actions Row */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2 mb-6">
-        <Link
-            to="/admin/food"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-[#E8ECF4] text-[#1a1f36] text-sm font-bold rounded-xl hover:bg-[#F8FAFC] transition-colors shadow-sm w-fit"
-        >
+      {/* Header Section */}
+      <div className="flex flex-row items-start justify-between gap-4 pt-2 mb-6">
+        <div>
+          <Link 
+            to="/admin/food" 
+            className="flex items-center gap-2 px-3 py-2 sm:px-4 bg-white border border-[#E8ECF4] rounded-lg text-sm font-bold text-[#1a1f36] hover:bg-gray-50 transition-colors shadow-sm"
+          >
             <ArrowLeft className="w-4 h-4" />
-            Back to Food Items
-        </Link>
-
-        <div className="flex items-center gap-3">
+            <span className="hidden sm:inline">Back to Menu</span>
+            <span className="sm:hidden">Back</span>
+          </Link>
+        </div>
+        
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link to={`/admin/food/${foodItem.id}/edit`}>
-            <button className="flex items-center gap-2 px-5 py-2.5 bg-white border border-[#FF6B00] text-[#FF6B00] text-sm font-bold rounded-xl hover:bg-[#FFF3E8] transition-colors shadow-sm">
-              <Edit2 className="w-4 h-4" />
-              Edit Item
+            <button className="flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto sm:px-5 sm:py-2.5 bg-white border border-[#FF6B00] rounded-xl text-sm font-bold text-[#FF6B00] hover:bg-[#FFF3E8] transition-colors shadow-sm">
+              <Edit2 className="w-5 h-5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline sm:ml-2">Edit Item</span>
             </button>
           </Link>
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-white border border-[#E8ECF4] text-[#1a1f36] text-sm font-bold rounded-xl hover:bg-[#F8FAFC] transition-colors shadow-sm">
-            More Actions
-            <ChevronDown className="w-4 h-4 text-[#8896AB]" />
-          </button>
         </div>
       </div>
 
@@ -130,9 +131,16 @@ export default function FoodDetails() {
                   onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400' }}
                 />
                 
-                {/* Photo Icon Overlay */}
-                <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-lg text-white">
-                    <ImageIcon className="w-5 h-5" />
+                {/* Dietary Icon Overlay */}
+                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-1.5 rounded-lg shadow-md border border-[#E8ECF4]">
+                    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="1" y="1" width="14" height="14" stroke={isVeg ? '#00A254' : '#FF3B5C'} strokeWidth="1.5" rx="2" />
+                        {isVeg ? (
+                            <circle cx="8" cy="8" r="3.5" fill="#00A254" />
+                        ) : (
+                            <path d="M8 4.5L11.5 10.5H4.5L8 4.5Z" fill="#FF3B5C" />
+                        )}
+                    </svg>
                 </div>
             </div>
 
@@ -153,7 +161,7 @@ export default function FoodDetails() {
                 {/* Subtitle */}
                 {subtitle && (
                     <div className="flex items-center gap-2 mb-6">
-                        <span className={`w-2 h-2 rounded-full ${isVeg ? 'bg-[#FF6B00]' : 'bg-[#FF3B5C]'}`}></span>
+                        <span className={`w-2 h-2 rounded-full ${isVeg ? 'bg-[#00A254]' : 'bg-[#FF3B5C]'}`}></span>
                         <p className="text-[#8896AB] font-semibold text-[15px]">
                             {foodItem.categories?.[0] || 'Uncategorized'} <span className="mx-1">•</span> {foodItem.dietary_types?.[0] || 'Other'}
                         </p>
@@ -205,61 +213,62 @@ export default function FoodDetails() {
       </motion.div>
 
       {/* Stats Grid */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="p-6 border border-[#E8ECF4] shadow-sm rounded-2xl bg-white flex items-center gap-5">
-              <div className="w-12 h-12 rounded-xl bg-[#F0F4FE] flex items-center justify-center text-[#3B66FF] shrink-0">
-                  <Receipt className="w-6 h-6" />
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <Card className="p-3.5 sm:p-6 border border-[#E8ECF4] shadow-sm rounded-2xl bg-white flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+              <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-[10px] sm:rounded-xl bg-[#F0F4FE] flex items-center justify-center text-[#3B66FF] shrink-0">
+                  <Receipt className="w-4 h-4 sm:w-6 sm:h-6" />
               </div>
               <div>
-                  <p className="text-[11px] font-bold text-[#8896AB] mb-1">Orders Today</p>
-                  <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-2">{stats.ordersToday}</h3>
-                  <p className="text-[10px] font-bold text-[#00A254] flex items-center gap-1">
+                  <p className="text-[10px] sm:text-[11px] font-bold text-[#8896AB] mb-0.5 sm:mb-1">Orders Today</p>
+                  <h3 className="text-xl sm:text-2xl font-black text-[#1a1f36] leading-none mb-1 sm:mb-2">{stats.ordersToday}</h3>
+                  <p className="hidden sm:flex text-[10px] font-bold text-[#00A254] items-center gap-1">
                       <TrendingUp className="w-3 h-3" /> {stats.ordersGrowth} <span className="text-[#8896AB] font-semibold">from yesterday</span>
                   </p>
               </div>
           </Card>
 
-          <Card className="p-6 border border-[#E8ECF4] shadow-sm rounded-2xl bg-white flex items-center gap-5">
-              <div className="w-12 h-12 rounded-xl bg-[#E5F5ED] flex items-center justify-center text-[#00A254] shrink-0">
-                  <CheckCircle2 className="w-6 h-6" />
+          <Card className="p-3.5 sm:p-6 border border-[#E8ECF4] shadow-sm rounded-2xl bg-white flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+              <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-[10px] sm:rounded-xl bg-[#E5F5ED] flex items-center justify-center text-[#00A254] shrink-0">
+                  <CheckCircle2 className="w-4 h-4 sm:w-6 sm:h-6" />
               </div>
               <div>
-                  <p className="text-[11px] font-bold text-[#8896AB] mb-1">Revenue Today</p>
-                  <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-2">₹{stats.revenueToday.toLocaleString()}</h3>
-                  <p className="text-[10px] font-bold text-[#00A254] flex items-center gap-1">
+                  <p className="text-[10px] sm:text-[11px] font-bold text-[#8896AB] mb-0.5 sm:mb-1">Revenue Today</p>
+                  <h3 className="text-xl sm:text-2xl font-black text-[#1a1f36] leading-none mb-1 sm:mb-2">₹{stats.revenueToday.toLocaleString()}</h3>
+                  <p className="hidden sm:flex text-[10px] font-bold text-[#00A254] items-center gap-1">
                       <TrendingUp className="w-3 h-3" /> {stats.revenueGrowth} <span className="text-[#8896AB] font-semibold">from yesterday</span>
                   </p>
               </div>
           </Card>
 
-          <Card className="p-6 border border-[#E8ECF4] shadow-sm rounded-2xl bg-white flex items-center gap-5">
-              <div className="w-12 h-12 rounded-xl bg-[#FFF3E8] flex items-center justify-center text-[#FF6B00] shrink-0">
-                  <Store className="w-6 h-6" />
+          <Card className="p-3.5 sm:p-6 border border-[#E8ECF4] shadow-sm rounded-2xl bg-white flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+              <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-[10px] sm:rounded-xl bg-[#FFF3E8] flex items-center justify-center text-[#FF6B00] shrink-0">
+                  <Store className="w-4 h-4 sm:w-6 sm:h-6" />
               </div>
               <div>
-                  <p className="text-[11px] font-bold text-[#8896AB] mb-1">Total Branches</p>
-                  <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-2">{availableBranches.length}</h3>
-                  <p className="text-[10px] font-semibold text-[#8896AB]">
+                  <p className="text-[10px] sm:text-[11px] font-bold text-[#8896AB] mb-0.5 sm:mb-1">Total Branches</p>
+                  <h3 className="text-xl sm:text-2xl font-black text-[#1a1f36] leading-none mb-1 sm:mb-2">{availableBranches.length}</h3>
+                  <p className="hidden sm:block text-[10px] font-semibold text-[#8896AB]">
                       Across all branches
                   </p>
               </div>
           </Card>
 
-          <Card className="p-6 border border-[#E8ECF4] shadow-sm rounded-2xl bg-white flex items-center gap-5">
-              <div className="w-12 h-12 rounded-xl bg-[#FFF9E5] flex items-center justify-center text-[#F5B500] shrink-0">
-                  <Star className="w-6 h-6" />
+          <Card className="p-3.5 sm:p-6 border border-[#E8ECF4] shadow-sm rounded-2xl bg-white flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-5">
+              <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-[10px] sm:rounded-xl bg-[#FFF9E5] flex items-center justify-center text-[#F5B500] shrink-0">
+                  <Star className="w-4 h-4 sm:w-6 sm:h-6" />
               </div>
               <div>
-                  <p className="text-[11px] font-bold text-[#8896AB] mb-1">Average Rating</p>
-                  <div className="flex items-end gap-2 mb-2">
-                      <h3 className="text-2xl font-black text-[#1a1f36] leading-none">{stats.rating}</h3>
+                  <p className="text-[10px] sm:text-[11px] font-bold text-[#8896AB] mb-0.5 sm:mb-1">Average Rating</p>
+                  <div className="flex items-end gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+                      <h3 className="text-xl sm:text-2xl font-black text-[#1a1f36] leading-none">{stats.rating}</h3>
                       <div className="flex items-center gap-0.5 pb-0.5">
-                          {[1,2,3,4,5].map(star => (
-                              <Star key={star} className={`w-3 h-3 ${star <= Math.floor(stats.rating) ? 'fill-[#F5B500] text-[#F5B500]' : 'fill-[#E8ECF4] text-[#E8ECF4]'}`} />
+                          {[1,2].map(star => (
+                              <Star key={star} className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${star <= Math.floor(stats.rating) ? 'fill-[#F5B500] text-[#F5B500]' : 'fill-[#E8ECF4] text-[#E8ECF4]'}`} />
                           ))}
+                          <span className="text-[10px] font-bold text-[#8896AB] ml-1 sm:hidden">({stats.reviews})</span>
                       </div>
                   </div>
-                  <p className="text-[10px] font-semibold text-[#8896AB]">
+                  <p className="hidden sm:block text-[10px] font-semibold text-[#8896AB]">
                       Based on {stats.reviews} reviews
                   </p>
               </div>
@@ -274,9 +283,17 @@ export default function FoodDetails() {
 
           <div className="relative z-10 p-8 flex flex-col justify-between h-full">
               <div>
-                  <div className="flex items-center gap-2 mb-6">
-                      <div className="w-3 h-3 rounded-full bg-[#00A254]"></div>
-                      <h3 className="text-[15px] font-black text-[#1a1f36]">Availability</h3>
+                  <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-[#00A254]"></div>
+                          <h3 className="text-[15px] font-black text-[#1a1f36]">Availability</h3>
+                      </div>
+                      <button 
+                          onClick={() => setIsBranchesModalOpen(true)}
+                          className="px-4 py-2 bg-white border border-[#E8ECF4] hover:bg-[#F8FAFC] text-[#1a1f36] text-xs font-bold rounded-lg transition-colors shadow-sm"
+                      >
+                          View All Branches
+                      </button>
                   </div>
 
                   <h2 className="text-xl font-black text-[#1a1f36] mb-6">Available in {availableBranches.length} Branches</h2>
@@ -356,6 +373,13 @@ export default function FoodDetails() {
             </div>
         </Card>
       </motion.div>
+
+      {/* Branches Modal */}
+      <BranchesModal 
+        isOpen={isBranchesModalOpen} 
+        onClose={() => setIsBranchesModalOpen(false)} 
+        availableBranches={availableBranches} 
+      />
 
     </div>
   );

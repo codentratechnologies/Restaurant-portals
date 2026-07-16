@@ -38,6 +38,12 @@ export default function EmployeeList() {
   const [activateModalOpen, setActivateModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
+  // Extract unique roles from employees
+  const uniqueRoles = useMemo(() => {
+    const roles = new Set(employees.map(e => e.role).filter(Boolean));
+    return Array.from(roles).sort();
+  }, [employees]);
+
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -87,7 +93,7 @@ export default function EmployeeList() {
   const activeEmployees = employees.filter(e => e.status === 'Active').length;
   const inactiveEmployees = employees.filter(e => e.status === 'Inactive').length;
   const rolesCount = new Set(employees.map(e => e.role)).size;
-  
+
   const activePercent = totalEmployees ? ((activeEmployees / totalEmployees) * 100).toFixed(2) : 0;
   const inactivePercent = totalEmployees ? ((inactiveEmployees / totalEmployees) * 100).toFixed(2) : 0;
 
@@ -172,10 +178,6 @@ export default function EmployeeList() {
     return pages;
   };
 
-  const handleRowClick = (employee: Employee) => {
-    navigate(`/admin/employees/${employee.id}`);
-  };
-
   // ── Empty State ──────────────────────────────────────────────────
   if (!isLoading && employees.length === 0) {
     return (
@@ -214,16 +216,18 @@ export default function EmployeeList() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-row items-center justify-between gap-4">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <h1 className="text-2xl font-black text-[#1a1f36] tracking-tight">Employees</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-[#1a1f36] tracking-tight">Employees</h1>
           <p className="text-sm font-medium text-[#8896AB] mt-1">Manage staff accounts and permissions across branches.</p>
-
         </motion.div>
-        
+
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
-          <Link to="/admin/employees/new">
-            <Button className="px-5 py-2.5 font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] shadow-sm rounded-xl flex items-center gap-2 text-sm">
+          <Link to="/admin/employees/new" className="shrink-0">
+            <Button className="sm:hidden w-10 h-10 p-0 flex items-center justify-center shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg">
+              <Plus className="w-5 h-5" />
+            </Button>
+            <Button className="hidden sm:flex px-6 gap-2 shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg">
               <Plus className="w-4 h-4" />
               Add New Employee
             </Button>
@@ -232,52 +236,52 @@ export default function EmployeeList() {
       </div>
 
       {/* Stats Section */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Employees */}
-        <Card className="p-5 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-[#FFF3E8] flex items-center justify-center shrink-0">
-            <UsersRound className="w-6 h-6 text-[#FF6B00]" />
+        <Card className="p-3.5 sm:p-5 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 hover:shadow-md transition-shadow">
+          <div className="w-8 h-8 sm:w-14 sm:h-14 rounded-[10px] sm:rounded-full bg-[#FFF3E8] flex items-center justify-center shrink-0">
+            <UsersRound className="w-4 h-4 sm:w-6 sm:h-6 text-[#FF6B00]" />
           </div>
           <div>
-            <p className="text-xs font-bold text-[#1a1f36] mb-1">Total Employees</p>
-            <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-1">{totalEmployees}</h3>
-            <p className="text-[10px] font-semibold text-[#8896AB]">Across all branches</p>
+            <p className="text-[10px] sm:text-xs font-bold text-[#1a1f36] mb-1 sm:mb-1 line-clamp-1">Total Employees</p>
+            <h3 className="text-xl sm:text-2xl font-black text-[#1a1f36] leading-none mb-1">{totalEmployees}</h3>
+            <p className="hidden sm:block text-[10px] font-semibold text-[#8896AB]">Across all branches</p>
           </div>
         </Card>
 
         {/* Active Employees */}
-        <Card className="p-5 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center shrink-0">
-            <UserCheck className="w-6 h-6 text-green-500" />
+        <Card className="p-3.5 sm:p-5 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 hover:shadow-md transition-shadow">
+          <div className="w-8 h-8 sm:w-14 sm:h-14 rounded-[10px] sm:rounded-full bg-green-50 flex items-center justify-center shrink-0">
+            <UserCheck className="w-4 h-4 sm:w-6 sm:h-6 text-green-500" />
           </div>
           <div>
-            <p className="text-xs font-bold text-[#1a1f36] mb-1">Active Employees</p>
-            <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-1">{activeEmployees}</h3>
-            <p className="text-[10px] font-bold text-green-600">{activePercent}% <span className="text-[#8896AB] font-semibold">of total</span></p>
+            <p className="text-[10px] sm:text-xs font-bold text-[#1a1f36] mb-1 sm:mb-1 line-clamp-1">Active</p>
+            <h3 className="text-xl sm:text-2xl font-black text-[#1a1f36] leading-none mb-1">{activeEmployees}</h3>
+            <p className="hidden sm:block text-[10px] font-bold text-green-600">{activePercent}% <span className="text-[#8896AB] font-semibold">of total</span></p>
           </div>
         </Card>
 
         {/* Inactive Employees */}
-        <Card className="p-5 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center shrink-0">
-            <UserX className="w-6 h-6 text-red-500" />
+        <Card className="p-3.5 sm:p-5 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 hover:shadow-md transition-shadow">
+          <div className="w-8 h-8 sm:w-14 sm:h-14 rounded-[10px] sm:rounded-full bg-red-50 flex items-center justify-center shrink-0">
+            <UserX className="w-4 h-4 sm:w-6 sm:h-6 text-red-500" />
           </div>
           <div>
-            <p className="text-xs font-bold text-[#1a1f36] mb-1">Inactive Employees</p>
-            <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-1">{inactiveEmployees}</h3>
-            <p className="text-[10px] font-semibold text-[#8896AB]">{inactivePercent}% of total</p>
+            <p className="text-[10px] sm:text-xs font-bold text-[#1a1f36] mb-1 sm:mb-1 line-clamp-1">Inactive</p>
+            <h3 className="text-xl sm:text-2xl font-black text-[#1a1f36] leading-none mb-1">{inactiveEmployees}</h3>
+            <p className="hidden sm:block text-[10px] font-semibold text-[#8896AB]">{inactivePercent}% of total</p>
           </div>
         </Card>
 
         {/* Roles */}
-        <Card className="p-5 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
-            <Shield className="w-6 h-6 text-purple-500" />
+        <Card className="p-3.5 sm:p-5 border border-[#E8ECF4] shadow-sm bg-white rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 hover:shadow-md transition-shadow">
+          <div className="w-8 h-8 sm:w-14 sm:h-14 rounded-[10px] sm:rounded-full bg-purple-50 flex items-center justify-center shrink-0">
+            <Shield className="w-4 h-4 sm:w-6 sm:h-6 text-purple-500" />
           </div>
           <div>
-            <p className="text-xs font-bold text-[#1a1f36] mb-1">Roles</p>
-            <h3 className="text-2xl font-black text-[#1a1f36] leading-none mb-1">{rolesCount}</h3>
-            <p className="text-[10px] font-semibold text-[#8896AB]">Across all employees</p>
+            <p className="text-[10px] sm:text-xs font-bold text-[#1a1f36] mb-1 sm:mb-1 line-clamp-1">Roles</p>
+            <h3 className="text-xl sm:text-2xl font-black text-[#1a1f36] leading-none mb-1">{rolesCount}</h3>
+            <p className="hidden sm:block text-[10px] font-semibold text-[#8896AB]">Across all employees</p>
           </div>
         </Card>
       </motion.div>
@@ -288,39 +292,44 @@ export default function EmployeeList() {
 
           {/* Filter Bar */}
           <div className="bg-white border-b border-[#E8ECF4] p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            
-            {/* Left: Search */}
-            <div className="relative w-full md:w-[400px] group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8896AB] group-focus-within:text-[#FF6B00] transition-colors" />
-              <input
-                type="text"
-                placeholder="Search employees by name, email or phone..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] border border-[#E8ECF4] rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] transition-all hover:bg-white focus:bg-white placeholder:text-[#8896AB]"
-              />
+
+            {/* Top Row: Search & Mobile Filter Toggle */}
+            <div className="flex items-center justify-between gap-2 sm:gap-3 w-full md:w-auto flex-1">
+              <div className="relative flex-1 md:w-[400px] group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8896AB] group-focus-within:text-[#FF6B00] transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Search employees by name, email or phone..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] border border-[#E8ECF4] rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] transition-all hover:bg-white focus:bg-white placeholder:text-[#8896AB]"
+                />
+              </div>
+
+              {/* Mobile Filter Button */}
+              <button
+                onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+                className={`md:hidden p-2 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileFilterOpen ? 'bg-orange-50 border-orange-200 text-[#FF6B00]' : 'bg-[#F8FAFC] border-[#E8ECF4] text-[#8896AB] hover:text-[#FF6B00] hover:border-[#FF6B00]'}`}
+              >
+                <Filter className="w-5 h-5" />
+              </button>
             </div>
 
-            {/* Right: Actions */}
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              <div className="min-w-[140px]">
+            {/* Filters Dropdowns */}
+            <div className={`md:flex ${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full md:w-auto mt-2 md:mt-0`}>
+              <div className="w-full md:w-40">
                 <Select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
                   options={[
                     { value: 'All', label: 'All Roles' },
-                    { value: 'Branch Manager', label: 'Branch Manager' },
-                    { value: 'Delivery Partner', label: 'Delivery Partner' },
-                    { value: 'Cashier', label: 'Cashier' },
-                    { value: 'Chef', label: 'Chef' },
-                    { value: 'Waiter', label: 'Waiter' },
-                    { value: 'Supervisor', label: 'Supervisor' }
+                    ...uniqueRoles.map((role) => ({ value: role, label: role }))
                   ]}
-                  className="bg-[#F8FAFC] border-[#E8ECF4] h-[38px] text-sm font-bold"
+                  className="bg-[#F8FAFC] border-[#E8ECF4] h-[38px] text-sm font-bold w-full"
                 />
               </div>
 
-              <div className="min-w-[160px]">
+              <div className="w-full md:w-48">
                 <Select
                   value={branchFilter}
                   onChange={(e) => setBranchFilter(e.target.value)}
@@ -328,11 +337,11 @@ export default function EmployeeList() {
                     { value: 'All', label: 'All Branches' },
                     ...branches.map((b) => ({ value: b.code || '', label: b.name }))
                   ]}
-                  className="bg-[#F8FAFC] border-[#E8ECF4] h-[38px] text-sm font-bold"
+                  className="bg-[#F8FAFC] border-[#E8ECF4] h-[38px] text-sm font-bold w-full"
                 />
               </div>
 
-              <div className="min-w-[140px]">
+              <div className="w-full md:w-40">
                 <Select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -341,7 +350,7 @@ export default function EmployeeList() {
                     { value: 'Active', label: 'Active' },
                     { value: 'Inactive', label: 'Inactive' }
                   ]}
-                  className="bg-[#F8FAFC] border-[#E8ECF4] h-[38px] text-sm font-bold"
+                  className="bg-[#F8FAFC] border-[#E8ECF4] h-[38px] text-sm font-bold w-full"
                 />
               </div>
 
@@ -388,8 +397,7 @@ export default function EmployeeList() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.2, delay: i * 0.05 }}
-                          className="hover:bg-[#F8FAFC] transition-colors group cursor-pointer"
-                          onClick={() => handleRowClick(employee)}
+                          className="hover:bg-[#F8FAFC] transition-colors group"
                         >
                           <td className="px-6 py-4">
                             <span className="text-[#8896AB] text-sm font-bold">{empCode}</span>
@@ -423,9 +431,8 @@ export default function EmployeeList() {
                           </td>
 
                           <td className="px-6 py-4">
-                            <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${
-                              employee.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                            }`}>
+                            <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${employee.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                              }`}>
                               {employee.status}
                             </span>
                           </td>
@@ -486,8 +493,7 @@ export default function EmployeeList() {
                       key={idx}
                       onClick={() => typeof page === 'number' ? setCurrentPage(page) : undefined}
                       disabled={page === '...'}
-                      className={`min-w-[32px] sm:min-w-[36px] h-8 sm:h-9 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${
-                        page === currentPage
+                      className={`min-w-[32px] sm:min-w-[36px] h-8 sm:h-9 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${page === currentPage
                           ? 'border border-[#FF6B00] text-[#FF6B00] bg-white'
                           : page === '...'
                             ? 'text-[#8896AB] cursor-default border-none bg-transparent'
