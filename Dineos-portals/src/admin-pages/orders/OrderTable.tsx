@@ -289,52 +289,6 @@ export default function OrderTable() {
             itemsPerPage={itemsPerPage}
             onItemsPerPageChange={setItemsPerPage}
             itemsPerPageOptions={[5, 10, 25, 50]}
-            renderMobileItem={(item) => {
-              const payment = (item as any).payment;
-              const isOnline = (payment?.method || 'Online') === 'Online';
-              const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
-              const timeStr = item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
-              
-              return (
-                <div className="p-4 flex flex-col gap-3">
-                  <div className="flex justify-between items-start">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-bold text-brand-navy text-sm">#{item.id}</span>
-                      <span className="text-[11px] font-medium text-text-secondary">{dateStr} at {timeStr}</span>
-                    </div>
-                    {getStatusBadge(item.status)}
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-4 pt-3 border-t border-[#E8ECF4]">
-                    <div className="flex flex-col gap-0.5 min-w-[100px]">
-                      <span className="text-[10px] uppercase font-bold text-text-secondary">Customer</span>
-                      <span className="font-bold text-brand-navy text-[13px]">{item.customer?.name || 'N/A'}</span>
-                      <span className="text-[11px] font-medium text-text-secondary">{item.customer?.phone || 'N/A'}</span>
-                    </div>
-                    <div className="flex flex-col gap-0.5 min-w-[100px]">
-                      <span className="text-[10px] uppercase font-bold text-text-secondary">Branch</span>
-                      <span className="font-bold text-brand-navy text-[13px]">{item.branch || 'DineOS Main'}</span>
-                      <span className="text-[11px] font-medium text-text-secondary">BR-{item.branch?.substring(0,3)?.toUpperCase() || '001'}</span>
-                    </div>
-                    <div className="flex flex-col gap-0.5 min-w-[100px]">
-                      <span className="text-[10px] uppercase font-bold text-text-secondary">Amount</span>
-                      <span className="font-bold text-brand-navy text-[13px]">₹ {(item.billing?.total || 0).toFixed(2)}</span>
-                      <span className={`text-[11px] font-bold ${isOnline ? 'text-[#00A254]' : 'text-[#FF6B00]'}`}>{(item as any).payment?.method || 'Online'} - {(item as any).payment?.status || (isOnline ? 'Paid' : 'Pending')}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-1 flex justify-end">
-                    <Link
-                      to={`/admin/orders/${item.id}`}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2 text-[13px] font-bold text-text-secondary border border-[#E8ECF4] rounded-lg hover:bg-gray-50 transition-colors shadow-sm bg-white"
-                    >
-                      <Eye className="w-4 h-4" />
-                      View Details
-                    </Link>
-                  </div>
-                </div>
-              );
-            }}
           />
         </div>
 
