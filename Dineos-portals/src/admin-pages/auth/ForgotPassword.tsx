@@ -19,14 +19,15 @@ export default function ForgotPassword() {
     setLocalError(null);
     setSuccess(false);
     
-    if (!email || !/^\\S+@\\S+\\.\\S+$/.test(email)) {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
       setEmailError("Please enter a valid email address.");
       return;
     }
 
     setLoading(true);
     try {
-      await resetPassword(email);
+      await resetPassword(trimmedEmail);
       setSuccess(true);
     } catch {
       // error is already set in useAuth context
