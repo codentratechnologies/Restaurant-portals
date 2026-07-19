@@ -174,46 +174,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
-      if (err.message.includes('invalid-credential') || err.message.includes('user-not-found')) {
-        try {
-          const { hashPassword } = await import('../lib/utils');
-          const hashedPw = await hashPassword(password);
-          const employeeRef = ref(rtdb, 'employee');
-          const snapshot = await get(employeeRef);
-          
-          let matchedUser: any = null;
-          
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-            for (const adminUid in data) {
-              const branches = data[adminUid];
-              if (typeof branches === 'object') {
-                for (const branchCode in branches) {
-                  const employees = branches[branchCode];
-                  if (typeof employees === 'object') {
-                    for (const empUid in employees) {
-                      const emp = employees[empUid];
-                      if (emp && emp.email === email && emp.password === hashedPw) {
-                        matchedUser = { ...emp, branch: branchCode, id: empUid, adminId: adminUid };
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          if (matchedUser) {
-            // Auto-migrate them to Firebase Auth
-            const cred = await createUserWithEmailAndPassword(auth, email, password);
-            // Stop throwing error, user is now authenticated!
-            return;
-          }
-        } catch (migrationErr) {
-          console.error("Migration fallback failed:", migrationErr);
-        }
-      }
-
       setError(err.message);
       throw err;
     }

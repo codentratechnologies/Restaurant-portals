@@ -348,13 +348,13 @@ export default function CreateEmployee() {
  </div>
  </div>
 
-   <div className="p-8 border-t border-border bg-gray-50 flex items-center justify-end gap-3 rounded-b-xl">
+   <div className="p-8 border-t border-[#E8ECF4] flex items-center justify-end gap-3 bg-[#F8FAFC] rounded-b-2xl">
  <Link to="/restaurant/employees">
- <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
+ <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-[#1a1f36] bg-white border border-[#E8ECF4] hover:bg-[#F4F6FA] transition-all">
  Cancel
  </button>
  </Link>
- <Button form="create-employee-form" type="submit" disabled={isSubmitting} className="gap-2 px-8 shadow-sm">
+ <Button className="gap-2 px-6 shadow-sm bg-[#FF6B00] text-white hover:bg-[#E66000] border-0" form="create-employee-form" type="submit" disabled={isSubmitting}>
  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
  {isSubmitting ? 'Saving...' : 'Save Profile'}
  </Button>

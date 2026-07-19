@@ -7,8 +7,10 @@ import Card from '../../components/common/Card';
 import PasswordChecklist from './components/PasswordChecklist';
 import Select from '../../components/common/Select';
 import PhoneInput from '../../components/common/PhoneInput';
-import { ref, push, get } from 'firebase/database';
-import { rtdb } from '../../lib/firebase';
+import { ref, push, get, set } from 'firebase/database';
+import { rtdb, firebaseConfig } from '../../lib/firebase';
+import { initializeApp, deleteApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '../../hooks/useAuth';
 import { useBranches } from '../../hooks/useBranches';
 import { hashPassword } from '../../lib/utils';
@@ -137,7 +139,7 @@ export default function CreateEmployee() {
  
  setIsSubmitting(true);
  
- try {
+  try {
  const branchCode = formData.branch; // Because we change the select to use b.code
 
  const employeeRootRef = ref(rtdb, `employee/${user.uid}`);
@@ -179,20 +181,32 @@ export default function CreateEmployee() {
  role: formData.role,
  branch: branchCode, // Map directly to branch code
  doj: formData.doj,
- password: hashedPassword,
+ password: hashedPassword, // Kept for legacy compatibility
  status: isFutureDoj ? 'Inactive' : 'Active',
  created_at: new Date().toISOString(),
  updated_at: new Date().toISOString(),
  };
+
+ // SECONDARY APP TRICK to create in Firebase Auth without logging out Admin
+ const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+ const secondaryAuth = getAuth(secondaryApp);
  
- const specificBranchRef = ref(rtdb, `employee/${user.uid}/${branchCode}`);
- await push(specificBranchRef, newEmployee);
+ try {
+   const userCredential = await createUserWithEmailAndPassword(secondaryAuth, formData.email, formData.password);
+   const newUid = userCredential.user.uid;
+
+   // Save directly with the UID as key for easier sync, instead of random push key
+   const specificEmployeeRef = ref(rtdb, `employee/${user.uid}/${branchCode}/${newUid}`);
+   await set(specificEmployeeRef, newEmployee);
+ } finally {
+   await deleteApp(secondaryApp);
+ }
  
  toast.success('Employee created successfully!');
  navigate('/admin/employees');
- } catch (error) {
+ } catch (error: any) {
  console.error('Error creating employee:', error);
- toast.error('Failed to create employee. Please try again.');
+ toast.error(error.message || 'Failed to create employee. Please try again.');
  } finally {
  setIsSubmitting(false);
  }
@@ -407,13 +421,13 @@ export default function CreateEmployee() {
  </div>
  </div>
 
-   <div className="p-8 border-t border-border bg-gray-50 flex items-center justify-end gap-3 rounded-b-xl">
+   <div className="p-8 border-t border-[#E8ECF4] flex items-center justify-end gap-3 bg-[#F8FAFC] rounded-b-2xl">
  <Link to="/admin/employees">
- <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
+ <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-[#1a1f36] bg-white border border-[#E8ECF4] hover:bg-[#F4F6FA] transition-all">
  Cancel
  </button>
  </Link>
- <Button form="create-employee-form" type="submit" disabled={isSubmitting} className="gap-2 px-8 shadow-sm">
+ <Button className="gap-2 px-6 shadow-sm bg-[#FF6B00] text-white hover:bg-[#E66000] border-0" form="create-employee-form" type="submit" disabled={isSubmitting}>
  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
  {isSubmitting ? 'Saving...' : 'Save Profile'}
  </Button>

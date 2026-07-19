@@ -268,7 +268,7 @@ export default function CreateBranch() {
                 Cancel
               </button>
             </Link>
-            <Button onClick={handleSaveAndFinish} disabled={isSubmitting} className="gap-2 px-6 shadow-sm bg-[#FF6B00] text-white hover:bg-[#E66000] border-0">
+            <Button className="gap-2 px-6 shadow-sm bg-[#FF6B00] text-white hover:bg-[#E66000] border-0" onClick={handleSaveAndFinish} disabled={isSubmitting}>
               {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               Save Branch
             </Button>

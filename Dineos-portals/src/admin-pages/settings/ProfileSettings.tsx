@@ -189,18 +189,6 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
                   <div className="px-4 sm:px-7 py-4 sm:py-6 border-b border-border/40">
                     <div className="flex items-center justify-between mb-5">
                       <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Personal Information</p>
-                      {!editing && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditing(true)}
-                          className="gap-2"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                          Edit Profile
-                        </Button>
-                      )}
                     </div>
                     <div className="space-y-4 max-w-lg">
 
@@ -298,23 +286,28 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
       <Modal
         isOpen={showLogoutModal}
         onClose={() => setShowLogoutModal(false)}
-        title="Confirm Log Out"
+        maxWidth="sm"
       >
-        <div className="space-y-6">
-          <p className="text-text-secondary text-sm">
+        <div className="p-6 sm:p-8 text-center">
+          <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-5 rotate-3">
+            <LogOut className="w-8 h-8 text-red-500 -rotate-3" strokeWidth={2.5} />
+          </div>
+          <h3 className="text-xl font-black text-brand-navy mb-2 tracking-tight">Ready to leave?</h3>
+          <p className="text-sm text-text-secondary mb-8 leading-relaxed px-2">
             Are you sure you want to log out? You will need to sign in again to access your account.
           </p>
-          <div className="flex items-center gap-3 justify-end">
+          <div className="flex flex-col-reverse sm:flex-row items-center gap-3 w-full">
             <Button
               variant="secondary"
               onClick={() => setShowLogoutModal(false)}
+              className="w-full sm:flex-1 py-3"
             >
               Cancel
             </Button>
             <Button
               variant="primary"
               onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white border-transparent"
+              className="w-full sm:flex-1 py-3 bg-red-500 hover:bg-red-600 text-white border-transparent shadow-lg shadow-red-500/20"
             >
               Log Out
             </Button>

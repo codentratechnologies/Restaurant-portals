@@ -3,8 +3,8 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { ref, get } from 'firebase/database';
-import { rtdb } from '../../lib/firebase';
-import { hashPassword } from '../../lib/utils';
+import { rtdb, auth } from '../../lib/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
 
 export default function Login() {
@@ -27,7 +27,10 @@ export default function Login() {
     if (!valid) return;
     setLoading(true);
     try {
-      const hashedPw = await hashPassword(password);
+      // 1. Authenticate with Firebase Auth
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      
+      // 2. Fetch user data from RTDB to verify role
       const snap = await get(ref(rtdb, 'employee'));
       let matchedUser: any = null;
       if (snap.exists()) {
@@ -38,8 +41,10 @@ export default function Login() {
             if (typeof emps === 'object') {
               for (const empUid in emps) {
                 const emp = emps[empUid];
-                if (emp?.email === email && emp?.password === hashedPw)
+                // Match by UID or Email
+                if (empUid === cred.user.uid || (emp?.email && emp.email.toLowerCase() === email.toLowerCase())) {
                   matchedUser = { ...emp, branch: branchCode, id: empUid, adminId: adminUid };
+                }
               }
             }
           }

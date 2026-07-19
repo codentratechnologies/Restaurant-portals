@@ -185,9 +185,9 @@ export default function BranchList() {
  
  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
  <Link to="/restaurant/branches/new">
- <Button className="gap-2 shadow-sm font-bold">
+ <Button className="flex px-4 sm:px-6 gap-2 shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg items-center">
  <Plus className="w-5 h-5" />
- Add Branch
+ <span className="text-sm">Add Branch</span>
  </Button>
  </Link>
  </motion.div>
@@ -220,13 +220,7 @@ export default function BranchList() {
  <Filter className="w-5 h-5" />
  </button>
 
- {/* Add Branch Button (Icon on mobile, text on desktop) */}
- <Link to="/restaurant/branches/new" className="shrink-0 md:hidden">
- <Button className="px-2.5 gap-2 shadow-sm font-bold bg-brand-orange-500 text-white border-0 hover:bg-brand-orange-600">
- <Plus className="w-5 h-5" />
- <span className="hidden sm:inline">Add Branch</span>
- </Button>
- </Link>
+ 
  </div>
  
  {/* Filters Card */}

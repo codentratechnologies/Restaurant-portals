@@ -210,17 +210,10 @@ export default function OrderTable() {
           <button 
             onClick={handleExportCSV} 
             disabled={isExporting}
-            className="sm:hidden w-10 h-10 p-0 flex items-center justify-center shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg disabled:opacity-50"
-          >
-            <Download className="w-5 h-5" />
-          </button>
-          <button 
-            onClick={handleExportCSV} 
-            disabled={isExporting}
-            className="hidden sm:flex px-6 py-2.5 gap-2 items-center justify-center shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg disabled:opacity-50 text-sm"
+            className="flex px-4 sm:px-6 py-2.5 gap-2 items-center justify-center shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg disabled:opacity-50 text-sm"
           >
             <Download className="w-4 h-4" />
-            {isExporting ? 'Exporting...' : 'Export Orders'}
+            <span>{isExporting ? 'Exporting...' : 'Export Orders'}</span>
           </button>
         </motion.div>
       </div>

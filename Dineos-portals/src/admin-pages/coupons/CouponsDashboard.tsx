@@ -191,12 +191,9 @@ export default function CouponsDashboard() {
                 {canCreateCoupon && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
                         <Link to="/admin/coupons/new" className="shrink-0">
-                            <Button className="sm:hidden w-10 h-10 p-0 flex items-center justify-center shadow-md shadow-[#FF6B00]/20 font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg">
+                            <Button className="flex px-4 sm:px-6 gap-2 shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg items-center">
                                 <Plus className="w-5 h-5" />
-                            </Button>
-                            <Button className="hidden sm:flex gap-2 shadow-md shadow-[#FF6B00]/20 font-bold px-6">
-                                <Plus className="w-5 h-5" />
-                                Add Coupon
+                                <span className="text-sm">Add Coupon</span>
                             </Button>
                         </Link>
                     </motion.div>

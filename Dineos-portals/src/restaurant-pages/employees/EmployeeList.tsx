@@ -196,9 +196,9 @@ export default function EmployeeList() {
 
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
           <Link to="/restaurant/employees/new">
-            <Button className="gap-2 shadow-sm font-bold">
+            <Button className="flex px-4 sm:px-6 gap-2 shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg items-center">
               <Plus className="w-5 h-5" />
-              Add Employee
+              <span className="text-sm">Add Employee</span>
             </Button>
           </Link>
         </motion.div>

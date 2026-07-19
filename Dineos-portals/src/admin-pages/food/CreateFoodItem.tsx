@@ -313,7 +313,7 @@ export default function CreateFoodItem() {
  <div className="p-8 border-t border-border" ref={el => { errorRefs.current[''] = el; }}>
  <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
  <h2 className="text-lg font-black text-brand-navy">3. Customizations (Optional)</h2>
- <Button type="button" variant="outline" onClick={handleAddCustomization} className="gap-2 bg-white font-bold py-1.5 px-3 text-sm">
+ <Button className="gap-2 px-6 shadow-sm bg-[#FF6B00] text-white hover:bg-[#E66000] border-0" type="button" variant="outline" onClick={handleAddCustomization}>
  <Plus className="w-4 h-4" /> Add Option
  </Button>
  </div>
@@ -381,9 +381,9 @@ export default function CreateFoodItem() {
  )}
  </div>
 
-   <div className="p-8 border-t border-border bg-gray-50 flex items-center justify-end gap-3 rounded-b-xl">
+   <div className="p-8 border-t border-[#E8ECF4] flex items-center justify-end gap-3 bg-[#F8FAFC] rounded-b-2xl">
  <Link to="/admin/food">
- <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:text-brand-navy hover:bg-white border border-transparent hover:border-border transition-all">
+ <button type="button" className="px-6 py-2.5 rounded-xl font-bold text-[#1a1f36] bg-white border border-[#E8ECF4] hover:bg-[#F4F6FA] transition-all">
  Cancel
  </button>
  </Link>
