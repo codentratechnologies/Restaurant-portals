@@ -8,31 +8,29 @@ export default function StandaloneProfile() {
 
   return (
     <div className="max-w-[1100px] mx-auto">
-      <div className="bg-white rounded-2xl border border-border shadow-soft p-8">
+      <div className="bg-white rounded-2xl border border-border shadow-soft p-4 sm:p-8">
         {/* Page heading row — Edit button right edge */}
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex flex-row items-start justify-between gap-4 mb-6 sm:mb-8">
           <div>
             <h1 className="text-2xl font-bold text-brand-navy">My Profile</h1>
-            <p className="text-text-secondary mt-1">Manage your personal account details and preferences.</p>
+            <p className="text-text-secondary mt-1 text-xs sm:text-sm">Manage your personal account details and preferences.</p>
           </div>
-          <div className="flex items-center gap-2 shrink-0 ml-4">
+          <div className="shrink-0 mt-1 sm:mt-0">
             {!editing ? (
-              <Button
+              <button
                 onClick={() => setEditing(true)}
-                variant="outline"
-                size="sm"
-                className="gap-2"
+                className="flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 bg-white border border-brand-orange-500 rounded-xl text-sm font-bold text-brand-orange-500 hover:bg-brand-orange-50 transition-colors shadow-sm"
               >
-                <Edit3 className="w-3.5 h-3.5" />
-                Edit Profile
-              </Button>
+                <Edit3 className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
+                <span className="hidden sm:inline sm:ml-2">Edit Profile</span>
+              </button>
             ) : (
               <button
                 onClick={() => setEditing(false)}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-text-secondary hover:text-brand-navy border border-border rounded-xl transition-colors"
+                className="flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto sm:px-3 sm:py-2 text-sm font-bold text-text-secondary hover:text-brand-navy border border-border rounded-xl transition-colors shadow-sm"
               >
-                <X className="w-3.5 h-3.5" />
-                Discard
+                <X className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
+                <span className="hidden sm:inline sm:ml-1.5">Discard</span>
               </button>
             )}
           </div>

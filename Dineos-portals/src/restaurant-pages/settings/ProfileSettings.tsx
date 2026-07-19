@@ -189,11 +189,11 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05, duration: 0.35 }}
-        className="lg:w-80 xl:w-96 shrink-0 space-y-4 self-start sticky top-6"
+        className="w-full lg:w-80 xl:w-96 shrink-0 space-y-4 self-start lg:sticky lg:top-6"
       >
         {/* Identity card */}
         <div
-          className="rounded-2xl text-white p-8 flex flex-col items-center gap-6 shadow-xl relative overflow-hidden"
+          className="rounded-2xl text-white p-6 sm:p-8 flex flex-col items-center gap-6 shadow-xl relative overflow-hidden"
           style={{ background: 'linear-gradient(160deg, #1e2340 0%, #2a3060 60%, #1a1f35 100%)' }}
         >
           {/* Background decorations */}
@@ -205,13 +205,6 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
             <div className="w-28 h-28 rounded-full bg-gradient-to-br from-brand-orange-400 to-brand-orange-600 flex items-center justify-center text-white text-4xl font-black shadow-lg ring-4 ring-white/10">
               {initials}
             </div>
-            <button
-              type="button"
-              title="Change photo"
-              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-brand-orange-500 hover:bg-brand-orange-400 flex items-center justify-center shadow-md border-2 border-white/20 transition-colors"
-            >
-              <Camera className="w-3 h-3 text-white" />
-            </button>
           </div>
 
           {/* Name / email / role */}
@@ -302,8 +295,8 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
         className="flex-1 min-w-0 space-y-4"
       >
         {/* Tab bar — SEPARATE from actions */}
-        <div className="bg-white rounded-2xl border border-border/50 shadow-soft px-5 py-3 flex items-center gap-3">
-          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 flex-shrink-0">
+        <div className="bg-white rounded-2xl border border-border/50 shadow-soft px-3 sm:px-5 py-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 flex-shrink-0 overflow-x-auto hide-scrollbar">
             <button
               onClick={() => setTab('profile')}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
@@ -336,7 +329,7 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
               placeholder="Search…"
               value={empFilter}
               onChange={e => setEmpFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs font-medium bg-gray-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 w-36 transition-all"
+              className="px-3 py-1.5 text-xs font-medium bg-gray-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 w-full sm:w-48 transition-all"
             />
           )}
         </div>
@@ -349,7 +342,7 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
                 <div className="bg-white rounded-2xl border border-border/50 shadow-soft overflow-hidden">
 
                   {/* Section: Personal */}
-                  <div className="px-7 py-6 border-b border-border/40">
+                  <div className="px-4 sm:px-7 py-4 sm:py-6 border-b border-border/40">
                     <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-5">Personal Information</p>
                     <div className="space-y-4 max-w-lg">
 
@@ -396,7 +389,7 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
                   </div>
 
                   {/* Section: Contact */}
-                  <div className="px-7 py-6 border-b border-border/40">
+                  <div className="px-4 sm:px-7 py-4 sm:py-6 border-b border-border/40">
                     <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-5">Contact Information</p>
                     <div className="max-w-sm">
                       <PhoneInput
@@ -412,7 +405,7 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
 
                   {/* Section: Branch */}
                   {branch && (
-                    <div className="px-7 py-6 border-b border-border/40">
+                    <div className="px-4 sm:px-7 py-4 sm:py-6 border-b border-border/40">
                       <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-5">Branch Assignment</p>
                       <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-border/50 max-w-lg">
                         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-orange-400 to-brand-orange-600 flex items-center justify-center shadow-sm shrink-0">
@@ -448,7 +441,7 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="px-7 py-4 bg-brand-orange-50 border-t border-brand-orange-100 flex items-center gap-3">
+                        <div className="px-4 sm:px-7 py-4 bg-brand-orange-50 border-t border-brand-orange-100 flex flex-wrap sm:flex-nowrap items-center gap-3">
                           <Button type="submit" disabled={saving} className="gap-2">
                             {saving
                               ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Saving…</>
@@ -472,7 +465,7 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
             <motion.div key="employees" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
               <div className="bg-white rounded-2xl border border-border/50 shadow-soft overflow-hidden">
                 {/* Header */}
-                <div className="px-7 py-5 border-b border-border/40 flex items-center justify-between">
+                <div className="px-4 sm:px-7 py-4 sm:py-5 border-b border-border/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Team Members</p>
                     <p className="text-base font-black text-brand-navy mt-0.5">{branch?.name || 'Branch'}</p>
@@ -503,7 +496,7 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: i * 0.03 }}
-                          className="flex items-center gap-4 px-7 py-4 hover:bg-gray-50/50 transition-colors"
+                          className="flex items-center gap-3 sm:gap-4 px-4 sm:px-7 py-4 hover:bg-gray-50/50 transition-colors"
                         >
                           <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-black shrink-0 ${
                             isActive ? 'bg-gradient-to-br from-brand-orange-400 to-brand-orange-600' : 'bg-gray-300'

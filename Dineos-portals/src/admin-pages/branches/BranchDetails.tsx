@@ -233,16 +233,6 @@ export default function BranchDetails() {
                   {branchInfo.city}, {branchInfo.state} - {branchInfo.pincode}<br />
                   {branchInfo.country || 'India'}
                 </div>
-                <a 
-                  href={branchInfo.googleMapUrl || `https://maps.google.com/?q=${encodeURIComponent(`${branchInfo.address}, ${branchInfo.city}, ${branchInfo.state} ${branchInfo.pincode}`)}`} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="block w-full mt-auto"
-                >
-                  <Button variant="secondary" className="w-full px-4 py-3.5 sm:py-2.5 bg-[#1a1f36] border-0 hover:bg-[#1a1f36]/90 rounded-xl flex items-center justify-center gap-2 text-[15px] sm:text-sm font-black text-white shadow-premium">
-                    <MapPin className="w-4 h-4" /> View on Map
-                  </Button>
-                </a>
               </Card>
 
               {/* Branch Timings */}

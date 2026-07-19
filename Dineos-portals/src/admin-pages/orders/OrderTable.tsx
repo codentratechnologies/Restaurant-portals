@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Download, Calendar, Eye, Search } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Download, Calendar, Eye, Search, Filter } from 'lucide-react';
 import Badge from '../../components/common/Badge';
 import Table, { Column } from '../../components/common/Table';
 import Select from '../../components/common/Select';
@@ -14,6 +15,7 @@ export default function OrderTable() {
 
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [paymentFilter, setPaymentFilter] = useState('All Payment Methods');
   const [branchFilter, setBranchFilter] = useState('All Branches');
@@ -194,86 +196,110 @@ export default function OrderTable() {
     <div className="space-y-6 max-w-[1600px] mx-auto pb-10">
       
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-[13px] font-medium text-text-secondary mb-1">
-              <span>Dashboard</span>
-              <span>›</span>
-              <span className="text-[#FF6B00]">Orders</span>
-            </div>
-            <h1 className="text-3xl font-black text-brand-navy tracking-tight">Orders</h1>
+      <div className="flex flex-row items-center justify-between gap-4">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+          <div className="flex items-center gap-2 text-[13px] font-medium text-[#8896AB] mb-1">
+            <span>Dashboard</span>
+            <span>›</span>
+            <span className="text-[#FF6B00]">Orders</span>
           </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-[#1a1f36] tracking-tight">Orders</h1>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
           <button 
             onClick={handleExportCSV} 
             disabled={isExporting}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-[#FF6B00] hover:bg-[#E66000] text-white rounded-lg font-bold text-sm shadow-sm transition-colors disabled:opacity-50"
+            className="sm:hidden w-10 h-10 p-0 flex items-center justify-center shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg disabled:opacity-50"
+          >
+            <Download className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={handleExportCSV} 
+            disabled={isExporting}
+            className="hidden sm:flex px-6 py-2.5 gap-2 items-center justify-center shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg disabled:opacity-50 text-sm"
           >
             <Download className="w-4 h-4" />
             {isExporting ? 'Exporting...' : 'Export Orders'}
           </button>
+        </motion.div>
       </div>
 
       {/* Main Card */}
-      <div className="bg-white border border-[#E8ECF4] rounded-2xl shadow-sm overflow-hidden flex flex-col">
-        
-        {/* Filters Row */}
-        <div className="p-4 border-b border-[#E8ECF4] flex flex-col md:flex-row items-stretch md:items-center gap-3 bg-white">
-          <button className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 border border-[#E8ECF4] rounded-lg text-[13px] font-medium text-brand-navy hover:bg-gray-50 transition-colors bg-white shrink-0">
-            <Calendar className="w-4 h-4 text-text-secondary" />
-            {dateParam ? new Date(dateParam).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'All Dates'}
-            <span className="text-text-secondary ml-1">›</span>
-          </button>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
+        <div className="bg-white border border-[#E8ECF4] rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[600px]">
+          
+          {/* Filters Row */}
+          <div className="bg-white border-b border-[#E8ECF4] p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            
+            {/* Top Row: Search & Mobile Filter Toggle */}
+            <div className="flex items-center justify-between gap-2 sm:gap-3 w-full md:w-auto flex-1">
+              <div className="relative flex-1 md:w-[400px] group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8896AB] group-focus-within:text-[#FF6B00] transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Search by ID, Customer or Phone..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] border border-[#E8ECF4] rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] transition-all hover:bg-white focus:bg-white placeholder:text-[#8896AB]"
+                />
+              </div>
 
-          <div className="relative flex-1 w-full min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
-            <input
-              type="text"
-              placeholder="Search by ID, Customer or Phone..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-[#E8ECF4] rounded-lg text-[13px] font-medium focus:outline-none focus:border-brand-orange-500 transition-colors placeholder:text-text-secondary"
-            />
-          </div>
+              {/* Mobile Filter Button */}
+              <button
+                onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+                className={`md:hidden p-2 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileFilterOpen ? 'bg-orange-50 border-orange-200 text-[#FF6B00]' : 'bg-[#F8FAFC] border-[#E8ECF4] text-[#8896AB] hover:text-[#FF6B00] hover:border-[#FF6B00]'}`}
+              >
+                <Filter className="w-5 h-5" />
+              </button>
+            </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Select 
-              value={branchFilter} 
-              onChange={e => setBranchFilter(e.target.value)} 
-              options={[
-                { value: 'All Branches', label: 'All Branches' },
-                { value: 'Koramangala', label: 'Koramangala' },
-                { value: 'Indiranagar', label: 'Indiranagar' },
-                { value: 'HSR Layout', label: 'HSR Layout' },
-                { value: 'Whitefield', label: 'Whitefield' },
-                { value: 'Marathahalli', label: 'Marathahalli' }
-              ]}
-              className="w-full sm:w-[160px] shrink-0 !py-2 !rounded-lg !text-[13px] !border-[#E8ECF4]"
-            />
-            <Select 
-              value={statusFilter} 
-              onChange={e => setStatusFilter(e.target.value)} 
-              options={[
-                { value: 'All Status', label: 'All Status' },
-                { value: 'Confirmed', label: 'Confirmed' },
-                { value: 'Preparing', label: 'Preparing' },
-                { value: 'Out for Delivery', label: 'Out for Delivery' },
-                { value: 'Delivered', label: 'Delivered' },
-                { value: 'Cancelled', label: 'Cancelled' }
-              ]}
-              className="w-full sm:w-[150px] shrink-0 !py-2 !rounded-lg !text-[13px] !border-[#E8ECF4]"
-            />
-            <Select 
-              value={paymentFilter} 
-              onChange={e => setPaymentFilter(e.target.value)} 
-              options={[
-                { value: 'All Payment Methods', label: 'All Payment Methods' },
-                { value: 'Online', label: 'Online' },
-                { value: 'COD', label: 'COD' }
-              ]}
-              className="w-full sm:w-[190px] shrink-0 !py-2 !rounded-lg !text-[13px] !border-[#E8ECF4]"
-            />
+            {/* Filters Dropdowns */}
+            <div className={`md:flex ${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full md:w-auto mt-2 md:mt-0`}>
+              <button className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-[#F8FAFC] border border-[#E8ECF4] rounded-xl text-[13px] font-bold text-[#1a1f36] hover:bg-white hover:border-[#FF6B00] transition-all h-[38px] shrink-0">
+                <Calendar className="w-4 h-4 text-[#8896AB]" />
+                {dateParam ? new Date(dateParam).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'All Dates'}
+                <span className="text-[#8896AB] ml-1">›</span>
+              </button>
+
+              <Select 
+                value={branchFilter} 
+                onChange={e => setBranchFilter(e.target.value)} 
+                options={[
+                  { value: 'All Branches', label: 'All Branches' },
+                  { value: 'Koramangala', label: 'Koramangala' },
+                  { value: 'Indiranagar', label: 'Indiranagar' },
+                  { value: 'HSR Layout', label: 'HSR Layout' },
+                  { value: 'Whitefield', label: 'Whitefield' },
+                  { value: 'Marathahalli', label: 'Marathahalli' }
+                ]}
+                className="bg-[#F8FAFC] border-[#E8ECF4] h-[38px] text-sm font-bold w-full md:w-[150px] shrink-0 hover:bg-white hover:border-[#FF6B00] transition-all"
+              />
+              <Select 
+                value={statusFilter} 
+                onChange={e => setStatusFilter(e.target.value)} 
+                options={[
+                  { value: 'All Status', label: 'All Status' },
+                  { value: 'Confirmed', label: 'Confirmed' },
+                  { value: 'Preparing', label: 'Preparing' },
+                  { value: 'Out for Delivery', label: 'Out for Delivery' },
+                  { value: 'Delivered', label: 'Delivered' },
+                  { value: 'Cancelled', label: 'Cancelled' }
+                ]}
+                className="bg-[#F8FAFC] border-[#E8ECF4] h-[38px] text-sm font-bold w-full md:w-[140px] shrink-0 hover:bg-white hover:border-[#FF6B00] transition-all"
+              />
+              <Select 
+                value={paymentFilter} 
+                onChange={e => setPaymentFilter(e.target.value)} 
+                options={[
+                  { value: 'All Payment Methods', label: 'All Payment Methods' },
+                  { value: 'Online', label: 'Online' },
+                  { value: 'COD', label: 'COD' }
+                ]}
+                className="bg-[#F8FAFC] border-[#E8ECF4] h-[38px] text-sm font-bold w-full md:w-[180px] shrink-0 hover:bg-white hover:border-[#FF6B00] transition-all"
+              />
+            </div>
           </div>
-        </div>
 
         {/* Table */}
         <div className="flex-1 overflow-x-auto min-h-[500px]">
@@ -292,7 +318,8 @@ export default function OrderTable() {
           />
         </div>
 
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
 }

@@ -20,9 +20,11 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
   const { user, logout } = useAuth();
 
   const [name, setName] = useState('');
+  const [restaurantName, setRestaurantName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
   const [originalName, setOriginalName] = useState('');
+  const [originalRestaurantName, setOriginalRestaurantName] = useState('');
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -38,12 +40,15 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
         const snap = await get(ref(rtdb, `admin_users/${user.uid}`));
         if (snap.exists()) {
           const d = snap.val();
-          const n = d.name || '';
+          const n = d.authorized_person_name || d.name || '';
+          const rn = d.restaurant_name || '';
           const e = d.email || user.email || '';
           setName(n);
+          setRestaurantName(rn);
           setEmail(e);
           setRole(d.role || 'Admin');
           setOriginalName(n);
+          setOriginalRestaurantName(rn);
         }
       } catch {
         toast.error('Failed to load profile');
@@ -59,8 +64,9 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
     if (!user) return;
     setSaving(true);
     try {
-      await update(ref(rtdb, `admin_users/${user.uid}`), { name });
+      await update(ref(rtdb, `admin_users/${user.uid}`), { name, authorized_person_name: name, restaurant_name: restaurantName });
       setOriginalName(name);
+      setOriginalRestaurantName(restaurantName);
       toast.success('Profile updated');
       setEditing(false);
     } catch {
@@ -74,6 +80,7 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
 
   const handleCancel = () => {
     setName(originalName);
+    setRestaurantName(originalRestaurantName);
     setEditing(false);
   };
 
@@ -107,11 +114,11 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05, duration: 0.35 }}
-        className="lg:w-80 xl:w-96 shrink-0 space-y-4 self-start sticky top-6"
+        className="w-full lg:w-80 xl:w-96 shrink-0 space-y-4 self-start lg:sticky lg:top-6"
       >
         {/* Identity card */}
         <div
-          className="rounded-2xl text-white p-8 flex flex-col items-center gap-6 shadow-xl relative overflow-hidden"
+          className="rounded-2xl text-white p-6 sm:p-8 flex flex-col items-center gap-6 shadow-xl relative overflow-hidden"
           style={{ background: 'linear-gradient(160deg, #1e2340 0%, #2a3060 60%, #1a1f35 100%)' }}
         >
           <div className="absolute top-0 right-0 w-36 h-36 rounded-full bg-white/5 -translate-y-14 translate-x-14 pointer-events-none" />
@@ -122,19 +129,13 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
             <div className="w-28 h-28 rounded-full bg-gradient-to-br from-brand-orange-400 to-brand-orange-600 flex items-center justify-center text-white text-4xl font-black shadow-lg ring-4 ring-white/10">
               {initials}
             </div>
-            <button
-              type="button"
-              title="Change photo"
-              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-brand-orange-500 hover:bg-brand-orange-400 flex items-center justify-center shadow-md border-2 border-white/20 transition-colors"
-            >
-              <Camera className="w-3 h-3 text-white" />
-            </button>
           </div>
 
           {/* Name / email / role */}
           <div className="text-center z-10 w-full">
             <p className="text-lg font-black leading-tight truncate">{originalName || 'Admin'}</p>
-            <p className="text-sm text-white/50 font-medium mt-1 truncate max-w-full px-2">{email}</p>
+            <p className="text-sm text-white/70 font-medium mt-1 truncate max-w-full px-2">{originalRestaurantName || 'Restaurant'}</p>
+            <p className="text-xs text-white/50 font-medium mt-1 truncate max-w-full px-2">{email}</p>
             <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-full bg-brand-orange-500/20 border border-brand-orange-400/30 text-brand-orange-300 text-xs font-bold">
               <Shield className="w-2.5 h-2.5" />
               {role}
@@ -185,7 +186,7 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
               <form onSubmit={handleSaveAccount}>
                 <div className="bg-white rounded-2xl border border-border/50 shadow-soft overflow-hidden">
 
-                  <div className="px-7 py-6 border-b border-border/40">
+                  <div className="px-4 sm:px-7 py-4 sm:py-6 border-b border-border/40">
                     <div className="flex items-center justify-between mb-5">
                       <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Personal Information</p>
                       {!editing && (
@@ -203,9 +204,9 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
                     </div>
                     <div className="space-y-4 max-w-lg">
 
-                      {/* Full Name */}
+                      {/* Authorized Person Name */}
                       <div>
-                        <label className="block text-xs font-bold text-brand-navy mb-1.5">Full Name</label>
+                        <label className="block text-xs font-bold text-brand-navy mb-1.5">Authorized Person Name</label>
                         {editing ? (
                           <input
                             type="text"
@@ -218,6 +219,24 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
                         ) : (
                           <p className="w-full px-4 py-2.5 bg-gray-50 rounded-xl text-sm font-semibold text-brand-navy">
                             {name || '—'}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Restaurant Name */}
+                      <div>
+                        <label className="block text-xs font-bold text-brand-navy mb-1.5">Restaurant Name</label>
+                        {editing ? (
+                          <input
+                            type="text"
+                            value={restaurantName}
+                            onChange={e => setRestaurantName(e.target.value)}
+                            disabled={saving}
+                            className="w-full px-4 py-2.5 bg-white border-2 border-brand-orange-400 rounded-xl text-sm font-medium focus:outline-none focus:border-brand-orange-500 focus:ring-2 focus:ring-brand-orange-500/15 transition-all"
+                          />
+                        ) : (
+                          <p className="w-full px-4 py-2.5 bg-gray-50 rounded-xl text-sm font-semibold text-brand-navy">
+                            {restaurantName || '—'}
                           </p>
                         )}
                       </div>
@@ -253,7 +272,7 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="px-7 py-4 bg-brand-orange-50 border-t border-brand-orange-100 flex items-center gap-3">
+                        <div className="px-4 sm:px-7 py-4 bg-brand-orange-50 border-t border-brand-orange-100 flex flex-wrap sm:flex-nowrap items-center gap-3">
                           <Button type="submit" disabled={saving} className="gap-2">
                             {saving
                               ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Saving…</>
