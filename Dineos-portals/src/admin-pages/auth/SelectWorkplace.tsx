@@ -20,7 +20,14 @@ export default function SelectWorkplace() {
       if (userData.assignments.length === 1) {
         setActiveAssignment(userData.assignments[0]);
         const rawRole = (userData.assignments[0].role || '').toLowerCase();
-        if (rawRole === 'super admin' || rawRole === 'admin' || rawRole === 'super_admin' || rawRole === 'root_admin') {
+        const isRoot = rawRole === 'super admin' || rawRole === 'admin' || rawRole === 'super_admin' || rawRole === 'root_admin';
+        
+        if (isRoot && userData.isOnboardingComplete === false) {
+          navigate('/onboarding', { replace: true });
+          return;
+        }
+
+        if (isRoot) {
           navigate('/admin/dashboard', { replace: true });
         } else {
           navigate('/restaurant/dashboard', { replace: true });
@@ -57,7 +64,14 @@ export default function SelectWorkplace() {
   const handleSelect = (assignment: any) => {
     setActiveAssignment(assignment);
     const rawRole = (assignment.role || '').toLowerCase();
-    if (rawRole === 'super admin' || rawRole === 'admin' || rawRole === 'super_admin' || rawRole === 'root_admin') {
+    const isRoot = rawRole === 'super admin' || rawRole === 'admin' || rawRole === 'super_admin' || rawRole === 'root_admin';
+    
+    if (isRoot && userData?.isOnboardingComplete === false) {
+      navigate('/onboarding', { replace: true });
+      return;
+    }
+
+    if (isRoot) {
       navigate('/admin/dashboard', { replace: true });
     } else {
       navigate('/restaurant/dashboard', { replace: true });

@@ -8,7 +8,7 @@ interface RoleRouteGuardProps {
 }
 
 export default function RoleRouteGuard({ allowedRoles }: RoleRouteGuardProps) {
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const { role, loadingRole } = useRoleAccess();
 
   if (loading || loadingRole) {
@@ -29,7 +29,13 @@ export default function RoleRouteGuard({ allowedRoles }: RoleRouteGuardProps) {
   }
 
   // @ts-ignore - TS might complain about role being null but we checked above
-  if (!allowedRoles.includes(role as Role)) {
+  const currentRole = role as Role;
+  
+  if (userData?.isOnboardingComplete === false && (currentRole === 'Super Admin' || currentRole === 'Admin')) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  if (!allowedRoles.includes(currentRole)) {
     // If not allowed, redirect to a safe place based on their role
     if (role === 'Super Admin' || role === 'Admin') {
       return <Navigate to="/admin/dashboard" replace />;

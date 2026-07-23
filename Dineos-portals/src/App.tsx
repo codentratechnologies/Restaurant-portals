@@ -13,6 +13,7 @@ import Login from './admin-pages/auth/Login';
 import SignUp from './admin-pages/auth/SignUp';
 import ForgotPassword from './admin-pages/auth/ForgotPassword';
 import SelectWorkplace from './admin-pages/auth/SelectWorkplace';
+import Onboarding from './admin-pages/auth/Onboarding';
 
 // -- Admin Pages --
 import AdminDashboard from './admin-pages/dashboard/Dashboard';
@@ -63,7 +64,7 @@ import RestaurantProfileSettings from './restaurant-pages/settings/ProfileSettin
 import RestaurantStandaloneProfile from './restaurant-pages/settings/StandaloneProfile';
 
 function AppRoutes() {
-  const { user, loading } = useAuth();
+  const { user, loading, userData } = useAuth();
 
   if (loading) {
     return (
@@ -73,21 +74,29 @@ function AppRoutes() {
     );
   }
 
+  const targetRoute = () => {
+    if (!user) return '/login';
+    if (userData?.isOnboardingComplete) return '/admin/dashboard';
+    if (userData?.isUnderReview || localStorage.getItem('isNewSignup') === 'true') return '/onboarding';
+    return '/select-workplace';
+  };
+
   return (
     <Routes>
-      <Route path="/" element={<Navigate to={user ? '/select-workplace' : '/login'} replace />} />
+      <Route path="/" element={<Navigate to={targetRoute()} replace />} />
 
       {/* Auth routes */}
       <Route element={<AuthLayout />}>
-        <Route path="/login" element={user ? <Navigate to="/select-workplace" replace /> : <Login />} />
-        <Route path="/signup" element={user ? <Navigate to="/select-workplace" replace /> : <SignUp />} />
+        <Route path="/login" element={user ? <Navigate to={targetRoute()} replace /> : <Login />} />
+        <Route path="/signup" element={user ? <Navigate to={targetRoute()} replace /> : <SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
       </Route>
 
-      <Route path="/select-workplace" element={<SelectWorkplace />} />
+      <Route path="/select-workplace" element={user && userData?.isOnboardingComplete ? <Navigate to="/admin/dashboard" replace /> : <SelectWorkplace />} />
+      <Route path="/onboarding" element={user && userData?.isOnboardingComplete ? <Navigate to="/admin/dashboard" replace /> : <Onboarding />} />
 
       {/* Admin Routes */}
-      <Route element={<RoleRouteGuard allowedRoles={['Super Admin', 'Admin']} />}>
+      <Route element={<RoleRouteGuard allowedRoles={['Super Admin', 'Root Admin', 'Admin']} />}>
         <Route element={<AdminLayout />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/branches" element={<AdminBranchList />} />

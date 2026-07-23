@@ -9,7 +9,7 @@ interface AdminTopNavProps {
 }
 
 export default function AdminTopNav({ onMenuClick }: AdminTopNavProps) {
-  const { user } = useAuth();
+  const { user, activeAssignment } = useAuth();
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   return (
@@ -63,9 +63,13 @@ export default function AdminTopNav({ onMenuClick }: AdminTopNavProps) {
 
             <div className="h-6 w-px bg-[#E8ECF4] mx-1 sm:mx-2"></div>
 
-            {/* TopNav Profile Initial */}
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#FFF3E8] text-[#FF6B00] flex items-center justify-center font-black text-sm shrink-0 border border-[#FF6B00]/20">
-              {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'A'}
+            {/* TopNav Profile Initial or Logo */}
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#FFF3E8] text-[#FF6B00] flex items-center justify-center font-black text-sm shrink-0 border border-[#FF6B00]/20 overflow-hidden">
+              {activeAssignment?.logoUrl ? (
+                <img src={activeAssignment.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+              ) : (
+                (activeAssignment?.restaurantName || user?.displayName || 'A').charAt(0).toUpperCase()
+              )}
             </div>
 
           </div>

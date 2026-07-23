@@ -23,7 +23,7 @@ interface ProfileSettingsProps {
 export default function ProfileSettings({ editing: editingProp, onSetEditing }: ProfileSettingsProps = {}) {
   const { logout, user, userData, activeAssignment } = useAuth();
   const [tab, setTab] = useState<Tab>('profile');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [_editing, _setEditing] = useState(false);
   const editing = editingProp !== undefined ? editingProp : _editing;
@@ -31,10 +31,18 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
   const [branch, setBranch] = useState<{ name: string; city?: string; address?: string; code?: string } | null>(null);
   const [employees, setEmployees] = useState<any[]>([]);
   const [empFilter, setEmpFilter] = useState('');
+  const initialFullName = userData?.name || (userData as any)?.firstName ? `${(userData as any).firstName} ${(userData as any).lastName || ''}`.trim() : '';
   const [profile, setProfile] = useState({
-    fullName: '', email: '', phoneExt: '+91', phone: '', role: '', adminId: '', id: '', branchId: ''
+    fullName: initialFullName, 
+    email: userData?.email || user?.email || '', 
+    phoneExt: '+91', 
+    phone: '', 
+    role: activeAssignment?.role || 'Employee', 
+    adminId: activeAssignment?.adminId || '', 
+    id: user?.uid || '', 
+    branchId: activeAssignment?.branchId || ''
   });
-  const [original, setOriginal] = useState({ fullName: '', phone: '', phoneExt: '+91' });
+  const [original, setOriginal] = useState({ fullName: initialFullName, phone: '', phoneExt: '+91' });
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
@@ -202,8 +210,12 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
 
           {/* Avatar */}
           <div className="relative z-10">
-            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-brand-orange-400 to-brand-orange-600 flex items-center justify-center text-white text-4xl font-black shadow-lg ring-4 ring-white/10">
-              {initials}
+            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-brand-orange-400 to-brand-orange-600 flex items-center justify-center text-white text-4xl font-black shadow-lg ring-4 ring-white/10 overflow-hidden">
+              {activeAssignment?.logoUrl ? (
+                <img src={activeAssignment.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+              ) : (
+                initials
+              )}
             </div>
           </div>
 

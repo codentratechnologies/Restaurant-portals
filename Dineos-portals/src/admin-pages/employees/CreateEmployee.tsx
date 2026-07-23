@@ -9,8 +9,6 @@ import Select from '../../components/common/Select';
 import PhoneInput from '../../components/common/PhoneInput';
 import { ref, push, get, set } from 'firebase/database';
 import { rtdb, firebaseConfig } from '../../lib/firebase';
-import { initializeApp, deleteApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '../../hooks/useAuth';
 import { useBranches } from '../../hooks/useBranches';
 import { hashPassword } from '../../lib/utils';
@@ -140,69 +138,58 @@ export default function CreateEmployee() {
  setIsSubmitting(true);
  
   try {
- const branchCode = formData.branch; // Because we change the select to use b.code
+  const branchCode = formData.branch;
 
- const employeeRootRef = ref(rtdb, `employee/${user.uid}`);
- 
- // Determine the next sequential Employee ID (e.g., EMP001, EMP002, etc.)
- const snapshot = await get(employeeRootRef);
- let nextIdNumber = 1;
- if (snapshot.exists()) {
- const branchData = snapshot.val();
- let maxSeq = 0;
- // Iterate over branches
- Object.values(branchData).forEach((employeesObj: any) => {
- // Iterate over employees in the branch
- Object.values(employeesObj).forEach((emp: any) => {
- if (emp && emp.empId && emp.empId.startsWith('EMP')) {
- const num = parseInt(emp.empId.substring(3), 10);
- if (!isNaN(num) && num > maxSeq) {
- maxSeq = num;
- }
- }
- });
- });
- nextIdNumber = maxSeq + 1;
- }
- const empId = `EMP${String(nextIdNumber).padStart(3, '0')}`;
+  const employeeRootRef = ref(rtdb, `employee/${user.uid}`);
+  
+  // Determine the next sequential Employee ID (e.g., EMP001, EMP002, etc.)
+  const snapshot = await get(employeeRootRef);
+  let nextIdNumber = 1;
+  if (snapshot.exists()) {
+  const branchData = snapshot.val();
+  let maxSeq = 0;
+  // Iterate over branches
+  Object.values(branchData).forEach((employeesObj: any) => {
+  // Iterate over employees in the branch
+  Object.values(employeesObj).forEach((emp: any) => {
+  if (emp && emp.empId && emp.empId.startsWith('EMP')) {
+  const num = parseInt(emp.empId.substring(3), 10);
+  if (!isNaN(num) && num > maxSeq) {
+  maxSeq = num;
+  }
+  }
+  });
+  });
+  nextIdNumber = maxSeq + 1;
+  }
+  const empId = `EMP${String(nextIdNumber).padStart(3, '0')}`;
 
- const hashedPassword = await hashPassword(formData.password);
- 
- const today = new Date();
- const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
- const isFutureDoj = formData.doj > todayStr;
+  const hashedPassword = await hashPassword(formData.password);
+  
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const isFutureDoj = formData.doj > todayStr;
 
- const newEmployee = {
- empId: empId,
- firstName: formData.firstName,
- lastName: formData.lastName,
- email: formData.email,
- phone: `${formData.phoneExt} ${formData.phone}`,
- role: formData.role,
- branch: branchCode, // Map directly to branch code
- doj: formData.doj,
- password: hashedPassword, // Kept for legacy compatibility
- status: isFutureDoj ? 'Inactive' : 'Active',
- created_at: new Date().toISOString(),
- updated_at: new Date().toISOString(),
- };
+  const newEmployee = {
+  empId: empId,
+  firstName: formData.firstName,
+  lastName: formData.lastName,
+  email: formData.email,
+  phone: `${formData.phoneExt} ${formData.phone}`,
+  role: formData.role,
+  branch: branchCode,
+  doj: formData.doj,
+  password: hashedPassword,
+  status: isFutureDoj ? 'Inactive' : 'Active',
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  };
 
- // SECONDARY APP TRICK to create in Firebase Auth without logging out Admin
- const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
- const secondaryAuth = getAuth(secondaryApp);
- 
- try {
-   const userCredential = await createUserWithEmailAndPassword(secondaryAuth, formData.email, formData.password);
-   const newUid = userCredential.user.uid;
-
-   // Save directly with the UID as key for easier sync, instead of random push key
-   const specificEmployeeRef = ref(rtdb, `employee/${user.uid}/${branchCode}/${newUid}`);
-   await set(specificEmployeeRef, newEmployee);
- } finally {
-   await deleteApp(secondaryApp);
- }
- 
- toast.success('Employee created successfully!');
+  const branchEmployeeRef = ref(rtdb, `employee/${user.uid}/${branchCode}`);
+  const newEmployeeRef = push(branchEmployeeRef);
+  await set(newEmployeeRef, newEmployee);
+  
+  toast.success('Employee created successfully!');
  navigate('/admin/employees');
  } catch (error: any) {
  console.error('Error creating employee:', error);

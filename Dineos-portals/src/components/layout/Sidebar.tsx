@@ -19,7 +19,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onMobileClose }: SidebarProps = {}) {
-  const { user } = useAuth();
+  const { user, activeAssignment } = useAuth();
   const { role } = useRoleAccess();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -99,15 +99,21 @@ export default function Sidebar({ onMobileClose }: SidebarProps = {}) {
       {/* Profile Section at Bottom */}
       <div className={cn("border-t border-[#E8ECF4] shrink-0 transition-all", isCollapsed ? "p-3" : "p-4")}>
         <Link to="/admin/profile" onClick={onMobileClose} className={cn("flex items-center rounded-xl hover:bg-[#F4F6FA] transition-colors", isCollapsed ? "justify-center p-1.5" : "gap-3 p-2")}>
-          <div className={cn("rounded-full bg-[#FFF3E8] text-[#FF6B00] border border-[#FF6B00]/20 flex items-center justify-center font-black shrink-0", isCollapsed ? "w-10 h-10 text-lg" : "w-10 h-10 text-lg")}>
-            {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'A'}
+          <div className={cn("rounded-full bg-[#FFF3E8] text-[#FF6B00] border border-[#FF6B00]/20 flex items-center justify-center font-black shrink-0 overflow-hidden", isCollapsed ? "w-10 h-10 text-lg" : "w-10 h-10 text-lg")}>
+            {activeAssignment?.logoUrl ? (
+              <img src={activeAssignment.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+            ) : (
+              (activeAssignment?.restaurantName || user?.displayName || 'A').charAt(0).toUpperCase()
+            )}
           </div>
           {!isCollapsed && (
-            <div className="flex flex-col">
+            <div className="flex flex-col overflow-hidden">
               <span className="text-[13px] font-bold text-[#1a1f36] truncate leading-tight">
+                {activeAssignment?.restaurantName || 'Restaurant Name'}
+              </span>
+              <span className="text-[11px] font-semibold text-[#8896AB] truncate">
                 {role ? role.replace(/_/g, ' ') : 'Admin'}
               </span>
-              <span className="text-[11px] font-semibold text-[#8896AB] truncate">{role || 'Super Admin'}</span>
             </div>
           )}
         </Link>

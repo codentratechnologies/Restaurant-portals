@@ -17,16 +17,21 @@ interface ProfileSettingsProps {
 }
 
 export default function ProfileSettings({ editing: editingProp, onSetEditing }: ProfileSettingsProps = {}) {
-  const { user, logout } = useAuth();
+  const { user, logout, activeAssignment, userData } = useAuth();
 
-  const [name, setName] = useState('');
-  const [restaurantName, setRestaurantName] = useState('');
-  const [email, setEmail] = useState('');
-  const [role, setRole] = useState('');
-  const [originalName, setOriginalName] = useState('');
-  const [originalRestaurantName, setOriginalRestaurantName] = useState('');
+  const [name, setName] = useState(userData?.name || '');
+  const [restaurantName, setRestaurantName] = useState(activeAssignment?.restaurantName || '');
+  const [email, setEmail] = useState(userData?.email || user?.email || '');
+  
+  
+  const formatRole = (r: string) => r ? r.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Admin';
+  const initialRole = formatRole(activeAssignment?.role || 'Admin');
+  const [role, setRole] = useState(initialRole);
+  
+  const [originalName, setOriginalName] = useState(userData?.name || '');
+  const [originalRestaurantName, setOriginalRestaurantName] = useState(activeAssignment?.restaurantName || '');
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [_editing, _setEditing] = useState(false);
   const editing = editingProp !== undefined ? editingProp : _editing;
@@ -46,7 +51,8 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
           setName(n);
           setRestaurantName(rn);
           setEmail(e);
-          setRole(d.role || 'Admin');
+          const dbRole = d.role || 'Admin';
+          setRole(formatRole(dbRole));
           setOriginalName(n);
           setOriginalRestaurantName(rn);
         }
@@ -126,8 +132,12 @@ export default function ProfileSettings({ editing: editingProp, onSetEditing }: 
 
           {/* Avatar */}
           <div className="relative z-10">
-            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-brand-orange-400 to-brand-orange-600 flex items-center justify-center text-white text-4xl font-black shadow-lg ring-4 ring-white/10">
-              {initials}
+            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-brand-orange-400 to-brand-orange-600 flex items-center justify-center text-white text-4xl font-black shadow-lg ring-4 ring-white/10 overflow-hidden">
+              {activeAssignment?.logoUrl ? (
+                <img src={activeAssignment.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+              ) : (
+                initials
+              )}
             </div>
           </div>
 
