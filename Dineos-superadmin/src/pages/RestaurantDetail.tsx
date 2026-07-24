@@ -116,7 +116,7 @@ export default function RestaurantDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-brand-purple-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-brand-orange-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -150,7 +150,7 @@ export default function RestaurantDetail() {
 
       {/* Header Card */}
       <div className="bg-white rounded-2xl shadow-soft border border-border p-6 mb-6 flex flex-col sm:flex-row gap-5 items-start sm:items-center">
-        <div className="w-16 h-16 rounded-2xl bg-brand-purple-50 border border-brand-purple-100 flex items-center justify-center text-2xl font-black text-brand-purple-600 shrink-0">
+        <div className="w-16 h-16 rounded-2xl bg-brand-orange-50 border border-brand-orange-100 flex items-center justify-center text-2xl font-black text-brand-orange-600 shrink-0">
           {(bd?.restaurantName || data.restaurant_name || '?')[0].toUpperCase()}
         </div>
         <div className="flex-1">
@@ -168,16 +168,16 @@ export default function RestaurantDetail() {
       {/* Info Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
         {/* Business Info */}
-        <div className="bg-white rounded-2xl shadow-soft border border-border p-6">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-4"><Store className="w-4 h-4 text-brand-purple-500" /> Business Info</h3>
+        <div className="bg-white rounded-2xl shadow-soft hover:shadow-premium hover:-translate-y-1 transition-all duration-300 border border-border p-6">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-4"><Store className="w-4 h-4 text-brand-orange-500" /> Business Info</h3>
           <dl className="space-y-2 text-sm">
             <div className="flex gap-2"><dt className="text-gray-400 w-28 shrink-0">GST/VAT No.</dt><dd className="text-gray-700 font-medium">{bd?.gstVatNumber || '—'}</dd></div>
             <div className="flex gap-2"><dt className="text-gray-400 w-28 shrink-0">Est. Date</dt><dd className="text-gray-700 font-medium">{bd?.dateOfEstablishment || '—'}</dd></div>
           </dl>
         </div>
         {/* Contact */}
-        <div className="bg-white rounded-2xl shadow-soft border border-border p-6">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-4"><Mail className="w-4 h-4 text-brand-purple-500" /> Contact</h3>
+        <div className="bg-white rounded-2xl shadow-soft hover:shadow-premium hover:-translate-y-1 transition-all duration-300 border border-border p-6">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-4"><Mail className="w-4 h-4 text-brand-orange-500" /> Contact</h3>
           <dl className="space-y-2 text-sm">
             <div className="flex items-center gap-2"><Mail className="w-3.5 h-3.5 text-gray-400" /><span className="text-gray-700">{ci?.primaryEmail || '—'}</span></div>
             <div className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 text-gray-400" /><span className="text-gray-700">{ci?.primaryPhone || '—'}</span></div>
@@ -185,8 +185,8 @@ export default function RestaurantDetail() {
           </dl>
         </div>
         {/* Operations */}
-        <div className="bg-white rounded-2xl shadow-soft border border-border p-6">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-4"><Calendar className="w-4 h-4 text-brand-purple-500" /> Operations</h3>
+        <div className="bg-white rounded-2xl shadow-soft hover:shadow-premium hover:-translate-y-1 transition-all duration-300 border border-border p-6">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-4"><Calendar className="w-4 h-4 text-brand-orange-500" /> Operations</h3>
           <dl className="space-y-2 text-sm">
             <div className="flex gap-2"><dt className="text-gray-400 w-24 shrink-0">Hours</dt><dd className="text-gray-700 font-medium">{od?.openingTime} – {od?.closingTime}</dd></div>
             <div className="flex gap-2 items-start"><dt className="text-gray-400 w-24 shrink-0 mt-0.5">Days</dt><dd className="text-gray-700 font-medium">{od?.operatingDays?.join(', ') || '—'}</dd></div>
@@ -203,7 +203,7 @@ export default function RestaurantDetail() {
       {/* Document Review */}
       <div className="bg-white rounded-2xl shadow-soft border border-border overflow-hidden mb-6">
         <div className="px-6 py-4 border-b border-border flex items-center gap-2">
-          <FileText className="w-5 h-5 text-brand-purple-500" />
+          <FileText className="w-5 h-5 text-brand-orange-500" />
           <h2 className="font-semibold text-gray-900">Document Verification</h2>
         </div>
         <div className="divide-y divide-border">
@@ -231,7 +231,7 @@ export default function RestaurantDetail() {
                       href={doc.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs text-brand-purple-600 font-medium hover:underline"
+                      className="inline-flex items-center gap-1.5 text-xs text-brand-orange-600 font-medium hover:underline"
                     >
                       <FileText className="w-3.5 h-3.5" /> View Document
                     </a>

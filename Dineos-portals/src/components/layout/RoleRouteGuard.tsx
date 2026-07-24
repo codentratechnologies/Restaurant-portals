@@ -31,13 +31,13 @@ export default function RoleRouteGuard({ allowedRoles }: RoleRouteGuardProps) {
   // @ts-ignore - TS might complain about role being null but we checked above
   const currentRole = role as Role;
   
-  if (userData?.isOnboardingComplete === false && (currentRole === 'Super Admin' || currentRole === 'Admin')) {
+  if (userData?.isOnboardingComplete === false && (currentRole === 'Super Admin' || currentRole === 'Admin' || currentRole === 'Root Admin')) {
     return <Navigate to="/onboarding" replace />;
   }
 
   if (!allowedRoles.includes(currentRole)) {
     // If not allowed, redirect to a safe place based on their role
-    if (role === 'Super Admin' || role === 'Admin') {
+    if (role === 'Super Admin' || role === 'Admin' || role === 'Root Admin') {
       return <Navigate to="/admin/dashboard" replace />;
     } else {
       return <Navigate to="/restaurant/dashboard" replace />;

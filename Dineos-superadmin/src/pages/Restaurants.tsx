@@ -88,7 +88,7 @@ export default function Restaurants() {
                 key={f.value}
                 onClick={() => setFilter(f.value)}
                 className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  filter === f.value ? 'bg-white text-brand-purple-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  filter === f.value ? 'bg-white text-brand-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 {f.label}
@@ -132,7 +132,7 @@ export default function Restaurants() {
                     className="w-full grid grid-cols-12 items-center px-6 py-4 hover:bg-gray-50 transition-colors text-left"
                   >
                     <div className="col-span-5 flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-brand-purple-50 border border-brand-purple-100 flex items-center justify-center text-sm font-bold text-brand-purple-600 shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-brand-orange-50 border border-brand-orange-100 flex items-center justify-center text-sm font-bold text-brand-orange-600 shrink-0">
                         {name[0].toUpperCase()}
                       </div>
                       <div className="min-w-0">

@@ -1,24 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { ref, onValue, set } from 'firebase/database';
 import { rtdb } from '../lib/firebase';
+import { useAuth } from './useAuth';
 
 export function useBranchStatusMonitor() {
+  const { activeAssignment } = useAuth();
   const isRunning = useRef(false);
 
   useEffect(() => {
-    if (isRunning.current) return;
-    
-    const userStr = localStorage.getItem('restaurant_user');
-    if (!userStr) return;
+    if (isRunning.current || !activeAssignment || !activeAssignment.adminId) return;
 
-    let user: any;
-    try {
-      user = JSON.parse(userStr);
-    } catch (e) {
-      return;
-    }
-
-    if (!user || !user.adminId) return;
+    const user = { adminId: activeAssignment.adminId };
 
     isRunning.current = true;
 

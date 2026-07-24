@@ -1,4 +1,5 @@
-import { useState, FormEvent } from 'react';
+import { useState } from 'react';
+import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Eye, EyeOff, Shield, ArrowRight, Lock, Mail } from 'lucide-react';
@@ -45,16 +46,12 @@ export default function Login() {
 
             <div className="mb-6 xl:mb-8 translate-y-6 lg:translate-y-10 xl:translate-y-12">
               <div className="mb-6 xl:mb-8 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                  style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', boxShadow: '0 8px 24px rgba(124,58,237,0.35)' }}>
-                  <Shield className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-2xl font-black text-gray-900">DineOS</span>
+                <img src="/logo.png" alt="DineOS Logo" className="h-12 w-auto object-contain" />
               </div>
 
               <h2 className="text-[28px] lg:text-[32px] xl:text-[42px] font-black text-[#1e293b] leading-[1.2] mb-4 tracking-tight">
                 The Control Center<br />
-                <span className="text-[#7c3aed]">Super Admin</span>
+                <span className="text-brand-orange-500">Super Admin</span>
               </h2>
 
               <p className="text-gray-600 text-[13px] lg:text-[14px] leading-[1.6] max-w-[400px]">
@@ -75,7 +72,7 @@ export default function Login() {
                     background: 'linear-gradient(135deg, rgba(255,255,255,0.80) 0%, rgba(245,243,255,0.60) 100%)',
                     backdropFilter: 'blur(20px)',
                     border: '1.5px solid rgba(255,255,255,0.9)',
-                    boxShadow: '0 8px 24px rgba(124,58,237,0.06), inset 0 1px 1px rgba(255,255,255,1)',
+                    boxShadow: '0 8px 24px rgba(255,107,0,0.06), inset 0 1px 1px rgba(255,255,255,1)',
                   }}
                 >
                   <div className="text-2xl mb-1">{item.icon}</div>
@@ -96,7 +93,7 @@ export default function Login() {
                 backdropFilter: 'blur(35px)',
                 WebkitBackdropFilter: 'blur(35px)',
                 border: '1px solid rgba(255, 255, 255, 0.8)',
-                boxShadow: '0 40px 80px -12px rgba(124,58,237,0.12), 0 16px 32px -8px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,1), inset 0 -1px 1px rgba(255,255,255,0.4)',
+                boxShadow: '0 40px 80px -12px rgba(255,107,0,0.12), 0 16px 32px -8px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,1), inset 0 -1px 1px rgba(255,255,255,0.4)',
               }}
             >
               <style>{`
@@ -110,19 +107,16 @@ export default function Login() {
               {/* Mobile Logo */}
               <div className="flex justify-center mb-6 lg:hidden">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}>
-                    <Shield className="w-5 h-5 text-white" />
-                  </div>
+                  <img src="/logo_square.png" alt="DineOS Logo" className="h-10 w-auto object-contain" />
                   <span className="text-xl font-black text-gray-900">DineOS</span>
                 </div>
               </div>
 
               <div className="animate-step">
                 <div className="mb-6">
-                  <div className="inline-flex items-center gap-2 bg-violet-50 border border-violet-100 px-3 py-1 rounded-full mb-3">
-                    <Shield className="w-3.5 h-3.5 text-violet-600" strokeWidth={2} />
-                    <span className="text-[11px] font-bold text-violet-600 uppercase tracking-wide">Super Admin Portal</span>
+                  <div className="inline-flex items-center gap-2 bg-orange-50 border border-orange-200 px-3 py-1 rounded-full mb-3">
+                    <Shield className="w-3.5 h-3.5 text-brand-orange-600" strokeWidth={2} />
+                    <span className="text-[11px] font-bold text-brand-orange-600 uppercase tracking-wide">Super Admin Portal</span>
                   </div>
                   <h2 className="text-[24px] font-bold text-gray-900 tracking-tight mb-1">
                     Sign in to your account
@@ -134,7 +128,7 @@ export default function Login() {
                   {/* Email */}
                   <div>
                     <div className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all backdrop-blur-md ${
-                      emailError ? 'border-red-400 bg-red-50/50' : 'border-white/60 bg-white/40 focus-within:bg-white/80 focus-within:border-[#7c3aed] shadow-[inset_0_1px_4px_rgba(0,0,0,0.02)]'
+                      emailError ? 'border-red-400 bg-red-50/50' : 'border-white/60 bg-white/40 focus-within:bg-white/80 focus-within:border-brand-orange-500 shadow-[inset_0_1px_4px_rgba(0,0,0,0.02)]'
                     }`}>
                       <Mail className="w-4 h-4 text-gray-500 shrink-0" strokeWidth={1.5} />
                       <input
@@ -180,7 +174,7 @@ export default function Login() {
                   <div className="flex items-center justify-end pt-1 pb-1">
                     <a
                       href="#"
-                      className="text-[12px] font-semibold text-[#7c3aed] hover:text-[#6d28d9] transition-colors"
+                      className="text-[12px] font-semibold text-brand-orange-600 hover:text-brand-orange-500 transition-colors"
                     >
                       Forgot Password?
                     </a>
@@ -199,7 +193,7 @@ export default function Login() {
                     type="submit"
                     disabled={loading}
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[20px] text-white font-bold text-[14px] transition-all disabled:opacity-70 mt-2 relative"
-                    style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', boxShadow: '0 4px 14px rgba(124,58,237,0.35)' }}
+                    style={{ background: 'linear-gradient(135deg, #FF6B00, #FFA000)', boxShadow: '0 4px 14px rgba(255,107,0,0.35)' }}
                   >
                     {loading ? (
                       <span className="flex items-center gap-2">
@@ -212,7 +206,7 @@ export default function Login() {
                     ) : (
                       <>
                         <span className="tracking-wide">Sign In</span>
-                        <div className="absolute right-2 w-6 h-6 rounded-full bg-white flex items-center justify-center text-[#7c3aed]">
+                        <div className="absolute right-2 w-6 h-6 rounded-full bg-white flex items-center justify-center text-brand-orange-600">
                           <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} />
                         </div>
                       </>

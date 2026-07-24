@@ -6,6 +6,7 @@ import { ref, get, query, orderByChild, equalTo } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function FoodDetails() {
   const { id } = useParams<{ id: string }>();
@@ -15,17 +16,18 @@ export default function FoodDetails() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const { activeAssignment } = useAuth();
+
   useEffect(() => {
     const fetchFoodDetails = async () => {
       try {
-        const userStr = localStorage.getItem('restaurant_user');
-        if (!userStr) {
-          navigate('/login');
+        if (!activeAssignment) {
+          // If no active assignment yet, don't redirect, just wait.
           return;
         }
-        const user = JSON.parse(userStr);
-        const adminId = user.adminId;
-        const branchId = user.branch;
+        
+        const adminId = activeAssignment.adminId;
+        const branchId = activeAssignment.branchId;
 
         // Fetch Branch Availability
         const branchSnap = await get(ref(rtdb, `branch/${adminId}`));
@@ -78,10 +80,10 @@ export default function FoodDetails() {
       }
     };
 
-    if (id) {
+    if (id && activeAssignment) {
       fetchFoodDetails();
     }
-  }, [id, navigate]);
+  }, [id, activeAssignment]);
 
   if (errorMsg) {
     return (

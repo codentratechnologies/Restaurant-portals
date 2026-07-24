@@ -7,6 +7,7 @@ import Button from '../../components/common/Button';
 import RejectionModal from './components/RejectionModal';
 import { ref, onValue, set, push } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
+import { useAuth } from '../../hooks/useAuth';
 import { OrderData } from '../../hooks/useRestaurantOrders';
 import { get, query, orderByChild, equalTo } from 'firebase/database';
 
@@ -37,14 +38,16 @@ export default function OrderCalendar() {
  toast.success("Sound notifications enabled");
  };
 
+ const { activeAssignment } = useAuth();
+
  useEffect(() => {
- const userStr = localStorage.getItem('restaurant_user');
- if (userStr) {
- setCurrentUser(JSON.parse(userStr));
- }
-
-
- }, []);
+   if (activeAssignment) {
+     setCurrentUser({
+       adminId: activeAssignment.adminId,
+       branch: activeAssignment.branchId
+     });
+   }
+ }, [activeAssignment]);
 
  const [rawOrders, setRawOrders] = useState<any[]>([]);
  const [customersData, setCustomersData] = useState<any>({});

@@ -45,7 +45,7 @@ export default function Dashboard() {
   };
 
   const STAT_CARDS = [
-    { label: 'Total Restaurants',  value: stats.total,    icon: Store,         color: 'from-brand-purple-500 to-violet-600',  bg: 'bg-brand-purple-50',  iconColor: 'text-brand-purple-600' },
+    { label: 'Total Restaurants',  value: stats.total,    icon: Store,         color: 'from-brand-navy to-brand-navy/80',  bg: 'bg-brand-navy/10',  iconColor: 'text-brand-navy' },
     { label: 'Pending Review',      value: stats.review,   icon: Clock,         color: 'from-orange-500 to-amber-500',          bg: 'bg-orange-50',        iconColor: 'text-orange-600' },
     { label: 'Approved',           value: stats.approved, icon: CheckCircle,   color: 'from-green-500 to-emerald-600',         bg: 'bg-green-50',         iconColor: 'text-green-600' },
     { label: 'Rejected',           value: stats.rejected, icon: XCircle,       color: 'from-red-500 to-rose-600',              bg: 'bg-red-50',           iconColor: 'text-red-600' },
@@ -64,8 +64,8 @@ export default function Dashboard() {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-10">
         {STAT_CARDS.map(card => (
-          <div key={card.label} className="bg-white rounded-2xl shadow-soft border border-border p-6 flex items-center gap-5">
-            <div className={`w-12 h-12 ${card.bg} rounded-xl flex items-center justify-center shrink-0`}>
+          <div key={card.label} className="group bg-white rounded-2xl shadow-soft hover:shadow-premium hover:-translate-y-1 transition-all duration-300 border border-border p-6 flex items-center gap-5 cursor-default">
+            <div className={`w-12 h-12 ${card.bg} rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300`}>
               <card.icon className={`w-6 h-6 ${card.iconColor}`} />
             </div>
             <div>
@@ -80,7 +80,7 @@ export default function Dashboard() {
       <div className="bg-white rounded-2xl shadow-soft border border-border overflow-hidden">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-brand-purple-500" />
+            <TrendingUp className="w-5 h-5 text-brand-orange-500" />
             <h2 className="font-semibold text-gray-900">Restaurants Pending Review</h2>
             {stats.review > 0 && (
               <span className="text-xs font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">{stats.review}</span>
@@ -88,7 +88,7 @@ export default function Dashboard() {
           </div>
           <button
             onClick={() => navigate('/restaurants')}
-            className="text-xs text-brand-purple-600 font-semibold hover:text-brand-purple-700 transition-colors"
+            className="text-xs text-brand-orange-600 font-semibold hover:text-brand-orange-700 transition-colors"
           >
             View All →
           </button>
@@ -110,7 +110,7 @@ export default function Dashboard() {
                 onClick={() => navigate(`/restaurants/${r.uid}`)}
                 className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors text-left"
               >
-                <div className="w-10 h-10 rounded-xl bg-brand-purple-50 border border-brand-purple-100 flex items-center justify-center text-sm font-bold text-brand-purple-600 shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-brand-orange-50 border border-brand-orange-100 flex items-center justify-center text-sm font-bold text-brand-orange-600 shrink-0">
                   {(r.restaurant_details?.businessDetails?.restaurantName || r.restaurant_name || '?')[0].toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">

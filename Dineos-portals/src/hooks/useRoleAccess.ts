@@ -1,6 +1,6 @@
 import { useAuth } from './useAuth';
 
-export type Role = 'Super Admin' | 'Root Admin' | 'Admin' | 'Branch Manager' | 'Delivery Partner';
+export type Role = 'Super Admin' | 'Root Admin' | 'Admin' | 'Branch Manager' | 'Delivery Partner' | 'Employee';
 
 export function useRoleAccess() {
   const { user, loading, activeAssignment } = useAuth();
@@ -23,6 +23,7 @@ export function useRoleAccess() {
     else if (rawRole === 'super admin' || rawRole === 'super_admin' || rawRole === 'superadmin') role = 'Super Admin';
     else if (rawRole === 'branch manager' || rawRole === 'branch_manager') role = 'Branch Manager';
     else if (rawRole === 'delivery partner' || rawRole === 'delivery_partner') role = 'Delivery Partner';
+    else if (rawRole === 'employee') role = 'Employee';
     else role = currentAssignment.role as Role; // fallback
   }
 

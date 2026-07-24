@@ -64,7 +64,7 @@ import RestaurantProfileSettings from './restaurant-pages/settings/ProfileSettin
 import RestaurantStandaloneProfile from './restaurant-pages/settings/StandaloneProfile';
 
 function AppRoutes() {
-  const { user, loading, userData } = useAuth();
+  const { user, loading, userData, activeAssignment } = useAuth();
 
   if (loading) {
     return (
@@ -76,7 +76,15 @@ function AppRoutes() {
 
   const targetRoute = () => {
     if (!user) return '/login';
-    if (userData?.isOnboardingComplete) return '/admin/dashboard';
+    if (userData?.isOnboardingComplete) {
+      const assignment = activeAssignment || userData?.assignments?.[0];
+      if (assignment) {
+        const rawRole = (assignment.role || '').toLowerCase();
+        const isRoot = rawRole === 'super admin' || rawRole === 'admin' || rawRole === 'super_admin' || rawRole === 'root_admin';
+        return isRoot ? '/admin/dashboard' : '/restaurant/dashboard';
+      }
+      return '/admin/dashboard';
+    }
     if (userData?.isUnderReview || localStorage.getItem('isNewSignup') === 'true') return '/onboarding';
     return '/select-workplace';
   };
@@ -92,8 +100,8 @@ function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
       </Route>
 
-      <Route path="/select-workplace" element={user && userData?.isOnboardingComplete ? <Navigate to="/admin/dashboard" replace /> : <SelectWorkplace />} />
-      <Route path="/onboarding" element={user && userData?.isOnboardingComplete ? <Navigate to="/admin/dashboard" replace /> : <Onboarding />} />
+      <Route path="/select-workplace" element={user && userData?.isOnboardingComplete ? <Navigate to={targetRoute()} replace /> : <SelectWorkplace />} />
+      <Route path="/onboarding" element={user && userData?.isOnboardingComplete ? <Navigate to={targetRoute()} replace /> : <Onboarding />} />
 
       {/* Admin Routes */}
       <Route element={<RoleRouteGuard allowedRoles={['Super Admin', 'Root Admin', 'Admin']} />}>
@@ -127,7 +135,7 @@ function AppRoutes() {
       </Route>
 
       {/* Restaurant Routes */}
-      <Route element={<RoleRouteGuard allowedRoles={['Branch Manager', 'Delivery Partner']} />}>
+      <Route element={<RoleRouteGuard allowedRoles={['Branch Manager', 'Delivery Partner', 'Employee']} />}>
         <Route element={<AppLayout />}>
           <Route path="/restaurant/dashboard" element={<RestaurantDashboard />} />
           <Route path="/restaurant/orders" element={<RestaurantOrderCalendar />} />
