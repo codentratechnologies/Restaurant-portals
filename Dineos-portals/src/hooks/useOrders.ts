@@ -1,7 +1,17 @@
-import { useState, useEffect } from 'react';
-import { ref, onValue } from 'firebase/database';
+import { useState, useEffect, useRef } from 'react';
+import { ref, onValue, query, limitToLast, Unsubscribe } from 'firebase/database';
 import { rtdb } from '../lib/firebase';
 import { useAuth } from './useAuth';
+
+export interface OrderItem {
+  id: number | string;
+  name: string;
+  category: string;
+  price: number;
+  qty: number;
+  subtotal: number;
+  customizations?: unknown[];
+}
 
 export interface Order {
   id: string;
@@ -18,35 +28,35 @@ export interface Order {
     deliveryFee: number;
     discount: number;
   };
-  status: 'Delivered' | 'Cancelled' | 'Preparing' | 'Out for Delivery' | 'Pending';
-  type: 'Delivery' | 'Dine-in' | 'Takeaway';
+  status: 'Delivered' | 'Cancelled' | 'Preparing' | 'Out for Delivery' | 'Pending' | 'Accepted' | string;
+  type: 'Delivery' | 'Dine-in' | 'Takeaway' | string;
   created_at: string;
   updated_at: string;
   agent?: {
     name: string;
     phone: string;
   };
-  items?: Array<{
-    id: number | string;
-    name: string;
-    category: string;
-    price: number;
-    qty: number;
-    subtotal: number;
-    customizations?: any[];
-  }>;
+  items?: OrderItem[];
   timeline?: Array<{
     status: string;
     time: string;
     completed: boolean;
   }>;
+  customer_review?: any;
 }
 
-export function useOrders() {
+export function useOrders(limitPerBranch = 200) {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Use refs to hold current state data so listeners always access latest without causing dependency loops
+  const branchesRefData = useRef<Record<string, any>>({});
+  const customersRefData = useRef<Record<string, any>>({});
+  const deliveriesRefData = useRef<Record<string, any>>({});
+  const employeesRefData = useRef<Record<string, any>>({});
+  const rawOrdersRefData = useRef<Record<string, Record<string, any>>>({});
 
   useEffect(() => {
     if (!user) {
@@ -54,27 +64,22 @@ export function useOrders() {
       return;
     }
 
-    const ordersRef = ref(rtdb, `order/${user.uid}`);
-    const branchesRef = ref(rtdb, `branch/${user.uid}`);
-    const customersRef = ref(rtdb, `user_customer/${user.uid}`);
+    const branchesRefNode = ref(rtdb, `branch/${user.uid}`);
+    const customersRefNode = ref(rtdb, `user_customer/${user.uid}`);
+    const deliveriesRefNode = ref(rtdb, `delivery/${user.uid}`);
+    const employeesRefNode = ref(rtdb, `employee/${user.uid}`);
 
-    const deliveriesRef = ref(rtdb, `delivery/${user.uid}`);
-    const employeesRef = ref(rtdb, `employee/${user.uid}`);
-
-    let currentBranches: Record<string, any> = {};
-    let currentCustomers: Record<string, any> = {};
-    let currentDeliveries: Record<string, any> = {};
-    let currentEmployees: Record<string, any> = {};
-    let currentRawOrders: any = null;
+    let orderListeners: Record<string, Unsubscribe> = {};
 
     const processOrders = () => {
-      if (!currentRawOrders) {
-        setOrders([]);
-        setLoading(false);
-        return;
-      }
+      const currentRawOrders = rawOrdersRefData.current;
+      const currentBranches = branchesRefData.current;
+      const currentCustomers = customersRefData.current;
+      const currentDeliveries = deliveriesRefData.current;
+      const currentEmployees = employeesRefData.current;
 
       const ordersList: Order[] = [];
+
       Object.keys(currentRawOrders).forEach(branchId => {
         const branchOrders = currentRawOrders[branchId];
         if (typeof branchOrders === 'object' && branchOrders !== null) {
@@ -111,7 +116,6 @@ export function useOrders() {
                 let foundBoyId: string | null = null;
                 const orderKey = rawOrder.id || rawOrder.orderId || orderId;
 
-                // 1. Search in currentDeliveries[branchId] for the boy holding this order
                 if (currentDeliveries[branchId]) {
                   for (const boyId of Object.keys(currentDeliveries[branchId])) {
                     if (currentDeliveries[branchId][boyId] && currentDeliveries[branchId][boyId][orderKey]) {
@@ -121,7 +125,6 @@ export function useOrders() {
                   }
                 }
 
-                // 2. Fetch boy details from currentEmployees
                 if (foundBoyId) {
                   let emp = null;
                   for (const bCode of Object.keys(currentEmployees)) {
@@ -138,7 +141,6 @@ export function useOrders() {
                   }
                 }
 
-                // 3. Fallback
                 if (!deliveryAgentObj) {
                   const agentData = rawOrder.deliveryAgent || rawOrder.deliveryPartner || rawOrder.agent || rawOrder.deliveryBoy || rawOrder.assignedTo;
                   if (agentData) {
@@ -148,9 +150,6 @@ export function useOrders() {
                     };
                   }
                 }
-
-                // Ensure we return an object instead of undefined, so OrderDetail can pick it up
-                // BUT only if we actually found something, otherwise let it be undefined so it falls back properly.
                 return deliveryAgentObj;
               })(),
               items: (rawOrder.items || rawOrder.cartItems || []).map((i: any, index: number) => ({
@@ -161,7 +160,8 @@ export function useOrders() {
                 qty: i.quantity || i.qty || 1,
                 subtotal: i.total_price || i.subtotal || i.totalPrice || 0,
                 customizations: i.customizations || i.addons || i.modifiers || i.variants || []
-              }))
+              })),
+              customer_review: rawOrder.customer_review
             };
             
             ordersList.push(mappedOrder);
@@ -174,53 +174,60 @@ export function useOrders() {
       setLoading(false);
     };
 
-    const unsubBranches = onValue(branchesRef, (snap) => {
-      currentBranches = snap.exists() ? snap.val() : {};
-      if (currentRawOrders !== null) processOrders();
-    });
-
-    const unsubCustomers = onValue(customersRef, (snap) => {
-      currentCustomers = snap.exists() ? snap.val() : {};
-      if (currentRawOrders !== null) processOrders();
-    });
-
-    const unsubDeliveries = onValue(deliveriesRef, (snap) => {
-      currentDeliveries = snap.exists() ? snap.val() : {};
-      if (currentRawOrders !== null) processOrders();
-    });
-
-    const unsubEmployees = onValue(employeesRef, (snap) => {
-      currentEmployees = snap.exists() ? snap.val() : {};
-      if (currentRawOrders !== null) processOrders();
-    });
-
-    const unsubOrders = onValue(
-      ordersRef,
-      (snapshot) => {
-        if (snapshot.exists()) {
-          currentRawOrders = snapshot.val();
-          processOrders();
-        } else {
-          currentRawOrders = null;
-          setOrders([]);
-          setLoading(false);
+    const unsubBranches = onValue(branchesRefNode, (snap) => {
+      const branches = snap.exists() ? snap.val() : {};
+      branchesRefData.current = branches;
+      
+      // Dynamic paginated listeners for each branch
+      const activeBranchIds = Object.keys(branches);
+      activeBranchIds.forEach(branchId => {
+        if (!orderListeners[branchId]) {
+          const branchOrdersRef = query(ref(rtdb, `order/${user.uid}/${branchId}`), limitToLast(limitPerBranch));
+          orderListeners[branchId] = onValue(branchOrdersRef, (orderSnap) => {
+            rawOrdersRefData.current[branchId] = orderSnap.exists() ? orderSnap.val() : {};
+            processOrders();
+          }, (err) => {
+            console.error(`Error fetching orders for branch ${branchId}:`, err);
+          });
         }
-      },
-      (err) => {
-        console.error('Error fetching orders:', err);
-        setError('Failed to load orders.');
-        setLoading(false);
-      }
-    );
+      });
+
+      // Cleanup removed branches
+      Object.keys(orderListeners).forEach(branchId => {
+        if (!activeBranchIds.includes(branchId)) {
+          orderListeners[branchId](); // Unsubscribe
+          delete orderListeners[branchId];
+          delete rawOrdersRefData.current[branchId];
+        }
+      });
+
+      processOrders();
+    });
+
+    const unsubCustomers = onValue(customersRefNode, (snap) => {
+      customersRefData.current = snap.exists() ? snap.val() : {};
+      processOrders();
+    });
+
+    const unsubDeliveries = onValue(deliveriesRefNode, (snap) => {
+      deliveriesRefData.current = snap.exists() ? snap.val() : {};
+      processOrders();
+    });
+
+    const unsubEmployees = onValue(employeesRefNode, (snap) => {
+      employeesRefData.current = snap.exists() ? snap.val() : {};
+      processOrders();
+    });
 
     return () => {
       unsubBranches();
       unsubCustomers();
       unsubDeliveries();
       unsubEmployees();
-      unsubOrders();
+      Object.values(orderListeners).forEach(unsub => unsub());
     };
-  }, [user]);
+  }, [user, limitPerBranch]);
 
   return { orders, loading, error };
 }
+

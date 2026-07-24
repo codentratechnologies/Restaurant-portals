@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { LayoutDashboard, Store, Users, Utensils, Ticket, ShoppingBag, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { LayoutDashboard, Store, Users, Utensils, Ticket, ShoppingBag, PanelLeftClose, PanelLeft, Star, Headphones } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../hooks/useAuth';
 import { useRoleAccess } from '../../hooks/useRoleAccess';
@@ -12,6 +12,8 @@ const sidebarItems = [
   { name: 'Menu', path: '/admin/food', icon: Utensils },
   { name: 'Coupons', path: '/admin/coupons', icon: Ticket },
   { name: 'Orders', path: '/admin/orders', icon: ShoppingBag },
+  { name: 'Reviews', path: '/admin/reviews', icon: Star },
+  { name: 'Support', path: '/admin/support', icon: Headphones },
 ];
 
 interface SidebarProps {
@@ -22,9 +24,26 @@ export default function Sidebar({ onMobileClose }: SidebarProps = {}) {
   const { user, activeAssignment } = useAuth();
   const { role } = useRoleAccess();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const sidebarRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (isCollapsed) return;
+      
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        // Check if it's a mobile click on a hamburger menu that might also trigger this
+        // but typically the hamburger is outside the sidebar. Let's just collapse it.
+        setIsCollapsed(true);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isCollapsed]);
 
   return (
-    <aside className={cn(
+    <aside ref={sidebarRef} className={cn(
       "bg-white border-r border-[#E8ECF4] flex flex-col h-[100dvh] sticky top-0 shrink-0 transition-all duration-300 overflow-x-hidden",
       isCollapsed ? "w-20" : "w-64"
     )}>
@@ -44,16 +63,16 @@ export default function Sidebar({ onMobileClose }: SidebarProps = {}) {
             </button>
           </>
         ) : (
-          <div className="relative flex items-center justify-center w-12 h-12 group cursor-pointer">
+          <div className="relative flex items-center justify-center w-16 h-16 group cursor-pointer">
             <Link to="/admin/dashboard" onClick={onMobileClose} className="flex items-center justify-center w-full h-full group-hover:opacity-0 transition-opacity duration-200">
-              <img src="/logo_square.png" alt="DineOS Logo" className="h-9 w-9 object-contain" />
+              <img src="/logo_square.png" alt="DineOS Logo" className="h-14 w-14 object-contain" />
             </Link>
             <button 
               onClick={() => setIsCollapsed(false)} 
-              className="absolute inset-0 m-auto flex items-center justify-center text-[#8896AB] hover:text-[#1a1f36] opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-xl hover:bg-[#F4F6FA] w-10 h-10"
+              className="absolute inset-0 m-auto flex items-center justify-center text-[#8896AB] hover:text-[#1a1f36] opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-xl hover:bg-[#F4F6FA] w-12 h-12"
               title="Expand Sidebar"
             >
-              <PanelLeft className="w-6 h-6" />
+              <PanelLeft className="w-7 h-7" />
             </button>
           </div>
         )}
@@ -66,7 +85,10 @@ export default function Sidebar({ onMobileClose }: SidebarProps = {}) {
           <NavLink
             key={item.path}
             to={item.path}
-            onClick={onMobileClose}
+            onClick={() => {
+              if (onMobileClose) onMobileClose();
+              if (isCollapsed) setIsCollapsed(false);
+            }}
             title={isCollapsed ? item.name : undefined}
             className={({ isActive }) =>
               cn(

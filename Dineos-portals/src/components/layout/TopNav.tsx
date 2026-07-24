@@ -134,7 +134,7 @@ export default function TopNav() {
           <div className="hidden sm:block h-8 w-px bg-border"></div>
 
           {/* Profile Link */}
-          <Link to={isAdmin ? `${prefix}/settings/profile` : `${prefix}/profile`} className="flex items-center hover:bg-gray-50 p-1 sm:p-1.5 rounded-full transition-colors border border-transparent hover:border-border group shrink-0">
+          <Link to={`${prefix}/profile`} className="flex items-center hover:bg-gray-50 p-1 sm:p-1.5 rounded-full transition-colors border border-transparent hover:border-border group shrink-0">
             <img
               src="https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"
               alt="Profile"

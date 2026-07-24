@@ -38,6 +38,25 @@ const InputField = ({ label, name, type = 'text', placeholder = '', required = f
  </div>
 );
 
+const baseCategories = [
+  { value: 'Appetizers', label: 'Appetizers' },
+  { value: 'Soups', label: 'Soups' },
+  { value: 'Salads', label: 'Salads' },
+  { value: 'Shawarma', label: 'Shawarma' },
+  { value: 'Grills & BBQ', label: 'Grills & BBQ' },
+  { value: 'Mandi', label: 'Mandi' },
+  { value: 'Kabsa', label: 'Kabsa' },
+  { value: 'Biryani', label: 'Biryani' },
+  { value: 'Main Course', label: 'Main Course' },
+  { value: 'Seafood', label: 'Seafood' },
+  { value: 'Bakery', label: 'Bakery' },
+  { value: 'Desserts', label: 'Desserts' },
+  { value: 'Beverages', label: 'Beverages' },
+  { value: 'Family Platters', label: 'Family Platters' },
+  { value: 'Kids Menu', label: 'Kids Menu' },
+  { value: 'Combo Meals', label: 'Combo Meals' }
+];
+
 export default function UpdateFoodItem() {
  const { id } = useParams();
  const navigate = useNavigate();
@@ -61,6 +80,29 @@ export default function UpdateFoodItem() {
  const [isLoading, setIsLoading] = useState(true);
 
  const errorRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+ const [customCategoryInput, setCustomCategoryInput] = useState('');
+ const [customCategoriesList, setCustomCategoriesList] = useState<{value: string, label: string}[]>([]);
+
+ const handleAddCustomCategory = () => {
+   const trimmed = customCategoryInput.trim();
+   if (trimmed) {
+     const exists = customCategoriesList.some(c => c.value.toLowerCase() === trimmed.toLowerCase()) || 
+                    baseCategories.some(c => c.value.toLowerCase() === trimmed.toLowerCase());
+     
+     if (!exists) {
+       setCustomCategoriesList(prev => [...prev, { value: trimmed, label: trimmed }]);
+     }
+     if (!formData.categories.includes(trimmed)) {
+       setFormData(prev => ({ ...prev, categories: [...prev.categories, trimmed] }));
+     }
+     setCustomCategoryInput('');
+     
+     if (errors.categories) {
+       setErrors(prev => ({ ...prev, categories: '' }));
+     }
+   }
+ };
 
  // Fetch existing data
  useEffect(() => {
@@ -89,6 +131,11 @@ export default function UpdateFoodItem() {
  if (foundItem.tags && foundItem.tags.includes('Egg') && !dietaryTypes.includes('Egg')) dietaryTypes.push('Egg');
 
  const itemCategories = foundItem.categories || [foundCategory];
+
+ const customCats = itemCategories
+   .filter((cat: string) => !baseCategories.some(bc => bc.value === cat))
+   .map((cat: string) => ({ value: cat, label: cat }));
+ setCustomCategoriesList(customCats);
 
  setFormData({
  foodId: foundItem.foodId || '',
@@ -315,27 +362,32 @@ export default function UpdateFoodItem() {
  <MultiSelect
  value={formData.categories}
  onChange={(val) => setFormData(prev => ({ ...prev, categories: val }))}
- options={[
- { value: 'Appetizers', label: 'Appetizers' },
- { value: 'Soups', label: 'Soups' },
- { value: 'Salads', label: 'Salads' },
- { value: 'Shawarma', label: 'Shawarma' },
- { value: 'Grills & BBQ', label: 'Grills & BBQ' },
- { value: 'Mandi', label: 'Mandi' },
- { value: 'Kabsa', label: 'Kabsa' },
- { value: 'Biryani', label: 'Biryani' },
- { value: 'Main Course', label: 'Main Course' },
- { value: 'Seafood', label: 'Seafood' },
- { value: 'Bakery', label: 'Bakery' },
- { value: 'Desserts', label: 'Desserts' },
- { value: 'Beverages', label: 'Beverages' },
- { value: 'Family Platters', label: 'Family Platters' },
- { value: 'Kids Menu', label: 'Kids Menu' },
- { value: 'Combo Meals', label: 'Combo Meals' }
- ]}
+ options={[...baseCategories, ...customCategoriesList]}
  placeholder="Select Categories"
  error={errors.categories}
  />
+ <div className="mt-2 flex items-center gap-2">
+   <input
+     type="text"
+     value={customCategoryInput}
+     onChange={(e) => setCustomCategoryInput(e.target.value)}
+     onKeyDown={(e) => {
+       if (e.key === 'Enter') {
+         e.preventDefault();
+         handleAddCustomCategory();
+       }
+     }}
+     placeholder="Or add new category..."
+     className="flex-1 px-3 py-2 bg-gray-50 border border-border rounded-lg text-xs font-medium transition-all focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:bg-white focus:border-brand-orange-500"
+   />
+   <button
+     type="button"
+     onClick={handleAddCustomCategory}
+     className="px-3 py-2 bg-brand-navy text-white text-xs font-bold rounded-lg hover:bg-brand-navy/90 transition-colors"
+   >
+     Add
+   </button>
+ </div>
  </InputField>
 
  <InputField label="Dietary Type" name="dietaryType" required formData={formData} handleChange={handleChange} errors={errors} errorRefs={errorRefs}>

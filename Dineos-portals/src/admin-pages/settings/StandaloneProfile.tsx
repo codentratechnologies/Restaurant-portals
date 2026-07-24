@@ -1,43 +1,59 @@
 import { useState } from 'react';
 import ProfileSettings from './ProfileSettings';
 import Button from '../../components/common/Button';
-import { Edit3, X } from 'lucide-react';
+import { Save, Edit3, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function StandaloneProfile() {
-  const [editing, setEditing] = useState(false);
-
+  const [isEditing, setIsEditing] = useState(false);
   return (
-    <div className="max-w-[1100px] mx-auto">
-      <div className="bg-white rounded-2xl border border-border shadow-soft p-4 sm:p-8">
-        {/* Page heading row — Edit button right edge */}
-        <div className="flex flex-row items-start justify-between gap-4 mb-6 sm:mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-brand-navy">My Profile</h1>
-            <p className="text-text-secondary mt-1 text-xs sm:text-sm">Manage your personal account details and preferences.</p>
-          </div>
-          <div className="shrink-0 mt-1 sm:mt-0">
-            {!editing ? (
-              <button
-                onClick={() => setEditing(true)}
-                className="flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 bg-white border border-brand-orange-500 rounded-xl text-sm font-bold text-brand-orange-500 hover:bg-brand-orange-50 transition-colors shadow-sm"
-              >
-                <Edit3 className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
-                <span className="hidden sm:inline sm:ml-2">Edit Profile</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => setEditing(false)}
-                className="flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto sm:px-3 sm:py-2 text-sm font-bold text-text-secondary hover:text-brand-navy border border-border rounded-xl transition-colors shadow-sm"
-              >
-                <X className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
-                <span className="hidden sm:inline sm:ml-1.5">Discard</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        <ProfileSettings editing={editing} onSetEditing={setEditing} />
+    <div className="max-w-[1200px] mx-auto p-4 sm:p-6">
+      
+      {/* Breadcrumbs */}
+      <div className="flex items-center gap-2 text-sm font-medium text-[#8896AB] mb-4">
+        <Link to="/admin/settings" className="hover:text-[#1a1f36] transition-colors">Settings</Link>
+        <span>&gt;</span>
+        <span className="text-[#1a1f36]">Profile</span>
       </div>
+
+      {/* Page heading row */}
+      <div className="flex flex-row items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-xl sm:text-[28px] font-black text-[#1a1f36] tracking-tight leading-none mb-1">Profile Settings</h1>
+          <p className="text-xs sm:text-sm font-medium text-[#8896AB] hidden sm:block">Manage your profile information and account details.</p>
+        </div>
+        <div className="shrink-0 flex items-center gap-2 sm:gap-4">
+          {isEditing ? (
+            <>
+              <button 
+                onClick={() => setIsEditing(false)} 
+                className="flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto text-[#8896AB] hover:text-[#1a1f36] transition-colors"
+              >
+                <X className="w-5 h-5 sm:hidden" />
+                <span className="hidden sm:inline text-[13px] font-bold">Cancel</span>
+              </button>
+              <Button 
+                type="submit" 
+                form="profile-form" 
+                className="flex items-center justify-center gap-2 bg-[#FF6B00] hover:bg-[#E66000] text-white w-10 h-10 p-0 sm:w-auto sm:h-auto sm:px-5 sm:py-2.5 rounded-xl shadow-sm text-sm font-bold border-transparent"
+              >
+                <Save className="w-4 h-4" />
+                <span className="hidden sm:inline">Save Changes</span>
+              </Button>
+            </>
+          ) : (
+            <Button 
+              onClick={() => setIsEditing(true)}
+              className="flex items-center justify-center gap-2 bg-white hover:bg-gray-50 border border-[#E8ECF4] text-[#1a1f36] w-10 h-10 p-0 sm:w-auto sm:h-auto sm:px-5 sm:py-2.5 rounded-xl shadow-sm text-sm font-bold"
+            >
+              <Edit3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Edit Profile</span>
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <ProfileSettings isEditing={isEditing} setIsEditing={setIsEditing} />
     </div>
   );
 }

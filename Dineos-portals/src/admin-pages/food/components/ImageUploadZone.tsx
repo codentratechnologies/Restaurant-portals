@@ -7,9 +7,10 @@ interface ImageUploadZoneProps {
  onUploadSuccess: (url: string) => void;
  onRemove?: () => void;
  error?: string;
+ className?: string;
 }
 
-export default function ImageUploadZone({ currentImage, onUploadSuccess, onRemove, error }: ImageUploadZoneProps) {
+export default function ImageUploadZone({ currentImage, onUploadSuccess, onRemove, error, className }: ImageUploadZoneProps) {
  const [isDragging, setIsDragging] = useState(false);
  const [isUploading, setIsUploading] = useState(false);
  const fileInputRef = useRef<HTMLInputElement>(null);
@@ -92,8 +93,8 @@ export default function ImageUploadZone({ currentImage, onUploadSuccess, onRemov
  return (
  <div className="w-full flex flex-col">
  {currentImage ? (
- <div className="w-full relative rounded-lg border border-border overflow-hidden">
- <img src={currentImage} alt="Preview" className="w-full aspect-[4/3] object-cover" />
+ <div className={`w-full relative rounded-lg border border-border overflow-hidden ${className || 'aspect-[4/3]'}`}>
+ <img src={currentImage} alt="Preview" className="w-full h-full object-cover" />
  <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
  <button
  type="button"
@@ -115,7 +116,7 @@ export default function ImageUploadZone({ currentImage, onUploadSuccess, onRemov
  </div>
  ) : (
  <div
- className={`w-full aspect-[4/3] rounded-lg border-2 border-dashed flex flex-col items-center justify-center p-4 transition-colors cursor-pointer ${
+ className={`w-full rounded-lg border-2 border-dashed flex flex-col items-center justify-center p-4 transition-colors cursor-pointer ${className || 'aspect-[4/3]'} ${
  isDragging ? 'border-brand-orange-500 bg-brand-orange-50' : 
  error ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
  }`}

@@ -167,10 +167,10 @@ export default function BranchList() {
           <p className="text-sm font-medium text-[#8896AB] mt-1">Manage and monitor all your restaurant branches.</p>
         </motion.div>
         
-        <Link to="/admin/branches/new" className="shrink-0">
-          <Button className="flex px-4 sm:px-6 gap-2 shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg items-center">
-            <Plus className="w-4 h-4" />
-            <span className="text-sm">Add New Branch</span>
+        <Link to="/admin/branches/new">
+          <Button className="flex items-center justify-center gap-2 bg-[#FF6B00] hover:bg-[#E66000] text-white w-10 h-10 p-0 sm:w-auto sm:h-auto sm:px-6 sm:py-2.5 border-0 rounded-lg shadow-sm font-bold">
+            <Plus className="w-5 h-5" />
+            <span className="hidden sm:inline">Add Branch</span>
           </Button>
         </Link>
       </div>

@@ -5,6 +5,7 @@ import AppLayout from './components/layout/AppLayout';
 import AdminLayout from './components/layout/AdminLayout';
 import AuthLayout from './components/layout/AuthLayout';
 import RoleRouteGuard from './components/layout/RoleRouteGuard';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import { auth } from './lib/firebase';
 import { signOut } from 'firebase/auth';
 
@@ -39,6 +40,8 @@ import AdminCouponDetails from './admin-pages/coupons/CouponDetails';
 import AdminSettingsLayout from './admin-pages/settings/SettingsLayout';
 import AdminProfileSettings from './admin-pages/settings/ProfileSettings';
 import AdminStandaloneProfile from './admin-pages/settings/StandaloneProfile';
+import AdminReviewsDashboard from './admin-pages/reviews/ReviewsDashboard';
+import CustomerSupportDashboard from './admin-pages/support/CustomerSupportDashboard';
 
 // -- Restaurant Pages --
 import RestaurantDashboard from './restaurant-pages/dashboard/Dashboard';
@@ -126,6 +129,8 @@ function AppRoutes() {
           <Route path="/admin/coupons/new" element={<AdminCreateCoupon />} />
           <Route path="/admin/coupons/:id" element={<AdminCouponDetails />} />
           <Route path="/admin/coupons/:id/edit" element={<AdminUpdateCoupon />} />
+          <Route path="/admin/reviews" element={<AdminReviewsDashboard />} />
+          <Route path="/admin/support" element={<CustomerSupportDashboard />} />
           <Route path="/admin/profile" element={<AdminStandaloneProfile />} />
           <Route path="/admin/settings" element={<AdminSettingsLayout />}>
             <Route index element={<Navigate to="profile" replace />} />
@@ -187,9 +192,11 @@ export default function App() {
   return (
     <Router>
       <ScrollToTop />
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <ErrorBoundary>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </ErrorBoundary>
     </Router>
   );
 }

@@ -222,10 +222,10 @@ export default function FoodCatalog() {
                 </motion.div>
 
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
-                    <Link to="/admin/food/new" className="shrink-0">
-                        <Button className="flex px-4 sm:px-6 gap-2 shadow-sm font-bold bg-[#FF6B00] text-white border-0 hover:bg-[#E66000] rounded-lg items-center">
+                    <Link to="/admin/food/new">
+                        <Button className="flex items-center justify-center gap-2 bg-[#FF6B00] hover:bg-[#E66000] text-white w-10 h-10 p-0 sm:w-auto sm:h-auto sm:px-6 sm:py-2.5 border-0 rounded-lg shadow-sm font-bold">
                             <Plus className="w-5 h-5" />
-                            <span className="text-sm">Add New Item</span>
+                            <span className="hidden sm:inline">Add Food Item</span>
                         </Button>
                     </Link>
                 </motion.div>
