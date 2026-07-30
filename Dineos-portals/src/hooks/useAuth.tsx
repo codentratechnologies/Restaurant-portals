@@ -163,6 +163,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
 
           if (uData) {
+            // Fetch the parent admin's restaurant details to display in the UI
+            try {
+              const adminSnap = await get(ref(rtdb, `admin_users/${uData.assignments[0].adminId}`));
+              if (adminSnap.exists()) {
+                const adminData = adminSnap.val();
+                uData.assignments[0].restaurantName = adminData.restaurant_details?.businessDetails?.restaurantName || adminData.restaurant_name || 'My Restaurant';
+                uData.assignments[0].logoUrl = adminData.restaurant_details?.operationalDetails?.logoUrl || null;
+              }
+            } catch (err) {
+              console.error("Failed to fetch admin details for employee", err);
+            }
+
             localStorage.setItem(CACHED_USER_KEY, JSON.stringify({ uid: firebaseUser.uid, email: firebaseUser.email, displayName: firebaseUser.displayName, photoURL: firebaseUser.photoURL }));
             localStorage.setItem(CACHED_USER_DATA_KEY, JSON.stringify(uData));
             setUser(firebaseUser);
@@ -303,13 +315,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 isCustomEmployee: true
               };
               
+              // Fetch the parent admin's restaurant details
+              let restaurantName = 'My Restaurant';
+              let logoUrl = null;
+              try {
+                const adminSnap = await get(ref(rtdb, `admin_users/${adminUidOfEmployee}`));
+                if (adminSnap.exists()) {
+                  const adminData = adminSnap.val();
+                  restaurantName = adminData.restaurant_details?.businessDetails?.restaurantName || adminData.restaurant_name || 'My Restaurant';
+                  logoUrl = adminData.restaurant_details?.operationalDetails?.logoUrl || null;
+                }
+              } catch (err) {
+                console.error("Failed to fetch admin details for employee login", err);
+              }
+
               const uData: UserData = {
                 email: foundEmployee.email,
                 name: fakeUser.displayName,
                 assignments: [{
                   adminId: adminUidOfEmployee,
                   branchId: branchCodeOfEmployee,
-                  role: foundEmployee.role || 'Employee'
+                  role: foundEmployee.role || 'Employee',
+                  restaurantName,
+                  logoUrl
                 }],
                 isOnboardingComplete: true
               };

@@ -1,186 +1,57 @@
-import { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Filter, MessageSquareText, ThumbsUp, ThumbsDown, Search, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+const fs = require('fs');
+
+const path = 'Dineos-portals/src/restaurant-pages/reviews/ReviewsDashboard.tsx';
+let content = fs.readFileSync(path, 'utf8');
+
+// Replace Imports
+content = content.replace(
+  /import { Star, Filter, MessageSquareText, StarHalf } from 'lucide-react';[\s\S]*?import { useAuth } from '\.\.\/\.\.\/hooks\/useAuth';/,
+  `import { Star, Filter, MessageSquareText, ThumbsUp, ThumbsDown, Search, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ref, onValue } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
 
 import Select from '../../components/common/Select';
+
 import ReviewDrawer, { ReviewData } from './components/ReviewDrawer';
 import { OrderData } from '../../hooks/useRestaurantOrders';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';`
+);
 
-export default function ReviewsDashboard() {
- const navigate = useNavigate();
- const [reviews, setReviews] = useState<ReviewData[]>([]);
- const [allOrdersMap, setAllOrdersMap] = useState<Record<string, OrderData>>({});
- const [currentUser, setCurrentUser] = useState<any>(null);
- 
- const [rawOrders, setRawOrders] = useState<any[]>([]);
- const [branchPushId, setBranchPushId] = useState<string>('');
+// Replace state variables (sortOrder -> searchInput, etc.)
+content = content.replace(
+  /const \[selectedRating, setSelectedRating\] = useState<number \| 'All'>\('All'\);\s*const \[sortOrder, setSortOrder\] = useState<'Newest' \| 'Oldest'>\('Newest'\);\s*const \[currentPage, setCurrentPage\] = useState\(1\);\s*const itemsPerPage = 8;/,
+  `const [searchInput, setSearchInput] = useState('');
+  const [selectedRating, setSelectedRating] = useState<number | 'All'>('All');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);`
+);
 
- const [searchInput, setSearchInput] = useState('');
- const [selectedRating, setSelectedRating] = useState<number | 'All'>('All');
- const [currentPage, setCurrentPage] = useState(1);
- const itemsPerPage = 5;
- const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+// Replace everything from `// --- Analytics Calculations ---` to the end of the file.
+const analyticsIndex = content.indexOf('// --- Analytics Calculations ---');
+if (analyticsIndex === -1) throw new Error("Could not find Analytics Calculations");
 
- // Drawer States
- const [reviewDrawerOpen, setReviewDrawerOpen] = useState(false);
- const [selectedReview, setSelectedReview] = useState<ReviewData | null>(null);
+const newTail = `// --- Analytics Calculations ---
+  const { averageRating, totalReviews, positiveReviews, negativeReviews } = useMemo(() => {
+    const total = reviews.length;
+    if (total === 0) return { averageRating: 0, totalReviews: 0, positiveReviews: 0, negativeReviews: 0 };
+    
+    let sum = 0;
+    let pos = 0;
+    let neg = 0;
+    reviews.forEach(r => {
+      sum += r.rating;
+      if (r.rating >= 4) pos++;
+      else if (r.rating <= 3) neg++;
+    });
 
- const { activeAssignment } = useAuth();
- useEffect(() => {
- if (activeAssignment) {
- setCurrentUser({
- adminId: activeAssignment.adminId,
- branch: activeAssignment.branchId
- });
- }
- }, [activeAssignment]);
-
- // 1. Fetch branch push ID
- useEffect(() => {
- if (!currentUser) return;
- const unsub = onValue(ref(rtdb, `branch/${currentUser.adminId}`), (branchSnap) => {
- if (branchSnap.exists()) {
- const branches = branchSnap.val();
- const matchedPushId = Object.keys(branches).find(key => 
- branches[key].code?.toLowerCase() === currentUser.branch?.toLowerCase()
- );
- if (matchedPushId) {
- setBranchPushId(matchedPushId);
- } else {
- setBranchPushId(currentUser.branch);
- }
- } else {
- setBranchPushId(currentUser.branch);
- }
- });
- return () => unsub();
- }, [currentUser]);
-
- // 2. Fetch Orders and Reviews
- useEffect(() => {
- if (!currentUser || !branchPushId) return;
- 
- const ordersRef = ref(rtdb, `order/${currentUser.adminId}/${branchPushId}`);
- const unsub = onValue(ordersRef, async (snapshot) => {
- if (snapshot.exists()) {
- const data = snapshot.val();
- const loadedReviews: ReviewData[] = [];
- const ordersMap: Record<string, OrderData> = {};
- 
- const orderIds = Object.keys(data);
- 
- // We'll map everything, then wait for all customer names to load
- const reviewPromises = orderIds.map(async (orderId) => {
- const rawOrder = data[orderId];
- const customerId = rawOrder.customerId || '';
- 
- let customerName = rawOrder.customer?.name || rawOrder.customerName || rawOrder.deliveryAddress?.name || 'Customer';
- 
- // Asynchronously fetch from user_customer if customerId exists
- if (customerId) {
- try {
- const { get } = await import('firebase/database');
- const custSnap = await get(ref(rtdb, `user_customer/${currentUser.adminId}/${customerId}`));
- if (custSnap.exists()) {
- const c = custSnap.val();
- customerName = c.fullName || c.name || (c.firstName ? `${c.firstName} ${c.lastName || ''}`.trim() : null) || customerName;
- }
- } catch (e) {
- console.error("Failed to fetch customer", e);
- }
- }
- 
- const itemsList = Array.isArray(rawOrder.items) 
- ? rawOrder.items 
- : rawOrder.items ? Object.values(rawOrder.items) : [];
-
- // Map OrderData
- const mappedOrder: OrderData = {
- id: rawOrder.id || orderId,
- _key: orderId,
- _customerId: customerId,
- status: rawOrder.status === 'Placed' ? 'Pending' : (rawOrder.status || 'Pending'),
- type: 'Delivery',
- customer: { 
- name: customerName, 
- phone: rawOrder.customer?.phone || rawOrder.deliveryAddress?.phone || '',
- address: rawOrder.deliveryAddress?.addressLine || '' 
- },
- items: itemsList.map((i:any) => ({
- name: i.name || 'Item',
- qty: i.quantity || 1,
- price: i.unit_price || 0,
- subtotal: i.total_price || 0
- })),
- billing: {
- subtotal: rawOrder.subtotal || 0,
- tax: rawOrder.tax || 0,
- total: rawOrder.total || 0
- },
- payment: {
- method: rawOrder.paymentMethod || 'Online',
- status: 'Paid'
- },
- created_at: rawOrder.orderDate ? new Date(rawOrder.orderDate).getTime() : Date.now()
- };
- 
- ordersMap[mappedOrder.id] = mappedOrder;
-
- // Extract review from customer_review
- if (rawOrder.customer_review) {
- loadedReviews.push({
- id: rawOrder.customer_review.id || `REV-${mappedOrder.id}`,
- rating: rawOrder.customer_review.rating || 5,
- date: rawOrder.customer_review.date || new Date(mappedOrder.created_at || Date.now()).toISOString().replace('T', ' ').slice(0, 16),
- customerName: customerName,
- isAnonymous: rawOrder.customer_review.isAnonymous || false,
- comment: rawOrder.customer_review.comment || '',
- orderId: mappedOrder.id,
- orderedItems: mappedOrder.items.map((i: any) => ({ name: i.name, price: i.price }))
- });
- }
- });
- 
- await Promise.all(reviewPromises);
- 
- loadedReviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
- setReviews(loadedReviews);
- setAllOrdersMap(ordersMap);
- } else {
- setReviews([]);
- setAllOrdersMap({});
- }
- });
- return () => unsub();
- }, [currentUser, branchPushId]);
-
-
-
- // --- Analytics Calculations ---
- const { averageRating, totalReviews, positiveReviews, negativeReviews } = useMemo(() => {
-  const total = reviews.length;
-  if (total === 0) return { averageRating: 0, totalReviews: 0, positiveReviews: 0, negativeReviews: 0 };
-  
-  let sum = 0;
-  let pos = 0;
-  let neg = 0;
-  reviews.forEach(r => {
-    sum += r.rating;
-    if (r.rating >= 4) pos++;
-    else if (r.rating <= 3) neg++;
-  });
-
-  return {
-    averageRating: sum / total,
-    totalReviews: total,
-    positiveReviews: pos,
-    negativeReviews: neg
-  };
- }, [reviews]);
+    return {
+      averageRating: sum / total,
+      totalReviews: total,
+      positiveReviews: pos,
+      negativeReviews: neg
+    };
+  }, [reviews]);
 
   // --- Filtering & Sorting ---
   const filteredReviews = useMemo(() => {
@@ -213,7 +84,7 @@ export default function ReviewsDashboard() {
     return (
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
-          <Star key={star} className={`w-4 h-4 ${star <= rating ? 'fill-[#FF6B00] text-[#FF6B00]' : 'fill-gray-200 text-gray-200'}`} />
+          <Star key={star} className={\`w-4 h-4 \${star <= rating ? 'fill-[#FF6B00] text-[#FF6B00]' : 'fill-gray-200 text-gray-200'}\`} />
         ))}
       </div>
     );
@@ -252,7 +123,7 @@ export default function ReviewsDashboard() {
         isOpen={reviewDrawerOpen} 
         onClose={() => setReviewDrawerOpen(false)} 
         review={selectedReview} 
-        onOpenOrder={(id) => navigate(`/restaurant/orders/${id}`)}
+        onOpenOrder={(id) => navigate(\`/restaurant/orders/\${id}\`)}
       />
 
       {/* Header section */}
@@ -341,14 +212,14 @@ export default function ReviewsDashboard() {
             {/* Mobile Filter Button */}
             <button
               onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
-              className={`xl:hidden p-2.5 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileFilterOpen ? 'bg-[#FFF3E8] border-[#FFD0B5] text-[#FF6B00]' : 'bg-gray-50 border-[#E8ECF4] text-[#8896AB] hover:text-[#FF6B00] hover:border-[#FF6B00]'}`}
+              className={\`xl:hidden p-2.5 border rounded-xl transition-all shadow-sm shrink-0 \${isMobileFilterOpen ? 'bg-[#FFF3E8] border-[#FFD0B5] text-[#FF6B00]' : 'bg-gray-50 border-[#E8ECF4] text-[#8896AB] hover:text-[#FF6B00] hover:border-[#FF6B00]'}\`}
             >
               <Filter className="w-5 h-5" />
             </button>
           </div>
 
           {/* Filters Card */}
-          <div className={`xl:flex ${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full xl:w-auto bg-gray-50 xl:bg-transparent p-4 xl:p-0 rounded-xl border border-[#E8ECF4] xl:border-none shadow-sm xl:shadow-none mt-2 xl:mt-0`}>
+          <div className={\`xl:flex \${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full xl:w-auto bg-gray-50 xl:bg-transparent p-4 xl:p-0 rounded-xl border border-[#E8ECF4] xl:border-none shadow-sm xl:shadow-none mt-2 xl:mt-0\`}>
             <div className="w-full md:w-[150px]">
             <Select
               value={selectedRating.toString()}
@@ -456,13 +327,13 @@ export default function ReviewsDashboard() {
                               key={idx}
                               onClick={() => typeof page === 'number' ? setCurrentPage(page) : undefined}
                               disabled={page === '...'}
-                              className={`min-w-[32px] sm:min-w-[36px] h-8 sm:h-9 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${
+                              className={\`min-w-[32px] sm:min-w-[36px] h-8 sm:h-9 flex items-center justify-center rounded-lg text-sm font-bold transition-all \${
                                   page === currentPage
                                       ? 'border border-[#FF6B00] text-[#FF6B00] bg-white'
                                       : page === '...'
                                           ? 'text-[#8896AB] cursor-default border-none bg-transparent'
                                           : 'border border-[#E8ECF4] text-[#1a1f36] bg-white hover:bg-[#F4F6FA]'
-                                  }`}
+                                  }\`}
                           >
                               {page}
                           </button>
@@ -485,3 +356,8 @@ export default function ReviewsDashboard() {
     </div>
   );
 }
+\`;
+
+content = content.substring(0, analyticsIndex) + newTail;
+fs.writeFileSync(path, content, 'utf8');
+console.log('Successfully rewrote ReviewsDashboard.tsx');

@@ -46,6 +46,10 @@ export interface OrderData {
  _customerId?: string;
  _branchId?: string;
  branch?: string;
+ customer_review?: {
+ rating: number;
+ comment: string;
+ };
 }
 
 import { useAuth } from './useAuth';
@@ -236,7 +240,11 @@ export function useRestaurantOrders() {
           }
 
           return deliveryAgentObj;
-        })()
+        })(),
+        customer_review: rawOrder.customer_review ? {
+          rating: rawOrder.customer_review.rating || 5,
+          comment: rawOrder.customer_review.comment || '',
+        } : undefined
       };
     });
     setOrders(mergedOrders);

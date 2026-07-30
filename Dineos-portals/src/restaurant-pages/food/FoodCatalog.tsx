@@ -1,9 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, UtensilsCrossed, AlertCircle, CheckCircle2, Leaf, Drumstick, EggFried, FileX, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Search, UtensilsCrossed, AlertCircle, CheckCircle2, Leaf, Drumstick, EggFried, FileX, ChevronLeft, ChevronRight, Eye, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
-import Card from '../../components/common/Card';
-import Badge from '../../components/common/Badge';
 import Select from '../../components/common/Select';
 import AvailabilityToggle from './components/AvailabilityToggle';
 import DisableConfirmationModal from './components/DisableConfirmationModal';
@@ -18,7 +16,6 @@ export default function FoodCatalog() {
  const [currentUser, setCurrentUser] = useState<any>(null);
  const [masterMenu, setMasterMenu] = useState<any[]>([]);
  const [assignedMenuIds, setAssignedMenuIds] = useState<string[]>([]);
- const [menuAvailability, setMenuAvailability] = useState<Record<string, boolean>>({});
  
  const [branchCode, setBranchCode] = useState<string>('');
  const [branchName, setBranchName] = useState<string>('');
@@ -49,11 +46,9 @@ export default function FoodCatalog() {
  setAssignedMenuIds(val.assigned_menu_ids || []);
  setBranchCode(val.code || branchId);
  setBranchName(val.name || '');
- setMenuAvailability(val.menu_availability || {});
  } else {
  setBranchKey('');
  setAssignedMenuIds([]);
- setMenuAvailability({});
  setBranchCode(branchId);
  setBranchName(branchId);
  }
@@ -78,7 +73,8 @@ export default function FoodCatalog() {
  itemsList.push({
  ...item,
  _key: foodIdKey,
- id: foodIdKey
+ id: foodIdKey,
+ _categoryKey: categoryKey
  });
  }
  });
@@ -102,7 +98,7 @@ export default function FoodCatalog() {
  if (!activeBranchCode) return [];
  return masterMenu.map(m => {
  const foodId = m.foodId || m._key;
- const isAvailable = menuAvailability[foodId] !== false;
+ const isAvailable = m.branchAvailability ? m.branchAvailability[activeBranchCode] !== false : true;
  return {
  id: m._key,
  displayId: foodId,
@@ -112,10 +108,11 @@ export default function FoodCatalog() {
  image_url: m.image_url,
  is_vegetarian: m.is_vegetarian || m.dietary_types?.includes('Veg'),
  tags: m.tags || m.dietary_types || [],
- isAvailable
+ isAvailable,
+ _categoryKey: m._categoryKey
  };
  });
- }, [masterMenu, menuAvailability, currentUser, branchCode]);
+ }, [masterMenu, currentUser, branchCode]);
  
   const categories = useMemo(() => {
     const uniqueCats = new Set<string>();
@@ -132,19 +129,20 @@ export default function FoodCatalog() {
  };
 
  const getDietaryBadge = (type: string) => {
- const baseClass ="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border";
- switch (type) {
- case 'Veg': return <div className={`${baseClass} bg-green-50 text-green-700 border-green-200`}><Leaf className="w-3 h-3" /> Veg</div>;
- case 'Non-Veg': return <div className={`${baseClass} bg-red-50 text-red-700 border-red-200`}><Drumstick className="w-3 h-3" /> Non-Veg</div>;
- case 'Egg': return <div className={`${baseClass} bg-amber-50 text-amber-700 border-amber-200`}><EggFried className="w-3 h-3" /> Egg</div>;
- default: return null;
- }
+ const isVeg = type === 'Veg';
+ return (
+ <div className="flex items-center gap-1.5">
+ <div className={`w-2.5 h-2.5 rounded-[2px] ${isVeg ? 'bg-[#00A254]' : 'bg-[#FF3B5C]'}`}></div>
+ <span className="text-[12px] font-medium text-[#8896AB]">{isVeg ? 'Veg' : 'Non-Veg'}</span>
+ </div>
+ );
  };
  
  // Filters
  const [searchInput, setSearchInput] = useState('');
  const [debouncedSearch, setDebouncedSearch] = useState('');
  const [categoryFilter, setCategoryFilter] = useState('All');
+ const [dietaryFilter, setDietaryFilter] = useState('All');
  const [statusFilter, setStatusFilter] = useState('All');
  const [currentPage, setCurrentPage] = useState(1);
  const itemsPerPage = 8;
@@ -175,9 +173,11 @@ export default function FoodCatalog() {
  ? true 
  : statusFilter === 'Available' ? item.isAvailable : !item.isAvailable;
  
- return matchesSearch && matchesCategory && matchesStatus;
+ const matchesDietary = dietaryFilter === 'All' || getDietaryString(item) === dietaryFilter;
+ 
+ return matchesSearch && matchesCategory && matchesStatus && matchesDietary;
  });
- }, [items, debouncedSearch, categoryFilter, statusFilter]);
+ }, [items, debouncedSearch, categoryFilter, statusFilter, dietaryFilter]);
 
  // Pagination slice
  const paginatedItems = useMemo(() => {
@@ -190,7 +190,7 @@ export default function FoodCatalog() {
  // Pagination reset when filters change
  useEffect(() => {
  setCurrentPage(1);
- }, [debouncedSearch, categoryFilter, statusFilter]);
+ }, [debouncedSearch, categoryFilter, statusFilter, dietaryFilter]);
 
  // Optimistic Toggle Handler
  const handleToggle = async (id: string, currentlyAvailable: boolean) => {
@@ -209,13 +209,13 @@ export default function FoodCatalog() {
 
  const handleConfirmDisable = async () => {
  if (!itemToDisable || !currentUser || !branchCode || !branchKey) return;
- const { displayId, name } = itemToDisable;
+ const { id, name, _categoryKey } = itemToDisable;
  
  setModalOpen(false);
  setItemToDisable(null);
  
  try {
- await set(ref(rtdb, `branch/${currentUser.adminId}/${branchKey}/menu_availability/${displayId}`), false);
+ await set(ref(rtdb, `menu/${currentUser.adminId}/${_categoryKey}/${id}/branchAvailability/${branchCode}`), false);
  toast.success(`${name} marked as unavailable.`);
  } catch (error) {
  toast.error("Failed to synchronize menu changes.");
@@ -224,13 +224,13 @@ export default function FoodCatalog() {
 
  const handleConfirmEnable = async () => {
  if (!itemToEnable || !currentUser || !branchCode || !branchKey) return;
- const { displayId, name } = itemToEnable;
+ const { id, name, _categoryKey } = itemToEnable;
  
  setEnableModalOpen(false);
  setItemToEnable(null);
  
  try {
- await set(ref(rtdb, `branch/${currentUser.adminId}/${branchKey}/menu_availability/${displayId}`), null);
+ await set(ref(rtdb, `menu/${currentUser.adminId}/${_categoryKey}/${id}/branchAvailability/${branchCode}`), true);
  toast.success(`${name} availability restored.`);
  } catch (error) {
  toast.error("Failed to synchronize menu changes.");
@@ -257,7 +257,7 @@ export default function FoodCatalog() {
  };
 
  return (
- <div className="space-y-6">
+ <div className="space-y-6 w-full px-4 sm:px-6 lg:px-8 pb-10 pt-4">
  
  <DisableConfirmationModal 
  isOpen={modalOpen} 
@@ -276,53 +276,62 @@ export default function FoodCatalog() {
  {/* Top Section */}
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
- <h1 className="text-3xl font-black text-brand-navy tracking-tight">
- {branchName ? `${branchName}'s Menu` : 'Menu'}
+ <h1 className="text-[28px] font-black text-[#1a1f36] tracking-tight">
+ Menu List
  </h1>
- <p className="text-text-secondary mt-1 text-sm font-medium">Manage real-time food availability for customer ordering.</p>
+ <p className="text-[#8896AB] mt-1 text-[15px] font-medium">Manage your restaurant menu and availability.</p>
  </motion.div>
  </div>
 
  {/* Main Content Area */}
  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
- <Card className="p-0 overflow-hidden border border-border/50 shadow-soft bg-white flex flex-col min-h-[600px]">
-
+ <div className="bg-white rounded-2xl border border-[#E8ECF4] flex flex-col min-h-[600px] shadow-sm">
+ 
  {/* Filter Bar */}
- <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-border p-4 flex flex-col xl:flex-row xl:items-center justify-between shadow-sm gap-2">
- {/* Top Row: Search & Mobile Filter Toggle */}
- <div className="flex items-center justify-between gap-2 sm:gap-3 w-full xl:w-auto">
- <div className="relative w-full md:w-80 group">
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary group-focus-within:text-brand-orange-600 transition-colors" />
+ <div className="sticky top-0 z-10 bg-white p-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-[#E8ECF4] rounded-t-2xl shadow-sm">
+ <div className="flex items-center justify-between gap-2 sm:gap-3 w-full xl:w-auto flex-1">
+ <div className="relative w-full xl:w-[350px] group shrink-0">
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8896AB] group-focus-within:text-[#FF6B00] transition-colors" />
  <input
  type="text"
- placeholder="Search by name or ID..."
+ placeholder="Search food items..."
  maxLength={100}
  value={searchInput}
  onChange={(e) => setSearchInput(e.target.value)}
- className="w-full pl-9 pr-4 py-2 bg-gray-50/50 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-orange-500/20 focus:border-brand-orange-500 transition-all shadow-sm hover:bg-white focus:bg-white placeholder:text-text-secondary/60"
+ className="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-[#E8ECF4] rounded-xl text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20 focus:border-[#FF6B00] transition-all text-[#1a1f36] placeholder:text-[#8896AB]"
  />
  </div>
-
- {/* Mobile Filter Button */}
+ 
  <button
  onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
- className={`xl:hidden p-2.5 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileFilterOpen ? 'bg-[#FFF3E8] border-[#FFD0B5] text-[#FF6B00]' : 'bg-gray-50 border-border text-text-secondary hover:text-[#FF6B00] hover:border-[#FF6B00]'}`}
+ className={`xl:hidden p-2.5 border rounded-xl transition-all shadow-sm shrink-0 ${isMobileFilterOpen ? 'bg-[#FFF3E8] border-[#FFD0B5] text-[#FF6B00]' : 'bg-gray-50 border-[#E8ECF4] text-[#8896AB] hover:text-[#FF6B00] hover:border-[#FF6B00]'}`}
  >
- <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+ <Filter className="w-5 h-5" />
  </button>
  </div>
 
- {/* Filters Card */}
- <div className={`xl:flex ${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full xl:w-auto bg-gray-50 xl:bg-transparent p-4 xl:p-0 rounded-xl border border-border xl:border-none shadow-sm xl:shadow-none mt-2 xl:mt-0`}>
- <div className="w-full md:w-[160px]">
+ <div className={`xl:flex ${isMobileFilterOpen ? 'flex' : 'hidden'} flex-col md:flex-row items-center gap-3 w-full xl:w-auto mt-2 xl:mt-0`}>
+ <div className="w-full md:w-[150px]">
  <Select
  value={categoryFilter}
  onChange={(e) => setCategoryFilter(e.target.value)}
  options={categories.map(cat => ({ value: cat, label: cat === 'All' ? 'All Categories' : cat }))}
- className="py-2 h-auto text-sm font-bold shadow-sm bg-gray-50/50 hover:bg-white"
+ className="w-full py-2.5 h-auto text-[13px] font-bold border-[#E8ECF4] bg-gray-50/50 text-[#1a1f36] rounded-xl shadow-sm hover:bg-white focus:bg-white transition-colors"
  />
  </div>
- <div className="w-full md:w-[150px]">
+ <div className="w-full md:w-[130px]">
+ <Select
+ value={dietaryFilter}
+ onChange={(e) => setDietaryFilter(e.target.value)}
+ options={[
+ {value: "All", label: "All"},
+ {value: "Veg", label: "Veg"},
+ {value: "Non-Veg", label: "Non-Veg"}
+ ]}
+ className="w-full py-2.5 h-auto text-[13px] font-bold border-[#E8ECF4] bg-gray-50/50 text-[#1a1f36] rounded-xl shadow-sm hover:bg-white focus:bg-white transition-colors"
+ />
+ </div>
+ <div className="w-full md:w-[140px]">
  <Select
  value={statusFilter}
  onChange={(e) => setStatusFilter(e.target.value)}
@@ -331,7 +340,7 @@ export default function FoodCatalog() {
  { value: 'Available', label: 'Available' },
  { value: 'Unavailable', label: 'Unavailable' }
  ]}
- className="py-2 h-auto text-sm font-bold shadow-sm bg-gray-50/50 hover:bg-white"
+ className="w-full py-2.5 h-auto text-[13px] font-bold border-[#E8ECF4] bg-gray-50/50 text-[#1a1f36] rounded-xl shadow-sm hover:bg-white focus:bg-white transition-colors"
  />
  </div>
  </div>
@@ -340,15 +349,15 @@ export default function FoodCatalog() {
  {/* Menu Item Records */}
  <div className="flex-1 overflow-x-auto relative bg-white">
  {paginatedItems.length === 0 ? (
- <div className="flex-1 flex flex-col items-center justify-center text-text-secondary py-16">
+ <div className="flex-1 flex flex-col items-center justify-center text-[#8896AB] py-16">
  <FileX className="w-12 h-12 mb-4 opacity-50" />
- <p className="font-medium text-lg">
+ <p className="font-medium text-[15px]">
  {debouncedSearch.length > 0 ? `No items found matching "${debouncedSearch}"` : 'No menu items found.'}
  </p>
- {(searchInput || categoryFilter !== 'All' || statusFilter !== 'All') && (
+ {(searchInput || categoryFilter !== 'All' || statusFilter !== 'All' || dietaryFilter !== 'All') && (
  <button 
- onClick={() => { setSearchInput(''); setCategoryFilter('All'); setStatusFilter('All'); }}
- className="mt-4 px-4 py-2 bg-white border border-border hover:bg-gray-50 text-brand-navy font-semibold rounded-lg transition-colors text-sm shadow-sm"
+ onClick={() => { setSearchInput(''); setCategoryFilter('All'); setStatusFilter('All'); setDietaryFilter('All'); }}
+ className="mt-4 px-4 py-2 bg-white border border-[#E8ECF4] hover:bg-gray-50 text-[#1a1f36] font-semibold rounded-lg transition-colors text-[13px] shadow-sm"
  >
  Clear Filters
  </button>
@@ -357,70 +366,60 @@ export default function FoodCatalog() {
  ) : (
  <table className="w-full text-left border-collapse min-w-[800px]">
  <thead>
- <tr className="bg-gray-50/50 border-b border-border/50">
- <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[35%]">Item Details</th>
- <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[15%]">Category</th>
- <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[10%]">Dietary</th>
- <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[10%]">Price</th>
- <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[20%] text-left">Availability</th>
- <th className="px-6 py-5 text-xs font-bold text-text-secondary uppercase tracking-wider w-[10%] text-left">Actions</th>
+ <tr className="border-b border-[#E8ECF4]">
+ <th className="px-6 py-4 text-[13px] font-bold text-[#1a1f36] w-[5%]">No.</th>
+ <th className="px-6 py-4 text-[13px] font-bold text-[#1a1f36] w-[35%]">Item</th>
+ <th className="px-6 py-4 text-[13px] font-bold text-[#1a1f36] w-[20%] text-center">Category</th>
+ <th className="px-6 py-4 text-[13px] font-bold text-[#1a1f36] w-[15%] text-center">Price</th>
+ <th className="px-6 py-4 text-[13px] font-bold text-[#1a1f36] w-[15%] text-center">Availability</th>
+ <th className="px-6 py-4 text-[13px] font-bold text-[#1a1f36] w-[10%] text-center">Actions</th>
  </tr>
  </thead>
- <tbody className="divide-y divide-border/50">
+ <tbody className="divide-y divide-[#E8ECF4]">
  {paginatedItems.map((item, i) => (
  <motion.tr
  key={item.id}
  initial={{ opacity: 0, y: 5 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.2, delay: i * 0.03 }}
- className={`hover:bg-orange-50/30 transition-colors group ${!item.isAvailable && 'opacity-70'}`}
+ className={`hover:bg-[#F8FAFC]/50 transition-colors group ${!item.isAvailable && 'opacity-80'}`}
  >
+ {/* Index */}
+ <td className="px-6 py-5 text-[13px] font-medium text-[#1a1f36]">
+ {(currentPage - 1) * itemsPerPage + i + 1}
+ </td>
+
  {/* Item Details */}
- <td className="px-6 py-5 relative">
- {/* Hover Decoration */}
- <div className="absolute inset-y-0 left-0 w-1 bg-brand-orange-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-r"></div>
+ <td className="px-6 py-5">
  <div className="flex items-center gap-4">
  <img
  src={item.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400'}
  alt={item.name}
  onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400' }}
- className={`w-12 h-12 rounded-xl object-cover border border-border shadow-sm shrink-0 group-hover:scale-105 transition-transform ${!item.isAvailable && 'grayscale'}`}
+ className={`w-[52px] h-[52px] rounded-xl object-cover shadow-sm shrink-0 ${!item.isAvailable && 'grayscale'}`}
  />
- <div>
- <div className="flex items-center gap-2 mb-0.5">
- <h3 className="text-sm font-black text-brand-navy truncate max-w-[200px] group-hover:text-brand-orange-600 transition-colors">{item.name}</h3>
- </div>
- {item.displayId && (
- <span className="font-mono text-[10px] font-bold text-text-secondary bg-gray-100 px-1.5 py-0.5 rounded tracking-widest">
- {item.displayId}
- </span>
- )}
+ <div className="flex flex-col justify-center">
+ <span className="text-[14px] font-bold text-[#1a1f36] leading-tight mb-1">{item.name}</span>
+ {getDietaryBadge(item.is_vegetarian ? 'Veg' : 'Non-Veg')}
  </div>
  </div>
  </td>
 
  {/* Category */}
- <td className="px-6 py-5">
- <span className="text-sm font-semibold text-text-secondary">
+ <td className="px-6 py-5 text-center">
+ <span className="text-[13px] font-medium text-[#8896AB]">
  {item.category}
  </span>
  </td>
 
- {/* Dietary */}
- <td className="px-6 py-5">
- <span className="text-sm font-semibold text-text-secondary">
- {getDietaryString(item)}
- </span>
- </td>
-
  {/* Price */}
- <td className="px-6 py-5 whitespace-nowrap">
- <span className="font-black text-brand-navy">₹{item.price}</span>
+ <td className="px-6 py-5 text-center">
+ <span className="text-[14px] font-bold text-[#1a1f36]">₹{item.price}</span>
  </td>
 
  {/* Availability */}
- <td className="px-6 py-5 text-left" onClick={(e) => e.stopPropagation()}>
- <div className="flex items-center justify-start gap-3">
+ <td className="px-6 py-5 text-center" onClick={(e) => e.stopPropagation()}>
+ <div className="flex items-center justify-center">
  <AvailabilityToggle 
  isAvailable={item.isAvailable} 
  onToggle={() => handleToggle(item.id, item.isAvailable)} 
@@ -429,15 +428,14 @@ export default function FoodCatalog() {
  </td>
 
  {/* Actions */}
- <td className="px-6 py-5 text-left whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
- <div className="flex items-center justify-start gap-2">
+ <td className="px-6 py-5 text-center" onClick={(e) => e.stopPropagation()}>
+ <div className="flex items-center justify-center">
  <Link
  to={`/restaurant/food/${item.id}`}
- className="px-3 py-1.5 text-sm font-semibold text-brand-navy bg-gray-100 hover:bg-brand-orange-50 hover:text-brand-orange-600 rounded-lg transition-all flex items-center gap-1.5"
+ className="w-9 h-9 rounded-[10px] border border-[#E8ECF4] flex items-center justify-center text-[#8896AB] hover:text-[#1a1f36] hover:bg-[#F8FAFC] transition-colors"
  title="View Details"
  >
- <Eye className="w-4 h-4" />
- <span>View</span>
+ <Eye className="w-[18px] h-[18px]" />
  </Link>
  </div>
  </td>
@@ -450,12 +448,12 @@ export default function FoodCatalog() {
 
  {/* Pagination Footer */}
  {totalPages > 0 && (
- <div className="mt-auto px-4 sm:px-6 py-4 border-t border-border flex flex-col items-center justify-center gap-4 bg-white rounded-b-2xl">
+ <div className="mt-auto px-4 sm:px-6 py-4 border-t border-[#E8ECF4] flex flex-col items-center justify-center gap-4 bg-white rounded-b-2xl">
  <div className="flex items-center justify-center w-full gap-2 sm:gap-3">
  <button
  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
  disabled={currentPage === 1}
- className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg border border-border hover:bg-gray-50 text-text-secondary hover:text-brand-navy transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white shadow-sm"
+ className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg border border-[#E8ECF4] hover:bg-[#F4F6FA] text-[#8896AB] hover:text-[#1a1f36] transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white"
  >
  <ChevronLeft className="w-4 h-4" />
  </button>
@@ -468,10 +466,10 @@ export default function FoodCatalog() {
  disabled={page === '...'}
  className={`min-w-[32px] sm:min-w-[36px] h-8 sm:h-9 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${
  page === currentPage
- ? 'border border-brand-orange-500 text-brand-orange-500 bg-white shadow-sm'
+ ? 'border border-[#FF6B00] text-[#FF6B00] bg-white'
  : page === '...'
- ? 'text-text-secondary cursor-default border-none bg-transparent'
- : 'border border-border text-brand-navy bg-white hover:bg-gray-50 shadow-sm'
+ ? 'text-[#8896AB] cursor-default border-none bg-transparent'
+ : 'border border-[#E8ECF4] text-[#1a1f36] bg-white hover:bg-[#F4F6FA]'
  }`}
  >
  {page}
@@ -482,17 +480,17 @@ export default function FoodCatalog() {
  <button
  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
  disabled={currentPage === totalPages}
- className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg border border-border hover:bg-gray-50 text-text-secondary hover:text-brand-navy transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white shadow-sm"
+ className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg border border-[#E8ECF4] hover:bg-[#F4F6FA] text-[#8896AB] hover:text-[#1a1f36] transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white"
  >
  <ChevronRight className="w-4 h-4" />
  </button>
  </div>
- <p className="text-sm text-text-secondary font-semibold">
+ <p className="text-sm text-[#8896AB] font-semibold">
  Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredItems.length)} of {filteredItems.length} items
  </p>
  </div>
  )}
- </Card>
+ </div>
  </motion.div>
  </div>
  );

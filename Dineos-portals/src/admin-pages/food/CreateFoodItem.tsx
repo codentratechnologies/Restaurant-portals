@@ -180,8 +180,28 @@ export default function CreateFoodItem() {
         updated_at: new Date().toISOString()
       };
 
+      // Fetch all branches to initialize branchAvailability
+      const branchRef = ref(rtdb, `branch/${user.uid}`);
+      const branchSnap = await get(branchRef);
+      const branchAvailability: Record<string, boolean> = {};
+      
+      if (branchSnap.exists()) {
+        const branchesData = branchSnap.val();
+        Object.keys(branchesData).forEach(key => {
+          const bCode = branchesData[key].code;
+          if (bCode) {
+            branchAvailability[bCode] = true;
+          }
+        });
+      }
+
+      const finalPayload = {
+        ...payload,
+        branchAvailability
+      };
+
       const newFoodRef = ref(rtdb, `menu/${user.uid}/${formData.category}/${foodId}`);
-      await set(newFoodRef, payload);
+      await set(newFoodRef, finalPayload);
 
       toast.success('Food item created successfully!');
       navigate('/admin/food');

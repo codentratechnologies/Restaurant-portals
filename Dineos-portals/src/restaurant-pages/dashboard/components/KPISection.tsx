@@ -2,32 +2,61 @@ import { IndianRupee, ShoppingBag, XCircle, AlertTriangle } from 'lucide-react';
 import KPICard from './KPICard';
 
 interface KPISectionProps {
- isManager: boolean;
- totalRevenue: number;
- totalOrders: number;
- totalRejections: number;
- totalCancellations: number;
- trends?: any;
+  isManager: boolean;
+  totalRevenue: number;
+  totalOrders: number;
+  totalRejections: number;
+  totalCancellations: number;
+  trends?: any;
+  pendingOrdersCount?: number;
 }
 
-export default function KPISection({ isManager, totalRevenue, totalOrders, totalRejections, totalCancellations, trends }: KPISectionProps) {
- const kpis = [
- { title: 'Revenue', amount: `₹${totalRevenue.toLocaleString()}`, trend: trends?.revenue?.text || '+0%', isUp: trends?.revenue?.isUp ?? true, description: trends?.revenue?.desc, icon: IndianRupee, colorClass: 'text-emerald-600', bgClass: 'bg-emerald-100', hiddenAmount: 'Hidden' },
- { title: 'Orders', amount: totalOrders.toString(), trend: trends?.orders?.text || '+0%', isUp: trends?.orders?.isUp ?? true, description: trends?.orders?.desc, icon: ShoppingBag, colorClass: 'text-blue-600', bgClass: 'bg-blue-100', hiddenAmount: totalOrders.toString() },
- { title: 'Rejections', amount: totalRejections.toString(), trend: trends?.rejections?.text || '0%', isUp: trends?.rejections?.isUp ?? false, description: trends?.rejections?.desc, icon: XCircle, colorClass: 'text-red-600', bgClass: 'bg-red-100', hiddenAmount: totalRejections.toString() },
- { title: 'Cancellations', amount: totalCancellations.toString(), trend: trends?.cancellations?.text || '0%', isUp: trends?.cancellations?.isUp ?? false, description: trends?.cancellations?.desc, icon: AlertTriangle, colorClass: 'text-orange-600', bgClass: 'bg-orange-100', hiddenAmount: totalCancellations.toString() },
- ];
+export default function KPISection({ isManager, totalRevenue, totalOrders, totalRejections, totalCancellations }: KPISectionProps) {
+  const kpis = [
+    { 
+      title: "Total Revenue", 
+      amount: `₹${totalRevenue.toLocaleString()}`, 
+      icon: IndianRupee, 
+      colorClass: 'text-emerald-600', 
+      bgClass: 'bg-emerald-50', 
+      hiddenAmount: 'Hidden' 
+    },
+    { 
+      title: "Total Orders", 
+      amount: totalOrders.toString(), 
+      icon: ShoppingBag, 
+      colorClass: 'text-[#FF6B00]', 
+      bgClass: 'bg-[#FFF3E8]', 
+      hiddenAmount: totalOrders.toString() 
+    },
+    { 
+      title: 'Rejected Orders', 
+      amount: totalRejections.toString(), 
+      icon: XCircle, 
+      colorClass: 'text-red-500', 
+      bgClass: 'bg-red-50', 
+      hiddenAmount: totalRejections.toString() 
+    },
+    { 
+      title: 'Canceled Orders', 
+      amount: totalCancellations.toString(), 
+      icon: AlertTriangle, 
+      colorClass: 'text-[#F59E0B]', 
+      bgClass: 'bg-[#FEF3C7]', 
+      hiddenAmount: totalCancellations.toString() 
+    },
+  ];
 
- return (
- <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 xl:gap-6 mb-8">
- {kpis.map((kpi, index) => (
- <KPICard 
- key={kpi.title} 
- {...kpi} 
- delay={0.1 * index} 
- isManager={kpi.title === 'Revenue' ? isManager : true} 
- />
- ))}
- </div>
- );
+  return (
+    <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 xl:gap-6">
+      {kpis.map((kpi, index) => (
+        <KPICard 
+          key={kpi.title} 
+          {...kpi} 
+          delay={0.1 * index} 
+          isManager={kpi.title === "Total Revenue" ? isManager : true} 
+        />
+      ))}
+    </div>
+  );
 }

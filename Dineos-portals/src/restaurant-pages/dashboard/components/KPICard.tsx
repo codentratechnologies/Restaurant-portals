@@ -1,59 +1,59 @@
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
 import React from 'react';
 
 interface KPICardProps {
- title: string;
- amount: string | number;
- trend?: string;
- isUp?: boolean;
- icon: React.ElementType;
- colorClass: string;
- bgClass: string;
- delay?: number;
- isManager?: boolean;
- hiddenAmount?: string;
- description?: string;
+  title: string;
+  amount: string | number;
+  trend?: string;
+  isUp?: boolean;
+  icon: React.ElementType;
+  colorClass: string;
+  bgClass: string;
+  delay?: number;
+  isManager?: boolean;
+  hiddenAmount?: string;
+  isLink?: boolean;
+  linkText?: string;
 }
 
 export default function KPICard({ 
- title, amount, trend, isUp, icon: Icon, colorClass, bgClass, delay = 0, isManager = true, hiddenAmount = '***', description 
+  title, amount, trend, isUp, icon: Icon, colorClass, bgClass, delay = 0, isManager = true, hiddenAmount = '***', isLink, linkText 
 }: KPICardProps) {
- 
- return (
- <motion.div
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ duration: 0.5, delay }}
- >
- <div className="p-6 relative overflow-hidden group border border-border/60 shadow-soft bg-white/70 backdrop-blur-2xl rounded-2xl hover:shadow-2xl hover:-translate-y-1 hover:ring-1 hover:ring-brand-orange-500/30 transition-all duration-300 h-full flex flex-col justify-between">
- {/* Premium decorative gradient blob */}
- <div className={`absolute -top-12 -right-12 w-32 h-32 rounded-full ${bgClass} blur-3xl opacity-50 group-hover:scale-150 transition-transform duration-700`}></div>
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay }}
+      className="h-full"
+    >
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-[#E8ECF4] flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 h-full hover:shadow-md transition-shadow">
+        
+        <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${bgClass} flex items-center justify-center shrink-0`}>
+          <Icon className={`w-5 h-5 sm:w-7 sm:h-7 ${colorClass}`} />
+        </div>
 
- <div className="relative z-10 flex items-start justify-between mb-6">
- <div className={`w-12 h-12 rounded-2xl ${bgClass} flex items-center justify-center shadow-inner ring-1 ring-white/50 backdrop-blur-sm`}>
- <Icon className={`w-6 h-6 ${colorClass}`} />
- </div>
- <div className="flex items-center gap-2">
- {trend && (
- <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider shadow-sm border ${isUp ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
- {isUp ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
- {trend}
- </div>
- )}
- {description && <span className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">{description}</span>}
- </div>
- </div>
-
- <div className="relative z-10 flex-1 flex flex-col justify-end">
- <p className="text-text-secondary text-xs font-bold mb-1 uppercase tracking-widest">{title}</p>
- <div className="flex items-baseline gap-2">
- <h3 className="text-3xl font-black text-brand-navy tracking-tighter tabular-nums">
- {isManager ? amount : hiddenAmount}
- </h3>
- </div>
- </div>
- </div>
- </motion.div>
- );
+        <div className="flex flex-col min-w-0 flex-1 w-full">
+          <p className="text-[11px] sm:text-sm font-semibold text-[#8896AB] mb-0.5 sm:mb-1 truncate">{title}</p>
+          <h3 className="text-xl sm:text-[28px] font-black text-[#1a1f36] leading-none tracking-tight mb-1 sm:mb-2 truncate">
+            {isManager ? amount : hiddenAmount}
+          </h3>
+          
+          {isLink ? (
+            <button className="flex items-center gap-1 text-[11px] sm:text-sm font-bold text-[#FF6B00] hover:text-[#E66000] transition-colors mt-1">
+              {linkText} <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+            </button>
+          ) : trend ? (
+            <div className={`flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-sm font-semibold ${isUp !== undefined ? (isUp ? 'text-emerald-600' : 'text-red-600') : 'text-blue-600'}`}>
+              {isUp !== undefined && (
+                isUp ? <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" /> : <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4" />
+              )}
+              <span className="truncate">{trend}</span>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </motion.div>
+  );
 }

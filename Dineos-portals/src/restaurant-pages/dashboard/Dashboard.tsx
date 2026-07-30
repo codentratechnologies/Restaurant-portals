@@ -1,32 +1,73 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
 import DashboardHeader from './components/DashboardHeader';
-import FilterToolbar from './components/FilterToolbar';
 import KPISection from './components/KPISection';
 import RevenueOrdersChart from './components/RevenueOrdersChart';
-import OrdersChart from './components/OrdersChart';
 import TopSellingItems from './components/TopSellingItems';
-import RecentOrdersTable from './components/RecentOrdersTable';
+import LiveOrderStatus from './components/LiveOrderStatus';
+import CustomerRating from './components/CustomerRating';
+import Select from '../../components/common/Select';
+import { Download } from 'lucide-react';
+import { exportDashboardReport } from '../../utils/exportUtils';
 import { useDashboardData } from './services/useDashboardData';
 import { useRestaurantOrders } from '../../hooks/useRestaurantOrders';
 
 export default function Dashboard() {
   const {
-    startDate, setStartDate,
-    endDate, setEndDate,
-    period, setPeriod,
-    validationError,
+    startDate,
+    endDate,
+    setStartDate,
+    setEndDate,
     isConnected,
     isManager, setIsManager
   } = useDashboardData();
+
+  const [timeFilter, setTimeFilter] = useState<'today' | '7days' | '30days' | '90days' | 'custom'>('30days');
+  const [customStartDate, setCustomStartDate] = useState<string>(
+    new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0]
+  );
+  const [customEndDate, setCustomEndDate] = useState<string>(
+    new Date().toISOString().split('T')[0]
+  );
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Sync timeFilter with DashboardData dates
+  import('react').then(({ useEffect }) => {
+    useEffect(() => {
+      const today = new Date();
+      let newStart = '';
+      const endStr = today.toISOString().split('T')[0];
+
+      if (timeFilter === 'today') {
+        newStart = endStr;
+      } else if (timeFilter === '7days') {
+        const d = new Date(); d.setDate(d.getDate() - 6);
+        newStart = d.toISOString().split('T')[0];
+      } else if (timeFilter === '30days') {
+        const d = new Date(); d.setDate(d.getDate() - 29);
+        newStart = d.toISOString().split('T')[0];
+      } else if (timeFilter === '90days') {
+        const d = new Date(); d.setDate(d.getDate() - 89);
+        newStart = d.toISOString().split('T')[0];
+      } else if (timeFilter === 'custom') {
+        newStart = customStartDate;
+        setEndDate(customEndDate);
+      }
+
+      if (timeFilter !== 'custom') {
+        setStartDate(newStart);
+        setEndDate(endStr);
+      } else {
+        setStartDate(newStart);
+      }
+    }, [timeFilter, customStartDate, customEndDate, setStartDate, setEndDate]);
+  });
 
   const { orders, loading, masterMenu } = useRestaurantOrders();
 
   const dynamicStats = useMemo(() => {
     let totalRevenue = 0;
-    let totalRejections = 0;
-    let totalCancellations = 0;
     const itemsMap: Record<string, { name: string; orders: number; revenue: number; category: string }> = {};
 
     const start = new Date(startDate + 'T00:00:00');
@@ -46,7 +87,6 @@ export default function Dashboard() {
     let prevTotalRevenue = 0;
     let prevTotalRejections = 0;
     let prevTotalCancellations = 0;
-
     prevFilteredOrders.forEach(order => {
       if (order.status !== 'Rejected' && order.status !== 'Cancelled') {
         prevTotalRevenue += order.billing?.total || 0;
@@ -81,12 +121,24 @@ export default function Dashboard() {
       return orderDate >= start && orderDate <= end;
     });
 
+    let pending = 0;
+    let preparing = 0;
+    let ready = 0;
+    let delivered = 0;
+    let totalRejections = 0;
+    let totalCancellations = 0;
+
     filteredOrders.forEach(order => {
       if (order.status !== 'Rejected' && order.status !== 'Cancelled') {
         totalRevenue += order.billing?.total || 0;
       }
-      if (order.status === 'Rejected') totalRejections++;
-      if (order.status === 'Cancelled') totalCancellations++;
+      
+      if (order.status === 'Pending') pending++;
+      else if (order.status === 'Accepted' || order.status === 'Preparing') preparing++;
+      else if (order.status === 'Ready') ready++;
+      else if (order.status === 'Delivered' || order.status === 'Completed') delivered++;
+      else if (order.status === 'Rejected') totalRejections++;
+      else if (order.status === 'Cancelled') totalCancellations++;
 
       const orderDate = new Date(order.created_at || Date.now());
       let dayIndex = -1;
@@ -114,7 +166,6 @@ export default function Dashboard() {
       }
     });
 
-    // Fix float precisions
     totalRevenue = parseFloat(totalRevenue.toFixed(2));
     chartData.forEach(day => {
       day.revenue = parseFloat(day.revenue.toFixed(2));
@@ -135,26 +186,10 @@ export default function Dashboard() {
           trend: '+New',
           category: item.category,
           progress: 100 - (index * 20),
-          image: imageUrl
+          image: imageUrl,
+          rawQty: item.orders // For export compatibility
         };
       });
-
-    const recentOrdersData = filteredOrders.slice(0, 5).map(order => {
-      let timeDiff = Math.floor((new Date().getTime() - new Date(order.created_at || Date.now()).getTime()) / 60000);
-      if (timeDiff < 0) timeDiff = 0;
-      let timeStr = timeDiff === 0 ? 'Just now' : `${timeDiff} min ago`;
-      if (timeDiff >= 1440) timeStr = `${Math.floor(timeDiff / 1440)} days ago`;
-      else if (timeDiff >= 60) timeStr = `${Math.floor(timeDiff / 60)} hr ago`;
-
-      return {
-        id: `#${(order.id || '').toString().slice(-4)}`,
-        items: order.items.map((i: any) => i.name).join(', '),
-        amount: `₹${(order.billing?.total || 0).toLocaleString()}`,
-        status: order.status,
-        time: timeStr,
-        method: order.payment?.method || 'Online'
-      };
-    });
 
     const getTrend = (current: number, prev: number, inverse = false) => {
       if (prev === 0) {
@@ -171,14 +206,57 @@ export default function Dashboard() {
       };
     };
 
+    const reviews = filteredOrders
+      .map(o => o.customer_review)
+      .filter(r => r !== undefined);
+
+    let averageRating = 0;
+    const distribution = [0, 0, 0, 0, 0];
+    if (reviews.length > 0) {
+      let sum = 0;
+      reviews.forEach(r => {
+        if (r && r.rating >= 1 && r.rating <= 5) {
+          sum += r.rating;
+          distribution[r.rating - 1]++;
+        }
+      });
+      averageRating = sum / reviews.length;
+    }
+
+    const pieData = [
+      { name: 'Pending', value: pending, percentage: filteredOrders.length > 0 ? `${Math.round((pending/filteredOrders.length)*100)}%` : '0%' },
+      { name: 'Preparing', value: preparing, percentage: filteredOrders.length > 0 ? `${Math.round((preparing/filteredOrders.length)*100)}%` : '0%' },
+      { name: 'Ready', value: ready, percentage: filteredOrders.length > 0 ? `${Math.round((ready/filteredOrders.length)*100)}%` : '0%' },
+      { name: 'Delivered', value: delivered, percentage: filteredOrders.length > 0 ? `${Math.round((delivered/filteredOrders.length)*100)}%` : '0%' },
+      { name: 'Rejected', value: totalRejections, percentage: filteredOrders.length > 0 ? `${Math.round((totalRejections/filteredOrders.length)*100)}%` : '0%' },
+    ].filter(d => d.value > 0);
+
+    const recentOrders = filteredOrders
+      .sort((a, b) => (b.created_at || 0) - (a.created_at || 0))
+      .slice(0, 10)
+      .map(o => ({
+        id: o.id,
+        customer: o.customer?.name || 'Unknown',
+        restaurant: o.branch || 'Main Branch',
+        amount: `₹${o.billing?.total || 0}`,
+        status: o.status,
+        time: new Date(o.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }));
+
     return {
-      totalRevenue,
+      totalRevenue: totalRevenue,
       totalOrders: filteredOrders.length,
-      totalRejections,
-      totalCancellations,
+      totalRejections: totalRejections,
+      totalCancellations: totalCancellations,
+      avgOrderValue: filteredOrders.length > 0 ? (totalRevenue / filteredOrders.length).toFixed(2) : '0',
+      activeBranches: 1, // hardcoded for restaurant
       topItems: topItemsData,
-      recentOrders: recentOrdersData,
       chartData: chartData,
+      revenueData: chartData.map(d => ({ name: d.name, value: d.revenue })),
+      pieData: pieData,
+      recentOrders: recentOrders,
+      statusCounts: { pending, preparing, ready, delivered },
+      ratingStats: { averageRating, distribution, totalReviews: reviews.length },
       trends: {
         revenue: getTrend(totalRevenue, prevTotalRevenue),
         orders: getTrend(filteredOrders.length, prevFilteredOrders.length),
@@ -188,7 +266,6 @@ export default function Dashboard() {
     };
   }, [orders, masterMenu, startDate, endDate]);
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -197,89 +274,117 @@ export default function Dashboard() {
     }
   };
 
+  const handleExportReport = async () => {
+    try {
+      setIsExporting(true);
+      const getFilterLabel = () => {
+        switch (timeFilter) {
+          case 'today': return 'Today';
+          case '7days': return 'Last 7 Days';
+          case '30days': return 'Last 30 Days';
+          case '90days': return 'Last 90 Days';
+          default: return 'Custom Range';
+        }
+      };
+      await exportDashboardReport(dynamicStats, getFilterLabel());
+    } catch (error) {
+      console.error("Export failed:", error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
 
-  const handleExportCSV = () => {
-    import('xlsx').then(XLSX => {
-      const wb = XLSX.utils.book_new();
-
-      const kpiData = [{
-        'Total Revenue': dynamicStats.totalRevenue,
-        'Total Orders': dynamicStats.totalOrders,
-        'Total Rejections': dynamicStats.totalRejections,
-        'Total Cancellations': dynamicStats.totalCancellations
-      }];
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(kpiData), 'KPI Summary');
-
-      const trendsData = dynamicStats.chartData.map(d => ({
-        'Date': d.date,
-        'Name': d.name,
-        'Revenue': d.revenue,
-        'Orders': d.orders
-      }));
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(trendsData), 'Revenue & Orders');
-
-      const topItemsData = dynamicStats.topItems.map(item => ({
-        'Rank': item.rank,
-        'Item Name': item.name,
-        'Orders': item.orders,
-        'Revenue (INR)': Number(item.revenue.replace(/[^0-9.-]+/g, ""))
-      }));
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(topItemsData), 'Top Selling Items');
-
-      const recentOrdersData = dynamicStats.recentOrders.map(order => ({
-        'Order ID': order.id,
-        'Items': order.items,
-        'Amount (INR)': Number(order.amount.replace(/[^0-9.-]+/g, "")),
-        'Status': order.status,
-        'Payment Method': order.method
-      }));
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(recentOrdersData), 'Recent Orders');
-
-      XLSX.writeFile(wb, `dashboard_export_${startDate}_to_${endDate}.xlsx`);
-    }).catch(err => {
-      console.error('Failed to export xlsx', err);
-    });
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <RefreshCw className="w-8 h-8 text-brand-orange-500 animate-spin" />
+        <RefreshCw className="w-8 h-8 text-[#FF6B00] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 relative">
-      <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4 mb-6 z-40 relative">
+    <div className="space-y-4 sm:space-y-6 w-full px-3 sm:px-6 lg:px-8 pb-10 pt-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 mt-1 sm:mt-2">
         <DashboardHeader
           isConnected={isConnected}
           isManager={isManager}
           setIsManager={setIsManager}
         />
 
-        <FilterToolbar
-          startDate={startDate} setStartDate={setStartDate}
-          endDate={endDate} setEndDate={setEndDate}
-          validationError={validationError}
-        />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto mt-4 lg:mt-0 relative z-10">
+          {timeFilter === 'custom' && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-white border border-[#E8ECF4] rounded-xl p-3 sm:px-3 sm:py-2.5 shadow-sm w-full sm:w-auto"
+            >
+              <div className="flex items-center justify-between bg-[#F8FAFC] sm:bg-transparent p-2 sm:p-0 rounded-lg border border-[#E8ECF4] sm:border-none">
+                <span className="text-[11px] font-black text-[#8896AB] uppercase tracking-wider sm:hidden mr-2">From</span>
+                <input 
+                  type="date" 
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  className="text-sm font-bold text-[#1a1f36] bg-transparent outline-none cursor-pointer w-full sm:w-auto text-right sm:text-left"
+                />
+              </div>
+              <span className="hidden sm:inline text-[#8896AB] font-bold px-1">to</span>
+              <div className="flex items-center justify-between bg-[#F8FAFC] sm:bg-transparent p-2 sm:p-0 rounded-lg border border-[#E8ECF4] sm:border-none">
+                <span className="text-[11px] font-black text-[#8896AB] uppercase tracking-wider sm:hidden mr-2">To</span>
+                <input 
+                  type="date" 
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  className="text-sm font-bold text-[#1a1f36] bg-transparent outline-none cursor-pointer w-full sm:w-auto text-right sm:text-left"
+                />
+              </div>
+            </motion.div>
+          )}
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex-1 sm:w-[200px] shrink-0 relative z-[60]">
+              <Select
+                options={[
+                  { value: 'today', label: 'Today' },
+                  { value: '7days', label: 'Last 7 Days' },
+                  { value: '30days', label: 'Last 30 Days' },
+                  { value: '90days', label: 'Last 90 Days' },
+                  { value: 'custom', label: 'Custom Range' },
+                ]}
+                value={timeFilter}
+                onChange={(e) => setTimeFilter(e.target.value as any)}
+                className="shadow-sm"
+              />
+            </div>
+            
+            <button
+              onClick={handleExportReport}
+              disabled={isExporting}
+              className="flex items-center justify-center gap-2 bg-[#FF6B00] hover:bg-[#E66000] text-white px-3 sm:px-4 py-[9px] sm:py-2.5 rounded-xl font-bold transition-colors disabled:opacity-50 shrink-0 shadow-sm relative z-50"
+              title="Export Report"
+            >
+              {isExporting ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span className="text-sm hidden sm:inline-block">Export Report</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="space-y-6"
+        className="space-y-4"
       >
-        <motion.div variants={itemVariants} className="pt-2">
-          <h2 className="text-lg font-black text-brand-navy mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-6 bg-brand-orange-500 rounded-full"></span>
-            Key Performance Indicators
-          </h2>
+        <motion.div variants={itemVariants}>
           <KPISection
             isManager={isManager}
             totalRevenue={dynamicStats.totalRevenue}
@@ -287,47 +392,28 @@ export default function Dashboard() {
             totalRejections={dynamicStats.totalRejections}
             totalCancellations={dynamicStats.totalCancellations}
             trends={dynamicStats.trends}
+            pendingOrdersCount={dynamicStats.statusCounts.pending}
           />
         </motion.div>
 
-        <motion.div variants={itemVariants} className="pt-6 border-t border-border/50">
-          <h2 className="text-lg font-black text-brand-navy mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-6 bg-brand-orange-500 rounded-full"></span>
-            Analytics & Trends
-          </h2>
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <div className="xl:col-span-2">
-              <RevenueOrdersChart data={dynamicStats.chartData} isManager={isManager} onExportCSV={handleExportCSV} />
-            </div>
-
-            <div className="xl:col-span-1">
-              <OrdersChart data={dynamicStats.chartData} isManager={isManager} />
-            </div>
+        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <RevenueOrdersChart data={dynamicStats.chartData} isManager={isManager} />
+          </div>
+          <div className="lg:col-span-1">
+            <LiveOrderStatus {...dynamicStats.statusCounts} />
           </div>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="pt-6 border-t border-border/50">
-          <h2 className="text-lg font-black text-brand-navy mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-6 bg-[#059669] rounded-full"></span>
-            Recent Activity & Top Items
-          </h2>
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <div className="xl:col-span-2">
-              <RecentOrdersTable orders={dynamicStats.recentOrders} />
-            </div>
-
-            <div className="xl:col-span-1">
-              <TopSellingItems items={dynamicStats.topItems} />
-            </div>
+        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <TopSellingItems items={dynamicStats.topItems} />
+          </div>
+          <div className="lg:col-span-1">
+            <CustomerRating {...dynamicStats.ratingStats} />
           </div>
         </motion.div>
       </motion.div>
-
-      {/* Background Decorative Elements */}
-      <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 overflow-hidden bg-gray-50/30">
-        <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-brand-orange-500/10 rounded-full blur-[100px]" />
-        <div className="absolute top-[20%] right-[-5%] w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px]" />
-      </div>
     </div>
   );
 }

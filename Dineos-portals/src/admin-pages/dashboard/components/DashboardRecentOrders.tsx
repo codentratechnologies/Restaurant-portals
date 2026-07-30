@@ -9,9 +9,6 @@ export default function DashboardRecentOrders({ recentOrders, topItems }: { rece
       <div className="lg:col-span-2 bg-white border border-[#E8ECF4] rounded-2xl shadow-sm overflow-hidden flex flex-col">
         <div className="p-4 sm:p-5 flex items-center justify-between border-b border-[#F0F2F7]">
           <h3 className="text-base sm:text-lg font-black text-[#1a1f36]">Recent Orders</h3>
-          <Link to="/admin/orders/list" className="text-sm font-bold text-[#1a1f36] border border-[#E8ECF4] rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">
-            View All Orders
-          </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[700px]">
@@ -63,9 +60,6 @@ export default function DashboardRecentOrders({ recentOrders, topItems }: { rece
       <div className="bg-white border border-[#E8ECF4] rounded-2xl shadow-sm overflow-hidden flex flex-col">
         <div className="p-4 sm:p-5 flex items-center justify-between border-b border-[#F0F2F7]">
           <h3 className="text-base sm:text-lg font-black text-[#1a1f36]">Top Selling Items</h3>
-          <button className="text-[13px] font-bold text-brand-orange-500 hover:text-brand-orange-600 transition-colors bg-brand-orange-50 px-3 py-1.5 rounded-lg">
-            View All
-          </button>
         </div>
         <div className="p-2 sm:p-3 space-y-1 overflow-y-auto max-h-[350px]">
           {topItems.length === 0 ? (

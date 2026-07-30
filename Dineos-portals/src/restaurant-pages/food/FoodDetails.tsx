@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertCircle, FileText, Tag, Layers, Calendar, User, Settings2 } from 'lucide-react';
 import { ref, get, query, orderByChild, equalTo } from 'firebase/database';
 import { rtdb } from '../../lib/firebase';
 import Card from '../../components/common/Card';
@@ -29,18 +29,6 @@ export default function FoodDetails() {
         const adminId = activeAssignment.adminId;
         const branchId = activeAssignment.branchId;
 
-        // Fetch Branch Availability
-        const branchSnap = await get(ref(rtdb, `branch/${adminId}`));
-        let menuAvailability: Record<string, boolean> = {};
-        
-        if (branchSnap.exists()) {
-          const data = branchSnap.val();
-          const matchingBranchKey = Object.keys(data).find(key => data[key].code === branchId);
-          if (matchingBranchKey) {
-            menuAvailability = data[matchingBranchKey].menu_availability || {};
-          }
-        }
-
         // Fetch Master Menu to find the item
         const menuSnap = await get(ref(rtdb, `menu/${adminId}`));
         let foundItem: any = null;
@@ -66,7 +54,7 @@ export default function FoodDetails() {
         }
 
         if (foundItem) {
-          const isAvailable = menuAvailability[foundItem.displayId] !== false;
+          const isAvailable = foundItem.branchAvailability && branchId ? foundItem.branchAvailability[branchId] !== false : true;
           foundItem.is_available = isAvailable;
           setFoodItem(foundItem);
         } else {
@@ -113,156 +101,243 @@ export default function FoodDetails() {
     );
   }
 
+  // Date formatter
+  const formatDate = (isoString?: string) => {
+    if (!isoString) return '-';
+    try {
+      const d = new Date(isoString);
+      return d.toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch {
+      return '-';
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-7xl mx-auto pb-10">
       {/* Header */}
-      <div className="flex flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-          <Link
-            to="/restaurant/food"
-            className="mt-1 sm:mt-0 p-2 sm:p-2.5 text-text-secondary hover:text-brand-navy hover:bg-white rounded-xl transition-all shadow-sm border border-transparent hover:border-border bg-gray-50 shrink-0"
-          >
-            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-          </Link>
-          <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
-            <div className="flex flex-wrap items-center gap-2 mb-1">
-              <h1 className="text-2xl sm:text-3xl font-black text-brand-navy tracking-tight leading-tight">
-                {foodItem.name}
-              </h1>
-              {foodItem.displayId && (
-                <span className="font-mono text-[10px] sm:text-xs font-bold text-text-secondary bg-gray-100 border border-border/50 px-2 py-0.5 rounded tracking-widest uppercase shrink-0">
-                  {foodItem.displayId}
-                </span>
-              )}
-            </div>
-            <p className="text-text-secondary mt-1 text-xs sm:text-sm font-medium">Detailed view of menu item</p>
-          </motion.div>
-        </div>
+      <div className="mb-6 sm:mb-8">
+        <Link
+          to="/restaurant/food"
+          className="inline-flex items-center gap-2 text-[#FF6B00] hover:text-[#E66000] font-bold text-sm mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Menu List
+        </Link>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+          <div className="flex flex-wrap items-center gap-3 mb-1">
+            <h1 className="text-[28px] sm:text-[32px] font-black text-[#1a1f36] tracking-tight leading-tight">
+              {foodItem.name}
+            </h1>
+            {foodItem.displayId && (
+              <span className="px-2.5 py-1 bg-[#F4F6FA] text-[#8896AB] text-[13px] font-bold rounded-md uppercase tracking-wide">
+                {foodItem.displayId}
+              </span>
+            )}
+          </div>
+          <p className="text-[#8896AB] text-[15px] font-medium">Detailed view of menu item</p>
+        </motion.div>
       </div>
 
       {/* Content grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
-        {/* Left Column - Image & Description */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+        {/* Left Column */}
         <div className="lg:col-span-5 space-y-6">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card className="p-0 overflow-hidden border-border/50 shadow-sm rounded-2xl bg-white">
-              <div className="aspect-[4/3] w-full bg-gray-50 relative group">
-                <img
-                  src={foodItem.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400'}
-                  alt={foodItem.name}
-                  className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!foodItem.is_available && 'grayscale'}`}
-                  onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400' }}
-                />
-                {!foodItem.is_available && (
-                  <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px] flex items-center justify-center z-10">
-                    <Badge variant="error" className="px-4 py-2 text-sm font-black shadow-lg">CURRENTLY UNAVAILABLE</Badge>
+            <div className="w-full aspect-[16/10] sm:aspect-[4/3] rounded-2xl overflow-hidden relative shadow-sm border border-[#E8ECF4] bg-white group">
+              <img
+                src={foodItem.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400'}
+                alt={foodItem.name}
+                className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!foodItem.is_available && 'grayscale opacity-80'}`}
+                onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400' }}
+              />
+              {!foodItem.is_available && (
+                <div className="absolute inset-0 bg-white/30 backdrop-blur-[2px] flex items-center justify-center z-10">
+                  <span className="px-4 py-2 bg-[#FFF0F2] text-[#FF3B5C] text-sm font-black rounded-lg shadow-sm border border-[#FFD1D9]">UNAVAILABLE</span>
+                </div>
+              )}
+              
+              {/* Dietary Icon Overlay */}
+              <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md p-1.5 rounded-lg shadow-sm border border-[#E8ECF4] z-20">
+                  <svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="1" y="1" width="14" height="14" stroke={foodItem.dietary_types?.includes('Veg') || foodItem.is_vegetarian ? '#00A254' : '#FF3B5C'} strokeWidth="1.5" rx="2" />
+                      {foodItem.dietary_types?.includes('Veg') || foodItem.is_vegetarian ? (
+                          <circle cx="8" cy="8" r="3.5" fill="#00A254" />
+                      ) : (
+                          <path d="M8 4.5L11.5 10.5H4.5L8 4.5Z" fill="#FF3B5C" />
+                      )}
+                  </svg>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+            <div className="bg-white rounded-2xl border border-[#E8ECF4] p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-1.5 bg-[#FFF3E8] rounded-md text-[#FF6B00]">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <h3 className="text-[15px] font-bold text-[#1a1f36]">Item Details</h3>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between py-1">
+                  <div className="flex items-center gap-2.5 text-[#8896AB]">
+                    <Tag className="w-[15px] h-[15px]" />
+                    <span className="text-[13px] font-semibold">Item ID</span>
                   </div>
-                )}
+                  <span className="text-[14px] font-bold text-[#1a1f36]">{foodItem.displayId || '-'}</span>
+                </div>
                 
-                {/* Dietary Icon Overlay */}
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-1.5 rounded-lg shadow-md border border-border/50 z-20">
-                    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="1" y="1" width="14" height="14" stroke={foodItem.dietary_types?.includes('Veg') ? '#00A254' : '#FF3B5C'} strokeWidth="1.5" rx="2" />
-                        {foodItem.dietary_types?.includes('Veg') ? (
-                            <circle cx="8" cy="8" r="3.5" fill="#00A254" />
-                        ) : (
-                            <path d="M8 4.5L11.5 10.5H4.5L8 4.5Z" fill="#FF3B5C" />
-                        )}
-                    </svg>
+                <div className="flex items-center justify-between py-1">
+                  <div className="flex items-center gap-2.5 text-[#8896AB]">
+                    <Layers className="w-[15px] h-[15px]" />
+                    <span className="text-[13px] font-semibold">Type</span>
+                  </div>
+                  <span className="text-[14px] font-bold text-[#1a1f36]">
+                    {foodItem.dietary_types?.includes('Veg') || foodItem.is_vegetarian ? 'Veg' : 'Non-Veg'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-1">
+                  <div className="flex items-center gap-2.5 text-[#8896AB]">
+                    <CheckCircle2 className="w-[15px] h-[15px]" />
+                    <span className="text-[13px] font-semibold">Availability</span>
+                  </div>
+                  <span className={`inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold ${foodItem.is_available ? 'bg-[#E5F5ED] text-[#00A254]' : 'bg-[#FFF0F2] text-[#FF3B5C]'}`}>
+                    {foodItem.is_available ? 'Available' : 'Unavailable'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-1">
+                  <div className="flex items-center gap-2.5 text-[#8896AB]">
+                    <Calendar className="w-[15px] h-[15px]" />
+                    <span className="text-[13px] font-semibold">Created On</span>
+                  </div>
+                  <span className="text-[13px] font-bold text-[#1a1f36]">{formatDate(foodItem.created_at)}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-1">
+                  <div className="flex items-center gap-2.5 text-[#8896AB]">
+                    <Calendar className="w-[15px] h-[15px]" />
+                    <span className="text-[13px] font-semibold">Updated On</span>
+                  </div>
+                  <span className="text-[13px] font-bold text-[#1a1f36]">{formatDate(foodItem.updated_at)}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-1">
+                  <div className="flex items-center gap-2.5 text-[#8896AB]">
+                    <User className="w-[15px] h-[15px]" />
+                    <span className="text-[13px] font-semibold">Last Updated By</span>
+                  </div>
+                  <span className="text-[13px] font-bold text-[#1a1f36]">{foodItem.updated_by_name || 'Admin'}</span>
                 </div>
               </div>
-              <div className="p-6 sm:p-8">
-                <h3 className="text-sm font-black text-brand-navy mb-3 uppercase tracking-wider">Item Description</h3>
-                <p className="text-text-secondary text-sm leading-relaxed font-medium">
-                  {foodItem.description || 'No description provided for this item.'}
-                </p>
-              </div>
-            </Card>
+            </div>
           </motion.div>
         </div>
 
-        {/* Right Column - Details & Customizations */}
+        {/* Right Column */}
         <div className="lg:col-span-7 space-y-6">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <Card className="border-border/50 shadow-sm rounded-2xl p-6 sm:p-8 bg-white">
-              
-              {/* Top Key Metrics */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-border/50">
+            <div className="bg-white rounded-2xl border border-[#E8ECF4] p-6 sm:p-8 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8 pb-8 border-b border-[#E8ECF4]">
                 <div>
-                  <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1">Base Price</p>
-                  <div className="text-3xl sm:text-4xl font-black text-brand-orange-600">₹{foodItem.price}</div>
+                  <p className="text-[13px] font-bold text-[#8896AB] mb-2">Base Price</p>
+                  <div className="text-4xl font-black text-[#FF6B00]">₹{foodItem.price}</div>
                 </div>
-                <div className="flex flex-col gap-1 sm:items-end">
-                  <p className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">Menu Status</p>
-                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold w-fit ${foodItem.is_available ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                <div>
+                  <p className="text-[13px] font-bold text-[#8896AB] mb-3">Menu Status</p>
+                  <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-bold ${foodItem.is_available ? 'bg-[#E5F5ED] text-[#00A254]' : 'bg-[#FFF0F2] text-[#FF3B5C]'}`}>
                     {foodItem.is_available ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                     {foodItem.is_available ? 'Serving Customers' : 'Hidden from Menu'}
                   </div>
                 </div>
               </div>
-
-              {/* Categorization */}
+              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                <div>
-                  <h4 className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-3">Categories</h4>
-                  <div className="flex flex-wrap gap-2">
+                 <div>
+                   <p className="text-[13px] font-bold text-[#8896AB] mb-3">Categories</p>
+                   <div className="flex flex-wrap gap-2">
                     {foodItem.categories && foodItem.categories.length > 0 ? (
                       foodItem.categories.map((cat: string, idx: number) => (
-                        <span key={idx} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-gray-50 border border-border/50 text-brand-navy text-xs font-bold shadow-sm">
+                        <span key={idx} className="inline-flex px-3 py-1.5 bg-[#F0F5FF] text-[#3B82F6] text-[12px] font-bold rounded-md">
                           {cat}
                         </span>
                       ))
                     ) : (
-                      <span className="text-text-secondary text-sm italic">No categories assigned</span>
+                      <span className="inline-flex px-3 py-1.5 bg-[#F4F6FA] text-[#8896AB] text-[12px] font-bold rounded-md">
+                        {foodItem.category || 'Uncategorized'}
+                      </span>
                     )}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-3">Dietary Profile</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {foodItem.dietary_types && foodItem.dietary_types.length > 0 ? (
-                      foodItem.dietary_types.map((type: string, idx: number) => (
-                        <Badge key={idx} variant={type === 'Veg' ? 'success' : type === 'Egg' ? 'warning' : 'error'} className="px-3 py-1.5 text-xs font-bold shadow-sm">
-                          {type}
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-text-secondary text-sm italic">No dietary types specified</span>
-                    )}
-                  </div>
-                </div>
+                   </div>
+                 </div>
+                 <div>
+                   <p className="text-[13px] font-bold text-[#8896AB] mb-3">Dietary Profile</p>
+                   <div className="flex flex-wrap gap-2">
+                     <span className={`inline-flex px-3 py-1.5 text-[12px] font-bold rounded-md ${foodItem.dietary_types?.includes('Veg') || foodItem.is_vegetarian ? 'bg-[#E5F5ED] text-[#00A254]' : 'bg-[#FFF0F2] text-[#FF3B5C]'}`}>
+                       {foodItem.dietary_types?.includes('Veg') || foodItem.is_vegetarian ? 'Veg' : 'Non-Veg'}
+                     </span>
+                   </div>
+                 </div>
               </div>
-
-            </Card>
+            </div>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="border-border/50 shadow-sm rounded-2xl p-6 sm:p-8 bg-white">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-black text-brand-navy">Customizations & Add-ons</h3>
-                <span className="text-xs font-bold text-text-secondary bg-gray-100 px-2.5 py-1 rounded-full">
-                  {foodItem.customizations?.length || 0} Options
-                </span>
+            <div className="bg-white rounded-2xl border border-[#E8ECF4] shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-[#E8ECF4] flex flex-row items-center justify-between gap-4">
+                 <div className="flex items-center gap-3">
+                   <div className="p-1.5 bg-[#FFF3E8] rounded-md text-[#FF6B00] shrink-0">
+                     <Settings2 className="w-4 h-4" />
+                   </div>
+                   <h3 className="text-[15px] font-bold text-[#1a1f36]">Customizations & Add-ons</h3>
+                 </div>
+                 <span className="px-2.5 py-1 bg-[#F4F6FA] text-[#8896AB] text-[12px] font-bold rounded-md shrink-0">
+                   {foodItem.customizations?.length || 0} Customizations
+                 </span>
               </div>
-
-              {foodItem.customizations && foodItem.customizations.length > 0 ? (
-                <div className="space-y-3">
-                  {foodItem.customizations.map((opt: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-gray-50/50 hover:bg-white hover:border-brand-orange-500/30 hover:shadow-sm transition-all group">
-                      <span className="font-bold text-brand-navy group-hover:text-brand-orange-600 transition-colors">{opt.label}</span>
-                      <span className="font-black text-brand-orange-600 text-lg">
-                        {Number(opt.price) === 0 ? 'Free' : `+₹${opt.price}`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-10 bg-gray-50/50 rounded-xl border border-border/50 border-dashed">
-                  <p className="font-bold text-brand-navy">No customizations available</p>
-                  <p className="text-sm text-text-secondary mt-1">This item is served as-is without extra size or add-on choices.</p>
-                </div>
-              )}
-            </Card>
+              
+              <div className="w-full overflow-x-auto">
+                <table className="w-full text-left min-w-[400px]">
+                  <thead>
+                    <tr className="bg-[#F8FAFC]/50 border-b border-[#E8ECF4]">
+                      <th className="px-6 py-4 text-[11px] font-bold text-[#8896AB] uppercase tracking-wider w-1/2">Customization Name</th>
+                      <th className="px-6 py-4 text-[11px] font-bold text-[#8896AB] uppercase tracking-wider w-1/2">Extra Price (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E8ECF4]">
+                    {foodItem.customizations && foodItem.customizations.length > 0 ? (
+                      foodItem.customizations.map((opt: any, idx: number) => (
+                        <tr key={idx} className="hover:bg-[#F8FAFC]/50 transition-colors">
+                          <td className="px-6 py-4">
+                            <span className="text-[14px] font-bold text-[#1a1f36]">{opt.label}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-[14px] font-bold text-[#FF6B00]">
+                              {Number(opt.price) === 0 ? 'Free' : `+₹${opt.price}`}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={2} className="px-6 py-12 text-center">
+                           <p className="font-bold text-[#1a1f36]">No customizations available</p>
+                           <p className="text-[13px] text-[#8896AB] mt-1">This item is served as-is without extra size or add-on choices.</p>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>

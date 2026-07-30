@@ -12,6 +12,10 @@ interface AdminTopNavProps {
 export default function AdminTopNav({ onMenuClick }: AdminTopNavProps) {
   const { user, activeAssignment } = useAuth();
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  
+  const location = window.location.pathname;
+  const isRestaurant = location.startsWith('/restaurant');
+  const prefix = isRestaurant ? '/restaurant' : '/admin';
 
   return (
     <header className="sticky top-0 z-40 w-full h-16 bg-white border-b border-[#E8ECF4] flex items-center justify-between px-4 sm:px-6">
@@ -65,7 +69,7 @@ export default function AdminTopNav({ onMenuClick }: AdminTopNavProps) {
             <div className="h-6 w-px bg-[#E8ECF4] mx-1 sm:mx-2"></div>
 
             {/* TopNav Profile Initial or Logo */}
-            <Link to="/admin/profile" className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#FFF3E8] text-[#FF6B00] flex items-center justify-center font-black text-sm shrink-0 border border-[#FF6B00]/20 overflow-hidden hover:opacity-80 transition-opacity">
+            <Link to={`${prefix}/profile`} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#FFF3E8] text-[#FF6B00] flex items-center justify-center font-black text-sm shrink-0 border border-[#FF6B00]/20 overflow-hidden hover:opacity-80 transition-opacity">
               {activeAssignment?.logoUrl ? (
                 <img src={activeAssignment.logoUrl} alt="Logo" className="w-full h-full object-cover" />
               ) : (

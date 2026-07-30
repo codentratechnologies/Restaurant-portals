@@ -1,32 +1,20 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Edit2, ChevronDown, LayoutTemplate, Info, MapPin, Receipt, TrendingUp, Store, Star, Image as ImageIcon, Activity, Circle, CheckCircle2 } from 'lucide-react';
-import { useMenuItems, MenuItem } from '../../hooks/useMenuItems';
+import { ArrowLeft, Edit2, LayoutTemplate, Info, Receipt, TrendingUp, Store, Star, Activity, CheckCircle2 } from 'lucide-react';
+import { useMenuItems } from '../../hooks/useMenuItems';
 import { useBranches } from '../../hooks/useBranches';
 import Card from '../../components/common/Card';
 import BranchesModal from './components/BranchesModal';
 
 export default function FoodDetails() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { menuItems, loading: menuLoading } = useMenuItems();
   const { branches, loading: branchesLoading } = useBranches();
   
-  const [foodItem, setFoodItem] = useState<MenuItem | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const foodItem = menuItems.find(m => m.id === id) || null;
+  const errorMsg = !menuLoading && id && !foodItem ? `Item not found for ID: ${id}` : null;
   const [isBranchesModalOpen, setIsBranchesModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (!menuLoading && id) {
-      const item = menuItems.find(m => m.id === id);
-      if (item) {
-        setFoodItem(item);
-      } else {
-        setErrorMsg(`Item not found for ID: ${id}`);
-      }
-    }
-  }, [id, menuItems, menuLoading, navigate]);
 
   if (errorMsg) {
     return (
@@ -59,13 +47,11 @@ export default function FoodDetails() {
   const subtitle = [categoryString, dietaryString].filter(Boolean).join(' • ');
 
   // Calculate available branches
-  const availableBranches = branches.filter((branch: any) => {
-    const foodKey = foodItem.foodId || foodItem.id;
-    return branch.menu_availability ? branch.menu_availability[foodKey] !== false : true;
+  const availableBranches = branches.filter((branch: { code?: string; name: string; id: string }) => {
+    return foodItem.branchAvailability && branch.code ? foodItem.branchAvailability[branch.code] !== false : true;
   });
 
   const isVeg = foodItem.dietary_types?.includes('Veg');
-  const isEgg = foodItem.dietary_types?.includes('Egg');
 
   // Format date helper
   const formatDate = (dateString?: string) => {
@@ -75,7 +61,7 @@ export default function FoodDetails() {
             day: '2-digit', month: 'short', year: 'numeric',
             hour: '2-digit', minute: '2-digit'
         });
-    } catch (e) {
+    } catch {
         return dateString;
     }
   };
@@ -299,7 +285,7 @@ export default function FoodDetails() {
                   <h2 className="text-xl font-black text-[#1a1f36] mb-6">Available in {availableBranches.length} Branches</h2>
 
                   <div className="flex flex-wrap gap-3">
-                      {availableBranches.slice(0, 4).map((b: any) => (
+                      {availableBranches.slice(0, 4).map((b: { id: string; name: string }) => (
                           <div key={b.id} className="flex items-center gap-2 px-4 py-2 rounded-full border border-[#E8ECF4] bg-[#FAFBFC]">
                               <CheckCircle2 className="w-4 h-4 text-[#00A254]" />
                               <span className="text-[13px] font-bold text-[#1a1f36]">{b.name}</span>

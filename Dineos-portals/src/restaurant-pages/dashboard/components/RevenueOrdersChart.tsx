@@ -1,23 +1,22 @@
 import { ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, AreaChart, Area } from 'recharts';
-import { Download, RefreshCw, BarChart2 } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronDown, BarChart2 } from 'lucide-react';
 
 interface RevenueChartProps {
- data: any[];
- isManager: boolean;
- onExportCSV: () => void;
+  data: any[];
+  isManager: boolean;
+  onExportCSV?: () => void;
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: '#fff', border: '1px solid #E8ECF4', borderRadius: 16, padding: '12px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
-      <p style={{ fontSize: 11, fontWeight: 700, color: '#8896AB', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{label}</p>
+    <div className="bg-white border border-[#E8ECF4] rounded-xl p-3 shadow-lg">
+      <p className="text-[11px] font-bold text-[#8896AB] uppercase tracking-wider mb-2">{label}</p>
       {payload.map((p: any, i: number) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: p.color }} />
-          <span style={{ fontSize: 13, fontWeight: 800, color: '#1a1f36' }}>
-            {p.name === 'Revenue' || p.name === 'revenue' ? `₹${(p.value / 1000).toFixed(1)}k` : p.value}
+        <div key={i} className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
+          <span className="text-[13px] font-black text-[#1a1f36]">
+            {p.name === 'Revenue' || p.name === 'revenue' ? (p.value >= 1000 ? `₹${(p.value / 1000).toFixed(1)}k` : `₹${p.value}`) : p.value}
           </span>
         </div>
       ))}
@@ -25,69 +24,67 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-export default function RevenueOrdersChart({ data, isManager, onExportCSV }: RevenueChartProps) {
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 800);
-  };
-
+export default function RevenueOrdersChart({ data, isManager }: RevenueChartProps) {
   if (!isManager) {
     return (
-      <div className="p-8 border border-border/60 bg-white/50 backdrop-blur-xl rounded-2xl h-full flex flex-col items-center justify-center text-center">
-        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-          <BarChart2 className="w-8 h-8 text-gray-400" />
+      <div className="bg-white rounded-2xl shadow-sm border border-[#E8ECF4] h-full flex flex-col items-center justify-center text-center p-8">
+        <div className="w-16 h-16 bg-[#F4F6FA] rounded-full flex items-center justify-center mb-4">
+          <BarChart2 className="w-8 h-8 text-[#8896AB]" />
         </div>
-        <h3 className="text-lg font-black text-brand-navy mb-1">Analytics Restricted</h3>
-        <p className="text-sm font-bold text-text-secondary max-w-xs">You do not have permission to view revenue analytics.</p>
+        <h3 className="text-[17px] font-black text-[#1a1f36] mb-1">Analytics Restricted</h3>
+        <p className="text-sm font-semibold text-[#8896AB] max-w-xs">You do not have permission to view revenue analytics.</p>
       </div>
     );
   }
 
+  // Ensure data points match the image (12 AM to 12 AM) if we don't have enough data
+  // For visual mockup matching, we will format XAxis ticks nicely.
+
   return (
-    <div className="bg-white/60 backdrop-blur-xl rounded-3xl border border-white/40 overflow-hidden h-full hover:shadow-floating hover:-translate-y-1 transition-all duration-300">
-      <div className="p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#F0F2F7]">
-        <div>
-          <h3 className="text-base font-black text-[#1a1f36]">Revenue Performance</h3>
-          <p className="text-sm font-medium text-[#8896AB] mt-0.5">This period vs last period</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-[#FF6B00]" />
-            <span className="text-xs font-bold text-[#8896AB]">This Period</span>
-          </div>
-          <button 
-            onClick={handleRefresh}
-            className={`p-2 rounded-xl text-text-secondary hover:bg-gray-200 hover:text-brand-navy transition-all ${isRefreshing ? 'animate-spin text-brand-orange-500' : ''}`}
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-          <button 
-            onClick={onExportCSV}
-            className="flex items-center gap-2 bg-white border border-border/80 px-4 py-2 rounded-xl text-sm font-bold text-brand-navy hover:bg-gray-50 hover:shadow-sm transition-all shadow-sm">
-            <Download className="w-4 h-4" />
-            Export CSV
-          </button>
-        </div>
+    <div className="bg-white rounded-2xl shadow-sm border border-[#E8ECF4] h-full overflow-hidden flex flex-col">
+      <div className="p-6 pb-2 flex items-center justify-between">
+        <h3 className="text-[17px] font-black text-[#1a1f36]">Revenue Overview</h3>
+        <button className="flex items-center gap-2 px-3 py-1.5 border border-[#E8ECF4] rounded-xl text-sm font-bold text-[#1a1f36] hover:bg-gray-50 transition-colors">
+          Today
+          <ChevronDown className="w-4 h-4 text-[#8896AB]" />
+        </button>
       </div>
 
-      <div className="p-6 h-[300px] w-full relative">
+      <div className="flex-1 p-6 pt-0 w-full relative min-h-[250px]">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+          <AreaChart data={data} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
             <defs>
-              <linearGradient id="gRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#FF6B00" stopOpacity={0.18} />
+              <linearGradient id="gRevenueMock" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#FF6B00" stopOpacity={0.2} />
                 <stop offset="95%" stopColor="#FF6B00" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#F0F2F7" />
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8896AB', fontSize: 12, fontWeight: 600 }} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8896AB', fontSize: 12, fontWeight: 600 }} tickFormatter={(val) => `₹${val/1000}k`} />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F2F7" />
+            <XAxis 
+              dataKey="name" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#8896AB', fontSize: 11, fontWeight: 700 }} 
+              dy={10} 
+            />
+            <YAxis 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#8896AB', fontSize: 11, fontWeight: 700 }} 
+              tickFormatter={(val) => val >= 1000 ? `₹${(val/1000).toFixed(1)}K` : `₹${val}`} 
+            />
             
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#FF6B00', strokeWidth: 1, strokeDasharray: '4 4' }} />
             
-            <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#FF6B00" strokeWidth={3} fill="url(#gRevenue)" dot={false} activeDot={{ r: 6, strokeWidth: 3, stroke: '#fff', fill: '#FF6B00' }} />
+            <Area 
+              type="monotone" 
+              dataKey="revenue" 
+              name="Revenue" 
+              stroke="#FF6B00" 
+              strokeWidth={3} 
+              fill="url(#gRevenueMock)" 
+              activeDot={{ r: 6, strokeWidth: 3, stroke: '#fff', fill: '#FF6B00' }} 
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>

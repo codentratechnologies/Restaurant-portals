@@ -17,6 +17,7 @@ export interface MenuItem {
   customizations?: any[];
   created_at: string;
   updated_at: string;
+  branchAvailability?: Record<string, boolean>;
 }
 
 export function useMenuItems() {

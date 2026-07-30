@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import ProfileSettings from './ProfileSettings';
 import Button from '../../components/common/Button';
-import { Edit3, X } from 'lucide-react';
+import { Edit3, X, LogOut } from 'lucide-react';
+import LogoutModal from '../../components/common/LogoutModal';
 
 export default function StandaloneProfile() {
   const [editing, setEditing] = useState(false);
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   return (
     <div className="max-w-[1100px] mx-auto">
@@ -17,13 +19,22 @@ export default function StandaloneProfile() {
           </div>
           <div className="shrink-0 mt-1 sm:mt-0">
             {!editing ? (
-              <button
-                onClick={() => setEditing(true)}
-                className="flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 bg-white border border-brand-orange-500 rounded-xl text-sm font-bold text-brand-orange-500 hover:bg-brand-orange-50 transition-colors shadow-sm"
-              >
-                <Edit3 className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
-                <span className="hidden sm:inline sm:ml-2">Edit Profile</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setEditing(true)}
+                  className="flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 bg-white border border-brand-orange-500 rounded-xl text-sm font-bold text-brand-orange-500 hover:bg-brand-orange-50 transition-colors shadow-sm"
+                >
+                  <Edit3 className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
+                  <span className="hidden sm:inline sm:ml-2">Edit Profile</span>
+                </button>
+                <button
+                  onClick={() => setIsLogoutOpen(true)}
+                  className="flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 bg-white border border-red-200 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-colors shadow-sm"
+                >
+                  <LogOut className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
+                  <span className="hidden sm:inline sm:ml-2">Logout</span>
+                </button>
+              </div>
             ) : (
               <button
                 onClick={() => setEditing(false)}
@@ -38,6 +49,8 @@ export default function StandaloneProfile() {
 
         <ProfileSettings editing={editing} onSetEditing={setEditing} />
       </div>
+      
+      <LogoutModal isOpen={isLogoutOpen} onClose={() => setIsLogoutOpen(false)} />
     </div>
   );
 }

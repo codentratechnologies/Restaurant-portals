@@ -374,10 +374,10 @@ export default function OrderTable() {
   };
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto">
+    <div className="space-y-6 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-4">
 
       {/* Orders Tab Bar */}
-      <div className="flex items-center gap-1 border-b border-border pb-0">
+      <div className="flex items-center gap-1 border-b border-border pb-0 overflow-x-auto no-scrollbar whitespace-nowrap">
         <NavLink
           to="/restaurant/orders"
           end
